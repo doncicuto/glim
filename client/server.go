@@ -23,7 +23,10 @@
 package client
 
 import (
+	"sync"
+
 	"github.com/muultipla/glim/server/api"
+	"github.com/muultipla/glim/server/ldap"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +35,15 @@ var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Manage a Glim server",
 	Run: func(cmd *cobra.Command, args []string) {
-		api.Server()
+		var wg sync.WaitGroup
+
+		wg.Add(1)
+		go api.Server(&wg)
+
+		wg.Add(2)
+		go ldap.Server(&wg)
+
+		wg.Wait()
 	},
 }
 

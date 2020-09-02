@@ -2,7 +2,7 @@ package ldap
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"strings"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
@@ -213,7 +213,7 @@ func searchTypesOnly(p *ber.Packet) (bool, *ServerError) {
 }
 
 // HandleBind - TODO comment
-func HandleBind(message *Message, db *gorm.DB) (*ber.Packet, error) {
+func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, error) {
 
 	id := message.ID
 	p := message.Request
@@ -237,21 +237,21 @@ func HandleBind(message *Message, db *gorm.DB) (*ber.Packet, error) {
 	}
 
 	// DEBUG - TODO
-	log.Printf("bind protocol version: %d\n", v)
-	log.Printf("bind name: %s\n", n)
-	log.Printf("bind password: %s\n", "**********")
+	printLog(fmt.Sprintf("bind protocol version: %d client %s", v, remoteAddr))
+	printLog(fmt.Sprintf("bind name: %s client %s", n, remoteAddr))
+	printLog(fmt.Sprintf("bind password: %s client %s", "**********", remoteAddr))
 
 	// Check credentials in database
 	var dbUser models.User
 
 	// Check if user exists
 	if db.Where("username = ?", n).First(&dbUser).RecordNotFound() {
-		return encodeBindResponse(id, InsufficientAccessRights, ""), errors.New("incorrect username or password")
+		return encodeBindResponse(id, InsufficientAccessRights, ""), fmt.Errorf("wrong username or password client %s", remoteAddr)
 	}
 
 	// Check if passwords match
 	if err := models.VerifyPassword(*dbUser.Password, pass); err != nil {
-		return encodeBindResponse(id, InsufficientAccessRights, ""), errors.New("incorrect username or password")
+		return encodeBindResponse(id, InsufficientAccessRights, ""), fmt.Errorf("wrong username or password client %s", remoteAddr)
 	}
 
 	// TODO - Check valid user and password for now invalid credentials
@@ -308,11 +308,11 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 	// &{{0 32 16} <nil> []  [] }
 
 	// DEBUG - TODO
-	log.Printf("search base object: %s\n", b)
-	log.Printf("search scope: %s\n", scopes[s])
-	log.Printf("search maximum number of entries to be returned (0 - No limit restriction): %d\n", n)
-	log.Printf("search maximum time limit (0 - No limit restriction): %d\n", l)
-	log.Printf("search show types only: %t\n", t)
+	printLog(fmt.Sprintf("search base object: %s", b))
+	printLog(fmt.Sprintf("search scope: %s", scopes[s]))
+	printLog(fmt.Sprintf("search maximum number of entries to be returned (0 - No limit restriction): %d", n))
+	printLog(fmt.Sprintf("search maximum time limit (0 - No limit restriction): %d", l))
+	printLog(fmt.Sprintf("search show types only: %t", t))
 
 	// TODO - Valid search results
 	/* RFC 4511 - The results of the Search operation are returned as zero or more
@@ -355,12 +355,12 @@ func HandleExtRequest(message *Message) (*ber.Packet, error) {
 
 	switch n {
 	case WhoamIOID: // TODO - WHOAMI
-		log.Println("whoami requested by client")
-		log.Println("whoami response: dn:cn=admin,dc=example,dc=org")
+		printLog("whoami requested by client")
+		printLog("whoami response: dn:cn=admin,dc=example,dc=org")
 		r := encodeExtendedResponse(id, Success, "", "dn:cn=admin,dc=example,dc=org")
 		return r, nil
 	default:
-		log.Println("unsupported extended request")
+		printLog("unsupported extended request")
 		r := encodeExtendedResponse(id, ProtocolError, "", "")
 		return r, nil
 	}

@@ -3,6 +3,7 @@ package api
 import (
 	"os"
 	"runtime"
+	"sync"
 
 	"github.com/dgraph-io/badger"
 	_ "github.com/jinzhu/gorm/dialects/sqlite" // Sqlite3 database
@@ -18,7 +19,8 @@ import (
 )
 
 //Server - TODO command
-func Server() {
+func Server(wg *sync.WaitGroup) {
+	defer wg.Done()
 
 	// Get environment variables
 	err := godotenv.Load()
@@ -31,10 +33,17 @@ func Server() {
 
 	// Set logger level
 	e.Logger.SetLevel(log.ERROR)
-	e.Use(middleware.Logger())
+	e.Logger.SetHeader("${time_rfc3339} [Glim] ⇨")
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "${time_rfc3339} [REST] ⇨ ${status} ${method} ${uri} ${remote_ip} ${error}\n",
+	}))
 
-	// Hide banner
+	// Hide Echo banner and listening port
 	e.HideBanner = true
+	e.HidePort = true
+
+	// starting API server....
+	e.Logger.Print("starting REST API in port 1323...")
 
 	// Database
 	database, err := db.Initialize()
@@ -42,21 +51,24 @@ func Server() {
 		e.Logger.Fatal(err)
 	}
 	defer database.Close()
+	e.Logger.Print("REST API connected to database...")
 
 	// Key-value store for
-	options := badger.DefaultOptions("./server/kvstore/badger")
+	options := badger.DefaultOptions("./server/kv")
 	// In Windows: To avoid "Value log truncate required to run DB. This might result in data loss" we add the options.Truncate = true
 	// Reference: https://discuss.dgraph.io/t/lock-issue-on-windows-on-exposed-api/6316.
 	if runtime.GOOS == "windows" {
 		options.Truncate = true
 	}
 
-	options.Truncate = true
+	// TODO - Enable or disable badger logging
+	options.Logger = nil
 	blacklist, err := badger.Open(options)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer blacklist.Close()
+	e.Logger.Print("REST API connected to key-value store...")
 
 	// JWT tokens will be used for all endpoints but for token requests
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
@@ -94,5 +106,5 @@ func Server() {
 	e.GET("/groups/:gid/members", h.FindGroupMembers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 
 	// Start our server
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Start(":1323")
 }

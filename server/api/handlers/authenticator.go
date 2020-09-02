@@ -53,12 +53,12 @@ func (a *Authenticator) authenticate(username, password string) (*models.User, *
 
 	// Check if user exists
 	if a.db.Where("username = ?", username).First(&dbUser).RecordNotFound() {
-		return nil, &echo.HTTPError{Code: http.StatusUnauthorized, Message: "incorrect username or password"}
+		return nil, &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
 	}
 
 	// Check if passwords match
 	if err := models.VerifyPassword(*dbUser.Password, password); err != nil {
-		return nil, &echo.HTTPError{Code: http.StatusUnauthorized, Message: "incorrect username or password"}
+		return nil, &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
 	}
 
 	return &dbUser, nil

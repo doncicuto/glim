@@ -1,4 +1,4 @@
 .env
-/server/kvstore/badger
+/server/kv
 /server/db/glim.db
 tasks.md
