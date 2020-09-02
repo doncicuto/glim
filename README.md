@@ -19,8 +19,8 @@ The fact is that when using LDAP for authentication we've found that:
 - You need some time to spend learning things like LDAP schemas, LDIF (LDAP Data Interchange Format).
 - You need more time to learn how to manage and maintain those servers.
 - We all love to learn new stuff, don't we? but in the end you may say "I just want to store a username, a password and some more information, do I need all these ancient information about ASN.1?"
-- Sometimes you want to test your LDAP applications and you'd like to create some users quickly.
-- You may like to have a server is ready to run in your private Kubernetes cluster.
+- Sometimes you want to test your LDAP authenticated applications and you'd like to create some users quickly.
+- You may like to have a server which is ready to run in your private Kubernetes cluster.
 
 Finally we decided to develop our own simple identity management system that can be used with LDAP bind operations for authentication purposes and stores our team users accounts and group information. We wanted to have a simple server that spoke enough LDAP for our purposes.
 
@@ -40,12 +40,17 @@ Glim server can force LDAP clients to use certificate clients. Just add the --ve
 
 ## How does it work
 
+```(bash)
 glim server start
-> If no manager account is there, we will create one
-glim server stop
 
 glim login -u cedric.daniels -p glim.muultipla.com
+
 glim group add devops
+
 glim account add -u lester.freamon -e lester.freamon@baltimorepolice.org -g devops,support -p
 glim account remove -u jimmy.mcnulty
+
 glim logout
+
+glim server stop
+```
