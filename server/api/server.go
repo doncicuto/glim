@@ -1,7 +1,6 @@
 package api
 
 import (
-	"net"
 	"os"
 	"sync"
 
@@ -40,14 +39,6 @@ func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist *badger.DB) {
 		addr = apiAddr
 	}
 
-	l, err := net.Listen("tcp4", addr)
-	if err != nil {
-		log.SetHeader("${time_rfc3339} [Glim] ⇨")
-		log.Fatal(err)
-		return
-	}
-	defer l.Close()
-
 	// JWT tokens will be used for all endpoints but for token requests
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
 		SigningKey: []byte(os.Getenv("API_SECRET")),
@@ -81,6 +72,6 @@ func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist *badger.DB) {
 	e.GET("/groups/:gid/members", h.FindGroupMembers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 
 	// starting API server....
-	e.Logger.Printf("starting REST API in port %s...", addr)
+	e.Logger.Printf("starting REST API in address %s...", addr)
 	e.Logger.Fatal(e.Start(addr))
 }

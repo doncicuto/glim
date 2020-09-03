@@ -113,7 +113,7 @@ func Server(wg *sync.WaitGroup, database *gorm.DB) {
 	defer l.Close()
 
 	log.SetHeader("${time_rfc3339} [Glim] ⇨")
-	log.Printf("starting LDAP server in %s...", addr)
+	log.Printf("starting LDAP server in address %s...", addr)
 
 	for {
 		c, err := l.Accept()
