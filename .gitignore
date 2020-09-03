@@ -1,4 +1,6 @@
 .env
-/server/kv
+/server/kv/*.vlog
+/server/kv/LOCK
+/server/kv/MANIFEST
 /server/db/glim.db
 tasks.md

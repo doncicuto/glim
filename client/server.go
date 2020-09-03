@@ -25,11 +25,11 @@ package client
 import (
 	"fmt"
 	"log"
-	"runtime"
 	"sync"
 	"time"
 
-	"github.com/dgraph-io/badger"
+	"github.com/muultipla/glim/server/kv/badgerdb"
+
 	"github.com/joho/godotenv"
 	"github.com/muultipla/glim/server/api"
 	"github.com/muultipla/glim/server/db"
@@ -57,18 +57,8 @@ var serverCmd = &cobra.Command{
 		fmt.Printf("%s [Glim] ⇨ connected to database...\n", time.Now().Format(time.RFC3339))
 
 		// Key-value store for JWT tokens storage
-		options := badger.DefaultOptions("./server/kv")
-
-		// TODO - Enable or disable badger logging
-		options.Logger = nil
-
-		// In Windows: To avoid "Value log truncate required to run DB. This might result in data loss" we add the options.Truncate = true
-		// Reference: https://discuss.dgraph.io/t/lock-issue-on-windows-on-exposed-api/6316.
-		if runtime.GOOS == "windows" {
-			options.Truncate = true
-		}
-
-		blacklist, err := badger.Open(options)
+		// TODO choose between BadgerDB or Redis
+		blacklist, err := badgerdb.NewBadgerStore()
 		if err != nil {
 			log.Fatal(err)
 		}
