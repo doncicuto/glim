@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net"
 	"os"
 	"sync"
 
@@ -14,6 +15,8 @@ import (
 	handler "github.com/muultipla/glim/server/api/handlers"
 	glimMiddleware "github.com/muultipla/glim/server/api/middleware"
 )
+
+const apiAddr = ":1323"
 
 //Server - TODO command
 func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist *badger.DB) {
@@ -31,8 +34,19 @@ func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist *badger.DB) {
 		Format: "${time_rfc3339} [REST] ⇨ ${status} ${method} ${uri} ${remote_ip} ${error}\n",
 	}))
 
-	// starting API server....
-	e.Logger.Print("starting REST API in port 1323...")
+	// Get server address
+	addr, ok := os.LookupEnv("API_SERVER_ADDRESS")
+	if !ok {
+		addr = apiAddr
+	}
+
+	l, err := net.Listen("tcp4", addr)
+	if err != nil {
+		log.SetHeader("${time_rfc3339} [Glim] ⇨")
+		log.Fatal(err)
+		return
+	}
+	defer l.Close()
 
 	// JWT tokens will be used for all endpoints but for token requests
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
@@ -66,6 +80,7 @@ func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist *badger.DB) {
 	e.DELETE("/groups/:gid", h.DeleteGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	e.GET("/groups/:gid/members", h.FindGroupMembers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 
-	// Start our server
-	e.Start(":1323")
+	// starting API server....
+	e.Logger.Printf("starting REST API in port %s...", addr)
+	e.Logger.Fatal(e.Start(addr))
 }

@@ -3,17 +3,17 @@ package ldap
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"net"
+	"os"
 	"sync"
-	"time"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite" // Sqlite3 database
-	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
 )
+
+const ldapAddr = ":1389"
 
 func printLog(msg string) {
 	log.SetHeader("${time_rfc3339} [LDAP] ⇨")
@@ -99,23 +99,21 @@ L:
 func Server(wg *sync.WaitGroup, database *gorm.DB) {
 	defer wg.Done()
 
-	// Get environment variables
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error getting env, not comming through %v", err)
+	addr, ok := os.LookupEnv("LDAP_SERVER_ADDRESS")
+	if !ok {
+		addr = ldapAddr
 	}
 
-	PORT := ":1389"
-	l, err := net.Listen("tcp4", PORT)
+	l, err := net.Listen("tcp4", addr)
 	if err != nil {
-		fmt.Println(err)
+		log.SetHeader("${time_rfc3339} [Glim] ⇨")
+		log.Fatal(err)
 		return
 	}
 	defer l.Close()
-	rand.Seed(time.Now().Unix())
 
 	log.SetHeader("${time_rfc3339} [Glim] ⇨")
-	log.Print("starting LDAP server in port 1389...")
+	log.Printf("starting LDAP server in %s...", addr)
 
 	for {
 		c, err := l.Accept()
