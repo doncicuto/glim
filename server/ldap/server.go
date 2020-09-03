@@ -13,7 +13,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite" // Sqlite3 database
 	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
-	"github.com/muultipla/glim/server/db"
 )
 
 func printLog(msg string) {
@@ -97,7 +96,7 @@ L:
 }
 
 // Server - TODO comment
-func Server(wg *sync.WaitGroup) {
+func Server(wg *sync.WaitGroup, database *gorm.DB) {
 	defer wg.Done()
 
 	// Get environment variables
@@ -114,13 +113,6 @@ func Server(wg *sync.WaitGroup) {
 	}
 	defer l.Close()
 	rand.Seed(time.Now().Unix())
-
-	// Database
-	database, err := db.Initialize()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer database.Close()
 
 	log.SetHeader("${time_rfc3339} [Glim] ⇨")
 	log.Print("starting LDAP server in port 1389...")
