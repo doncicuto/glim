@@ -44,7 +44,7 @@ L:
 
 		switch message.Op {
 		case BindRequest:
-			printLog(fmt.Sprintf("bind requested by client %s", remoteAddress))
+			printLog(fmt.Sprintf("bind requested by client: %s", remoteAddress))
 			p, err := HandleBind(message, db, remoteAddress)
 			if err != nil {
 				printLog(err.Error())
@@ -76,7 +76,7 @@ L:
 			}
 			break L
 		case UnbindRequest:
-			printLog(fmt.Sprintf("unbind requested by client %s", remoteAddress))
+			printLog(fmt.Sprintf("unbind requested by client: %s", remoteAddress))
 		default:
 			printLog(fmt.Sprintf("operation %d not supported requested by client %s", message.Op, remoteAddress))
 			for i := 0; i < len(message.Request); i++ {

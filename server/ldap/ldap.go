@@ -254,7 +254,8 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, 
 		return encodeBindResponse(id, InsufficientAccessRights, ""), fmt.Errorf("wrong username or password client %s", remoteAddr)
 	}
 
-	// TODO - Check valid user and password for now invalid credentials
+	// Successful bind
+	printLog("success: valid credentials provided")
 	r := encodeBindResponse(id, Success, "")
 	return r, nil
 }
