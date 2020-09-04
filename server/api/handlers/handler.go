@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"github.com/dgraph-io/badger"
 	"github.com/jinzhu/gorm"
+	"github.com/muultipla/glim/server/kv"
 )
 
 //Handler - TODO comment
 type Handler struct {
 	DB *gorm.DB
-	KV *badger.DB
+	KV kv.Store
 }

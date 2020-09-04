@@ -4,7 +4,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/dgraph-io/badger"
 	"github.com/jinzhu/gorm"
 
 	"github.com/labstack/echo"
@@ -13,12 +12,13 @@ import (
 
 	handler "github.com/muultipla/glim/server/api/handlers"
 	glimMiddleware "github.com/muultipla/glim/server/api/middleware"
+	"github.com/muultipla/glim/server/kv"
 )
 
 const apiAddr = ":1323"
 
 //Server - TODO command
-func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist *badger.DB) {
+func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist kv.Store) {
 	defer wg.Done()
 
 	// New Echo framework server

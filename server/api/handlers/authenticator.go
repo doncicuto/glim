@@ -7,12 +7,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dgraph-io/badger"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 	"github.com/muultipla/glim/models"
+	"github.com/muultipla/glim/server/kv"
 )
 
 type jwtSettings struct {
@@ -37,14 +37,14 @@ type AuthTokens struct {
 // Authenticator - TODO comment
 type Authenticator struct {
 	db *gorm.DB
-	kv *badger.DB
+	kv kv.Store
 }
 
 func (a *Authenticator) setDB(db *gorm.DB) {
 	a.db = db
 }
 
-func (a *Authenticator) setKV(kv *badger.DB) {
+func (a *Authenticator) setKV(kv kv.Store) {
 	a.kv = kv
 }
 
@@ -65,11 +65,7 @@ func (a *Authenticator) authenticate(username, password string) (*models.User, *
 }
 
 func (a *Authenticator) addToKV(uuid uuid.UUID) error {
-	err := a.kv.Update(func(txn *badger.Txn) error {
-		e := badger.NewEntry([]byte(fmt.Sprintf("%s", uuid)), []byte("false")).WithTTL(time.Second * 3600)
-		err := txn.SetEntry(e)
-		return err
-	})
+	err := a.kv.Set(fmt.Sprintf("%s", uuid), "false", time.Second*3600)
 	return err
 }
 
@@ -166,28 +162,18 @@ func (a *Authenticator) token(user *models.User, iat int64) (*AuthTokens, *echo.
 }
 
 func (a *Authenticator) isBlacklisted(jti string) *echo.HTTPError {
-	blacklisted := false
-	err := a.kv.View(func(txn *badger.Txn) error {
-		item, err := txn.Get([]byte(jti))
-		if err != nil {
-			if err == badger.ErrKeyNotFound {
-				return nil
-			}
-			return err
-		}
-		err = item.Value(func(val []byte) error {
-			blacklisted = string(val) == "true"
-			return nil
-		})
-		return err
-	})
+	// TODO - Review this assignment
+	val, found, err := a.kv.Get(jti)
 
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not get stored token info"}
 	}
 
-	if blacklisted {
-		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "token no longer valid"}
+	if found {
+		// blacklisted item
+		if string(val) == "true" {
+			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "token no longer valid"}
+		}
 	}
 
 	return nil
@@ -203,10 +189,8 @@ func (a *Authenticator) userFromToken(uid int32) (*models.User, *echo.HTTPError)
 }
 
 func (a *Authenticator) blacklist(id string) *echo.HTTPError {
-	err := a.kv.Update(func(txn *badger.Txn) error {
-		err := txn.Set([]byte(id), []byte("true"))
-		return err
-	})
+	err := a.kv.Set(fmt.Sprintf("%s", id), "true", time.Second*3600)
+
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not store token info"}
 	}

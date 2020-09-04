@@ -1,12 +1,12 @@
 package middleware
 
 import (
-	"github.com/dgraph-io/badger"
 	"github.com/labstack/echo"
+	"github.com/muultipla/glim/server/kv"
 )
 
 //GlimContext - TODO comment
 type GlimContext struct {
-	Blacklist *badger.DB
+	Blacklist *kv.Store
 	echo.Context
 }
