@@ -54,3 +54,8 @@ glim logout
 
 glim server stop
 ```
+### Server logging
+
+This is a sample of a Glim server log showing REST and LDAP interaction
+
+![logging](./docs/sample_server_logging.png)
