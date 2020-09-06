@@ -27,7 +27,7 @@ import (
 	"os"
 
 	resty "github.com/go-resty/resty/v2"
-	"github.com/muultipla/glim/server/api/handlers"
+	"github.com/muultipla/glim/server/api/auth"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ var logoutCmd = &cobra.Command{
 	Long:  "Log out from a Glim server",
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		var token *handlers.AuthTokens
+		var token *auth.Response
 
 		// Read token from file
 		token = ReadCredentials()

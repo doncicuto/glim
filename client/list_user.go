@@ -46,7 +46,7 @@ func getUser(id int) {
 
 	// Rest API authentication
 	client := resty.New()
-	client.SetAuthToken(token.Token)
+	client.SetAuthToken(token.AccessToken)
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetResult(models.User{}).
@@ -95,7 +95,7 @@ func getUsers() {
 
 	// Rest API authentication
 	client := resty.New()
-	client.SetAuthToken(token.Token)
+	client.SetAuthToken(token.AccessToken)
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetResult([]models.User{}).

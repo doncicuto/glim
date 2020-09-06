@@ -8,7 +8,7 @@ import (
 	"time"
 
 	resty "github.com/go-resty/resty/v2"
-	"github.com/muultipla/glim/server/api/handlers"
+	"github.com/muultipla/glim/server/api/auth"
 )
 
 // AuthTokenPath - TODO comment
@@ -31,8 +31,8 @@ func AuthTokenPath() (*string, error) {
 }
 
 // ReadCredentials - TODO comment
-func ReadCredentials() *handlers.AuthTokens {
-	var token handlers.AuthTokens
+func ReadCredentials() *auth.Response {
+	var token auth.Response
 
 	tokenFile, err := AuthTokenPath()
 	if err != nil {
@@ -120,7 +120,7 @@ func Refresh(rt string) {
 }
 
 // NeedsRefresh - TODO comment
-func NeedsRefresh(token *handlers.AuthTokens) bool {
+func NeedsRefresh(token *auth.Response) bool {
 	// Check expiration
 	now := time.Now()
 	expiration := time.Unix(token.ExpiresOn, 0)
