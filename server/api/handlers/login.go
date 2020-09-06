@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
 	"github.com/muultipla/glim/models"
-	"github.com/muultipla/glim/server/api/token"
+	"github.com/muultipla/glim/server/api/auth"
 )
 
 // Login - TODO comment
@@ -91,7 +91,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	// Create response with access and refresh tokens
-	response := token.Response{}
+	response := auth.Response{}
 	response.AccessToken = at
 	response.RefreshToken = rt
 	response.TokenType = "Bearer"

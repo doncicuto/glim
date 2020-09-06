@@ -55,7 +55,7 @@ func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist kv.Store) {
 
 	// Routes
 	e.POST("/login", h.Login)
-	e.POST("/login/refreshToken", h.TokenRefresh)
+	e.POST("/login/refreshToken", h.Refresh)
 	e.DELETE("/login/refreshToken", h.Logout)
 
 	e.GET("/users", h.FindAllUsers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
