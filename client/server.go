@@ -24,10 +24,11 @@ package client
 
 import (
 	"fmt"
-	"log"
+	"os"
 	"sync"
 	"time"
 
+	"github.com/muultipla/glim/config"
 	"github.com/muultipla/glim/server/kv/badgerdb"
 
 	"github.com/joho/godotenv"
@@ -45,13 +46,22 @@ var serverCmd = &cobra.Command{
 		// Get environment variables
 		err := godotenv.Load()
 		if err != nil {
-			log.Fatalf("Error getting env, not comming through %v", err)
+			fmt.Printf("%s [Glim] ⇨ error getting env, not comming through %v. Exiting now...\n", time.Now().Format(time.RFC3339), err)
+			os.Exit(1)
+		}
+
+		// Check if required environment variables are set
+		ok := config.CheckAPISecret()
+		if !ok {
+			fmt.Printf("%s [Glim] ⇨ could not find required API_SECRET environment variable. Exiting now...\n", time.Now().Format(time.RFC3339))
+			os.Exit(1)
 		}
 
 		// Database
 		database, err := db.Initialize()
 		if err != nil {
-			log.Fatal("could not connect to database, exiting now...")
+			fmt.Printf("%s [Glim] ⇨ could not connect to database. Exiting now...\n", time.Now().Format(time.RFC3339))
+			os.Exit(1)
 		}
 		defer database.Close()
 		fmt.Printf("%s [Glim] ⇨ connected to database...\n", time.Now().Format(time.RFC3339))
@@ -60,7 +70,8 @@ var serverCmd = &cobra.Command{
 		// TODO choose between BadgerDB or Redis
 		blacklist, err := badgerdb.NewBadgerStore()
 		if err != nil {
-			log.Fatal(err)
+			fmt.Printf("%s [Glim] ⇨ could not connect to Badger key-value store. Exiting now...\n", time.Now().Format(time.RFC3339))
+			os.Exit(1)
 		}
 		defer blacklist.Close()
 		fmt.Printf("%s [Glim] ⇨ connected to key-value store...\n", time.Now().Format(time.RFC3339))

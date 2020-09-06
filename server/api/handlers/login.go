@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
+
+	"github.com/muultipla/glim/config"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
@@ -36,12 +37,9 @@ func (h *Handler) Login(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
 	}
 
-	// Tokens expiration times
-	expiration, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY_TIME_SECONDS"))
-	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert expiry time to int"}
-	}
-	expiresIn := time.Second * time.Duration(expiration)
+	// Access token expiry times
+	expiry := config.AccessTokenExpiry()
+	expiresIn := time.Second * time.Duration(expiry)
 	expiresOn := time.Now().Add(expiresIn).Unix()
 
 	// Prepare JWT tokens common claims
@@ -72,11 +70,18 @@ func (h *Handler) Login(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not add access token to key-value store"}
 	}
 
+	// Refresh token expiry times
+	expiry = config.RefreshTokenExpiry()
+	expiresIn = time.Second * time.Duration(expiry)
+	expiresOn = time.Now().Add(expiresIn).Unix()
+
 	// Create response token
 	rjti := uuid.New() // token id
 	rc := cc           // add common claims to refresh token claims
 	rc["jti"] = rjti
 	rc["ajti"] = ajti
+	rc["exp"] = expiresOn
+
 	t = jwt.New(jwt.SigningMethodHS256)
 	t.Claims = rc
 	rt, err := t.SignedString([]byte(os.Getenv("API_SECRET")))

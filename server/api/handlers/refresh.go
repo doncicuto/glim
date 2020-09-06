@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
+
+	"github.com/muultipla/glim/config"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
@@ -62,10 +63,7 @@ func (h *Handler) Refresh(c echo.Context) error {
 	}
 
 	// Check if use of refresh tokens limit has been exceeded
-	maxDays, err := strconv.Atoi(os.Getenv("MAX_DAYS_WITHOUT_RELOGIN"))
-	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert maximum days env to int"}
-	}
+	maxDays := config.MaxDaysWoRelogin()
 	refreshLimit := time.Unix(int64(iat), 0).AddDate(0, 0, maxDays).Unix()
 	if refreshLimit < time.Now().Unix() {
 		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "refresh token usage without log in exceeded"}
@@ -103,12 +101,9 @@ func (h *Handler) Refresh(c echo.Context) error {
 
 	// Prepare refresh response
 
-	// Tokens expiration times
-	expiration, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY_TIME_SECONDS"))
-	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert expiry time to int"}
-	}
-	expiresIn := time.Second * time.Duration(expiration)
+	// Access token expiry time
+	expiry := config.AccessTokenExpiry()
+	expiresIn := time.Second * time.Duration(expiry)
 	expiresOn := time.Now().Add(expiresIn).Unix()
 
 	// Prepare JWT tokens common claims
@@ -117,7 +112,6 @@ func (h *Handler) Refresh(c echo.Context) error {
 	cc["aud"] = "api.glim.server"
 	cc["sub"] = "api.glim.client"
 	cc["uid"] = dbUser.ID
-	cc["exp"] = expiresOn
 
 	// We use request token iat as the iat for new tokens
 	// it will be useful to check if we have to login again
@@ -128,6 +122,7 @@ func (h *Handler) Refresh(c echo.Context) error {
 	tokenID := uuid.New() // token id
 	ac := cc              // add common claims to access token claims
 	ac["jti"] = tokenID
+	ac["exp"] = expiresOn
 	ac["manager"] = dbUser.Manager
 	ac["readonly"] = dbUser.Readonly
 	t := jwt.New(jwt.SigningMethodHS256)
@@ -143,10 +138,16 @@ func (h *Handler) Refresh(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not add access token to key-value store"}
 	}
 
+	// Refresh token expiry times
+	expiry = config.RefreshTokenExpiry()
+	expiresIn = time.Second * time.Duration(expiry)
+	expiresOn = time.Now().Add(expiresIn).Unix()
+
 	// Create response token
 	tokenID = uuid.New() // token id
 	rc := cc             // add common claims to refresh token claims
 	rc["jti"] = tokenID
+	rc["exp"] = expiresOn
 	rc["ajti"] = ajti
 	t = jwt.New(jwt.SigningMethodHS256)
 	t.Claims = rc
