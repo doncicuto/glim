@@ -8,35 +8,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
-	"github.com/muultipla/glim/models"
 )
-
-// Login - TODO comment
-func (h *Handler) Login(c echo.Context) error {
-	var authenticator Authenticator
-	authenticator.setDB(h.DB)
-	authenticator.setKV(h.KV)
-
-	// Parse username and password from body
-	u := new(models.User)
-	if err := c.Bind(u); err != nil {
-		return err
-	}
-
-	// Authenticate user
-	dbUser, err := authenticator.authenticate(*u.Username, *u.Password)
-	if err != nil {
-		return err
-	}
-
-	// Send response
-	tokenInfo, err := authenticator.token(dbUser, time.Now().Unix())
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, tokenInfo)
-}
 
 // TokenRefresh - TODO comment
 func (h *Handler) TokenRefresh(c echo.Context) error {
