@@ -97,21 +97,21 @@ type Config struct {
 	Organization string
 	Hosts        []string
 	OutputPath   string
-	Years        time.Duration
+	Years        int
 }
 
 func writeCert(c *cert, path string, filename string) error {
 	pubkey := fmt.Sprintf("%s/%s.pem", path, filename)
-	if err := ioutil.WriteFile(pubkey, c.PublicBytes, 0666); err != nil {
+	if err := ioutil.WriteFile(pubkey, c.PublicBytes, 0644); err != nil {
 		return err
 	}
-	fmt.Printf("Public key file: %s\n", pubkey)
+	fmt.Printf("⇨ Certificate file: %s\n", pubkey)
 
 	privkey := fmt.Sprintf("%s/%s.key", path, filename)
 	if err := ioutil.WriteFile(privkey, c.PrivateBytes, 0600); err != nil {
 		return err
 	}
-	fmt.Printf("Private key file: %s\n", privkey)
+	fmt.Printf("⇨ Private key file: %s\n", privkey)
 
 	return nil
 }
@@ -152,7 +152,7 @@ func Generate(config *Config) error {
 		return fmt.Errorf("Failed to generate serial number: %v", err)
 	}
 	notBefore := time.Now()
-	notAfter := notBefore.Add(config.Years)
+	notAfter := notBefore.AddDate(config.Years, 0, 0)
 
 	rootTemplate := x509.Certificate{
 		IsCA:                  true,
@@ -205,7 +205,7 @@ func Generate(config *Config) error {
 		}
 	}
 
-	fmt.Println("Creating a CA certificate file and private key file...")
+	fmt.Println("\nCreating a CA certificate file and private key file...")
 	caPrivKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return err
@@ -218,7 +218,7 @@ func Generate(config *Config) error {
 		return err
 	}
 
-	fmt.Println("Creating a server certificate file and private key file...")
+	fmt.Println("\nCreating a server certificate file and private key file...")
 	serverPrivKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return err
@@ -231,7 +231,7 @@ func Generate(config *Config) error {
 		return err
 	}
 
-	fmt.Println("Creating a client certificate file and private key file...")
+	fmt.Println("\nCreating a client certificate file and private key file...")
 	clientPrivKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return err
