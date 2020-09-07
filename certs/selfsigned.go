@@ -105,13 +105,13 @@ func writeCert(c *cert, path string, filename string) error {
 	if err := ioutil.WriteFile(pubkey, c.PublicBytes, 0644); err != nil {
 		return err
 	}
-	fmt.Printf("⇨ Certificate file: %s\n", pubkey)
+	fmt.Printf("⇨ Certificate file: %s.pem\n", filename)
 
 	privkey := fmt.Sprintf("%s/%s.key", path, filename)
 	if err := ioutil.WriteFile(privkey, c.PrivateBytes, 0600); err != nil {
 		return err
 	}
-	fmt.Printf("⇨ Private key file: %s\n", privkey)
+	fmt.Printf("⇨ Private key file: %s.key\n", filename)
 
 	return nil
 }
@@ -243,6 +243,8 @@ func Generate(config *Config) error {
 	if err = writeCert(client, config.OutputPath, "client"); err != nil {
 		return err
 	}
+
+	fmt.Printf("\nFinished! All your certificates and keys should be at %s\n", config.OutputPath)
 
 	return nil
 }
