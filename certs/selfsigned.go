@@ -214,7 +214,7 @@ func Generate(config *Config) error {
 	if err != nil {
 		return err
 	}
-	if err = writeCert(rootCA, config.OutputPath, "root"); err != nil {
+	if err = writeCert(rootCA, config.OutputPath, "ca"); err != nil {
 		return err
 	}
 
