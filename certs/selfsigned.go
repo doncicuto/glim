@@ -92,23 +92,27 @@ type certs struct {
 	Root, server, Client *cert
 }
 
-// CertConfig stores information to be used in our certificate generation requests
-type CertConfig struct {
+// Config stores information to be used in our certificate generation requests
+type Config struct {
 	Organization string
 	Hosts        []string
 	OutputPath   string
-	Years        time.Duration
+	Years        int
 }
 
 func writeCert(c *cert, path string, filename string) error {
 	pubkey := fmt.Sprintf("%s/%s.pem", path, filename)
-	if err := ioutil.WriteFile(pubkey, c.PublicBytes, 0666); err != nil {
+	if err := ioutil.WriteFile(pubkey, c.PublicBytes, 0644); err != nil {
 		return err
 	}
+	fmt.Printf("⇨ Certificate file: %s.pem\n", filename)
+
 	privkey := fmt.Sprintf("%s/%s.key", path, filename)
 	if err := ioutil.WriteFile(privkey, c.PrivateBytes, 0600); err != nil {
 		return err
 	}
+	fmt.Printf("⇨ Private key file: %s.key\n", filename)
+
 	return nil
 }
 
@@ -141,14 +145,14 @@ func genCert(leaf *x509.Certificate, parent *x509.Certificate, key *ecdsa.Privat
 }
 
 // Generate rootCA, server and client certificate
-func Generate(config *CertConfig) error {
+func Generate(config *Config) error {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
 		return fmt.Errorf("Failed to generate serial number: %v", err)
 	}
 	notBefore := time.Now()
-	notAfter := notBefore.Add(config.Years)
+	notAfter := notBefore.AddDate(config.Years, 0, 0)
 
 	rootTemplate := x509.Certificate{
 		IsCA:                  true,
@@ -201,6 +205,7 @@ func Generate(config *CertConfig) error {
 		}
 	}
 
+	fmt.Println("\nCreating a CA certificate file and private key file...")
 	caPrivKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return err
@@ -213,6 +218,7 @@ func Generate(config *CertConfig) error {
 		return err
 	}
 
+	fmt.Println("\nCreating a server certificate file and private key file...")
 	serverPrivKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return err
@@ -225,6 +231,7 @@ func Generate(config *CertConfig) error {
 		return err
 	}
 
+	fmt.Println("\nCreating a client certificate file and private key file...")
 	clientPrivKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return err
@@ -236,5 +243,8 @@ func Generate(config *CertConfig) error {
 	if err = writeCert(client, config.OutputPath, "client"); err != nil {
 		return err
 	}
+
+	fmt.Printf("\nFinished! All your certificates and keys should be at %s\n", config.OutputPath)
+
 	return nil
 }

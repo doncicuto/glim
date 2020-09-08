@@ -4,3 +4,5 @@
 /server/kv/MANIFEST
 /server/db/glim.db
 tasks.md
+*.key
+*.pem
