@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/jinzhu/gorm"
-
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
@@ -15,10 +14,18 @@ import (
 	"github.com/muultipla/glim/server/kv"
 )
 
+//Settings - TODO comment
+type Settings struct {
+	DB      *gorm.DB
+	KV      kv.Store
+	TLSCert string
+	TLSKey  string
+}
+
 const apiAddr = ":1323"
 
 //Server - TODO command
-func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist kv.Store) {
+func Server(wg *sync.WaitGroup, settings Settings) {
 	defer wg.Done()
 
 	// New Echo framework server
@@ -51,7 +58,8 @@ func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist kv.Store) {
 	}))
 
 	// Initialize handler
-	h := &handler.Handler{DB: database, KV: blacklist}
+	blacklist := settings.KV
+	h := &handler.Handler{DB: settings.DB, KV: blacklist}
 
 	// Routes
 	e.POST("/login", h.Login)
@@ -73,5 +81,5 @@ func Server(wg *sync.WaitGroup, database *gorm.DB, blacklist kv.Store) {
 
 	// starting API server....
 	e.Logger.Printf("starting REST API in address %s...", addr)
-	e.Logger.Fatal(e.Start(addr))
+	e.Logger.Fatal(e.StartTLS(addr, settings.TLSCert, settings.TLSKey))
 }

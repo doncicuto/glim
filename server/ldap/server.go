@@ -1,6 +1,7 @@
 package ldap
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net"
@@ -13,6 +14,13 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
+//Settings - TODO comment
+type Settings struct {
+	DB      *gorm.DB
+	TLSCert string
+	TLSKey  string
+}
+
 const ldapAddr = ":1389"
 
 func printLog(msg string) {
@@ -24,7 +32,7 @@ func handleConnection(c net.Conn, db *gorm.DB) {
 	defer c.Close()
 
 	remoteAddress := c.RemoteAddr().String()
-	printLog(fmt.Sprintf("serving LDAP connection from %s", remoteAddress))
+	printLog(fmt.Sprintf("serving LDAPS connection from %s", remoteAddress))
 L:
 	for {
 		p, err := ber.ReadPacket(c)
@@ -96,7 +104,7 @@ L:
 }
 
 // Server - TODO comment
-func Server(wg *sync.WaitGroup, database *gorm.DB) {
+func Server(wg *sync.WaitGroup, settings Settings) {
 	defer wg.Done()
 
 	addr, ok := os.LookupEnv("LDAP_SERVER_ADDRESS")
@@ -104,23 +112,34 @@ func Server(wg *sync.WaitGroup, database *gorm.DB) {
 		addr = ldapAddr
 	}
 
-	l, err := net.Listen("tcp4", addr)
+	// Load server certificate and private key
+	cer, err := tls.LoadX509KeyPair(settings.TLSCert, settings.TLSKey)
 	if err != nil {
 		log.SetHeader("${time_rfc3339} [Glim] ⇨")
-		log.Fatal(err)
+		log.Fatal("could not load server certificate and private key pair")
+		return
+	}
+
+	// Start TLS listener
+	config := &tls.Config{Certificates: []tls.Certificate{cer}}
+	l, err := tls.Listen("tcp", addr, config)
+	if err != nil {
+		log.SetHeader("${time_rfc3339} [Glim] ⇨")
+		log.Fatal("")
 		return
 	}
 	defer l.Close()
 
 	log.SetHeader("${time_rfc3339} [Glim] ⇨")
-	log.Printf("starting LDAP server in address %s...", addr)
+	log.Printf("starting LDAPS server in address %s...", addr)
 
+	// Handle LDAP connections in a for loop
 	for {
 		c, err := l.Accept()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		go handleConnection(c, database)
+		go handleConnection(c, settings.DB)
 	}
 }
