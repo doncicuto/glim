@@ -28,11 +28,11 @@ If you're looking for a full LDAP server replacement that understands funny sche
 
 ## Secured communications by design
 
-Glim server will listen on 1323 TCP port (REST API) 1636 TCP (LDAPS) port and only TLS communications will be allowed in order to secure credentials and data exchange. 
+Glim server will listen on 1323 TCP port (REST API) 1636 TCP (LDAPS) port and only TLS communications will be allowed in order to secure credentials and data exchange.
 
 While we understand that you don't want to use certificates for testing, we feel that it is a good practice to use certificates from the beginning. Glim can create a fake CA and generate client and server certificates and matching private keys for testing purposes. Run the following command to create self-signed certificates for localhost and "My organization":
 
-```
+```(bash)
 $ glim certs -o "My organization" -a "localhost,127.0.0.1"
 
 Creating a CA certificate file and private key file...
@@ -53,19 +53,32 @@ Finished! All your certificates and keys should be at /tmp
 ## How does it work
 
 ```(bash)
-$ glim server start --tlscert "/tmp/server.pem" --tlskey "/tmp/server.key"
+glim server start --tlscert "/tmp/server.pem" --tlskey "/tmp/server.key"
 
-$ glim login -u cedric.daniels -p glim.muultipla.com
+glim login -u cedric.daniels -p glim.muultipla.com
 
-$ glim group add devops
+glim group add devops
 
-$ glim account add -u lester.freamon -e lester.freamon@baltimorepolice.org -g devops,support -p
-$ glim account remove -u jimmy.mcnulty
+glim account add -u lester.freamon -e lester.freamon@baltimorepolice.org -g devops,support -p
+glim account remove -u jimmy.mcnulty
 
-$ glim logout
+glim logout
 
 $ glim server stop
 ```
+
+### Testing Glim with OpenLDAP
+
+We can test our server using the following examples.
+
+> Note: we must specify the location for our CA certificate so OpenLDAP can verify Glim server's certificate and the TLS handshake can run smoothly. We use the **LDAPTLS_CACERT** environment variable.
+
+```(bash)
+$ LDAPTLS_CACERT=ca.pem ldapwhoami -x -D "cn=manager,dc=example,dc=com" -W -H ldaps://127.0.0.1:1636
+Enter LDAP Password: (type the manager password and press Enter)
+dn:cn=manager,dc=example,dc=org (cool this is who I am)
+```
+
 ### Server logging
 
 This is a sample of a Glim server log showing REST and LDAP interaction
