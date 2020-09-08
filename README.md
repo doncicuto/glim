@@ -26,33 +26,45 @@ Finally we decided to develop our own simple identity management system that can
 
 If you're looking for a full LDAP server replacement that understands funny schemas or complex search filters, please use the serious battle-tested staff, but if you want to use LDAP authentication with your web applications, please try our server.
 
-## Secure communications by design
+## Secured communications by design
 
-Glim server will listen on 636 TCP port and only TLS communications will be allowed. While we understand that you don't want to use certificates for testing, we feel that it is a good practice to use certificates from the beginning.
+Glim server will listen on 1323 TCP port (REST API) 1636 TCP (LDAPS) port and only TLS communications will be allowed in order to secure credentials and data exchange. 
 
-Glim can create a CA and client and server certificates for testing purposes. Run the following command to create certificates for localhost and "My organization":
+While we understand that you don't want to use certificates for testing, we feel that it is a good practice to use certificates from the beginning. Glim can create a fake CA and generate client and server certificates and matching private keys for testing purposes. Run the following command to create self-signed certificates for localhost and "My organization":
 
-`glim certs -o "My organization" -a "localhost,127.0.0.1"`
+```
+$ glim certs -o "My organization" -a "localhost,127.0.0.1"
 
-You'll find certificates and private key files in your current directory.
+Creating a CA certificate file and private key file...
+⇨ Certificate file: root.pem
+⇨ Private key file: root.key
 
-Glim server can force LDAP clients to use certificate clients. Just add the --verifyClient flag when you start the server.
+Creating a server certificate file and private key file...
+⇨ Certificate file: server.pem
+⇨ Private key file: server.key
+
+Creating a client certificate file and private key file...
+⇨ Certificate file: client.pem
+⇨ Private key file: client.key
+
+Finished! All your certificates and keys should be at /tmp
+```
 
 ## How does it work
 
 ```(bash)
-glim server start
+$ glim server start --tlscert "/tmp/server.pem" --tlskey "/tmp/server.key"
 
-glim login -u cedric.daniels -p glim.muultipla.com
+$ glim login -u cedric.daniels -p glim.muultipla.com
 
-glim group add devops
+$ glim group add devops
 
-glim account add -u lester.freamon -e lester.freamon@baltimorepolice.org -g devops,support -p
-glim account remove -u jimmy.mcnulty
+$ glim account add -u lester.freamon -e lester.freamon@baltimorepolice.org -g devops,support -p
+$ glim account remove -u jimmy.mcnulty
 
-glim logout
+$ glim logout
 
-glim server stop
+$ glim server stop
 ```
 ### Server logging
 
