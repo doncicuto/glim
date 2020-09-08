@@ -23,17 +23,21 @@
 package client
 
 import (
+	"log"
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
 // serverCmd represents the server command
-var serverCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Manage a Glim server",
-}
-
-func init() {
-	rootCmd.AddCommand(serverCmd)
-	serverCmd.AddCommand(serverStartCmd)
-	serverCmd.AddCommand(serverStopCmd)
+var serverStopCmd = &cobra.Command{
+	Use:   "stop",
+	Short: "Stop a Glim server",
+	Run: func(cmd *cobra.Command, args []string) {
+		p, err := os.FindProcess(21413)
+		if err != nil {
+			log.Fatal("could not find process")
+		}
+		p.Signal(os.Interrupt)
+	},
 }

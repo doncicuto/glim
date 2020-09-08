@@ -126,7 +126,6 @@ var serverStartCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(serverCmd)
 	serverStartCmd.Flags().StringVar(&tlscert, "tlscert", "", "TLS server certificate path (required)")
 	serverStartCmd.Flags().StringVar(&tlskey, "tlskey", "", "TLS server private key path (required)")
 

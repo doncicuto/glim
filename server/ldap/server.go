@@ -21,7 +21,7 @@ type Settings struct {
 	TLSKey  string
 }
 
-const ldapAddr = ":1389"
+const ldapAddr = ":1636"
 
 func printLog(msg string) {
 	log.SetHeader("${time_rfc3339} [LDAP] ⇨")
