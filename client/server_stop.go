@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"syscall"
@@ -46,7 +47,8 @@ var serverStopCmd = &cobra.Command{
 		}
 
 		// Try to read glim.pid file in order to get server's PID
-		pidFile := fmt.Sprintf("%s\\glim.pid", os.TempDir())
+		pidFile := filepath.FromSlash(fmt.Sprintf("%s/glim.pid", os.TempDir()))
+
 		data, err := ioutil.ReadFile(pidFile)
 		if err != nil {
 			fmt.Printf("%s [Glim] ⇨ could not find process file: %s. You should terminate Glim process by hand. \n", pidFile, time.Now().Format(time.RFC3339))

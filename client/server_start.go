@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
@@ -89,7 +90,10 @@ var serverStartCmd = &cobra.Command{
 			fmt.Printf("%s [Glim] ⇨ could not connect to database. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
 		}
-		defer database.Close()
+		defer func() {
+			fmt.Printf("%s [Glim] ⇨ closing connection to database...\n", time.Now().Format(time.RFC3339))
+			database.Close()
+		}()
 		fmt.Printf("%s [Glim] ⇨ connected to database...\n", time.Now().Format(time.RFC3339))
 
 		// Key-value store for JWT tokens storage
@@ -99,7 +103,10 @@ var serverStartCmd = &cobra.Command{
 			fmt.Printf("%s [Glim] ⇨ could not connect to Badger key-value store. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
 		}
-		defer blacklist.Close()
+		defer func() {
+			fmt.Printf("%s [Glim] ⇨ closing connection to key-value store...\n", time.Now().Format(time.RFC3339))
+			blacklist.Close()
+		}()
 		fmt.Printf("%s [Glim] ⇨ connected to key-value store...\n", time.Now().Format(time.RFC3339))
 
 		// Preparing API server settings
@@ -119,7 +126,7 @@ var serverStartCmd = &cobra.Command{
 
 		// get current PID and store it in glim.pid at our tmp directory
 		pid := os.Getpid()
-		pidFile := fmt.Sprintf("%s\\glim.pid", os.TempDir())
+		pidFile := filepath.FromSlash(fmt.Sprintf("%s/glim.pid", os.TempDir()))
 		err = ioutil.WriteFile(pidFile, []byte(strconv.Itoa(pid)), 0644)
 		if err != nil {
 			fmt.Printf("%s [Glim] ⇨ could not store PID in glim.pid. Exiting now...\n", time.Now().Format(time.RFC3339))
