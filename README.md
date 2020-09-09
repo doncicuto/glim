@@ -64,7 +64,7 @@ glim account remove -u jimmy.mcnulty
 
 glim logout
 
-$ glim server stop
+glim server stop
 ```
 
 ### Testing Glim with OpenLDAP
@@ -84,3 +84,7 @@ dn:cn=manager,dc=example,dc=org (cool this is who I am)
 This is a sample of a Glim server log showing REST and LDAP interaction
 
 ![logging](./docs/sample_server_logging.png)
+
+## Limitations / Caveats
+
+1. We can start and stop our Glim server using `glim server [start|stop]` but if you are running Glim on a Windows machine, the stop command will fail and you will have to stop it using Ctrl+C, this is due a limitation with signal handling in Windows. In a future we may change this behavior if we find a workaround for prospective Windows users.
