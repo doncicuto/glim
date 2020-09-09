@@ -26,9 +26,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/muultipla/glim/config"
@@ -134,12 +136,22 @@ var serverStartCmd = &cobra.Command{
 		}
 
 		// Start go routines for both REST and LDAP servers...
+		ch := make(chan os.Signal)
+		signal.Notify(ch, syscall.SIGTERM)
+
 		var wg sync.WaitGroup
 		wg.Add(1)
-		go api.Server(&wg, apiSettings)
-		wg.Add(2)
-		go ldap.Server(&wg, ldapSettings)
+		go api.Server(&wg, ch, apiSettings)
+		// wg.Add(2)
+		go ldap.Server(&wg, ch, ldapSettings)
+
+		// Wait for SIGTERM signal
+		// Reference: https://gist.github.com/rcrowley/5474430
+
+		<-ch
+		close(ch)
 		wg.Wait()
+
 	},
 }
 

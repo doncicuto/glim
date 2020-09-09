@@ -1,8 +1,10 @@
 package api
 
 import (
+	"context"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
@@ -25,7 +27,7 @@ type Settings struct {
 const apiAddr = ":1323"
 
 //Server - TODO command
-func Server(wg *sync.WaitGroup, settings Settings) {
+func Server(wg *sync.WaitGroup, ch chan os.Signal, settings Settings) {
 	defer wg.Done()
 
 	// New Echo framework server
@@ -81,5 +83,18 @@ func Server(wg *sync.WaitGroup, settings Settings) {
 
 	// starting API server....
 	e.Logger.Printf("starting REST API in address %s...", addr)
-	e.Logger.Fatal(e.StartTLS(addr, settings.TLSCert, settings.TLSKey))
+
+	go func() {
+		if err := e.StartTLS(addr, settings.TLSCert, settings.TLSKey); err != nil {
+			e.Logger.Printf("shutting down REST API server...")
+			return
+		}
+	}()
+	<-ch
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
+	}
+
 }

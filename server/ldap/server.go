@@ -104,7 +104,7 @@ L:
 }
 
 // Server - TODO comment
-func Server(wg *sync.WaitGroup, settings Settings) {
+func Server(wg *sync.WaitGroup, ch chan os.Signal, settings Settings) {
 	defer wg.Done()
 
 	addr, ok := os.LookupEnv("LDAP_SERVER_ADDRESS")
