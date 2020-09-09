@@ -23,8 +23,13 @@
 package client
 
 import (
-	"log"
+	"fmt"
+	"io/ioutil"
 	"os"
+	"runtime"
+	"strconv"
+	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -32,12 +37,38 @@ import (
 // serverCmd represents the server command
 var serverStopCmd = &cobra.Command{
 	Use:   "stop",
-	Short: "Stop a Glim server",
+	Short: "Stop a Glim server. Windows systems are not supported.",
 	Run: func(cmd *cobra.Command, args []string) {
-		p, err := os.FindProcess(21413)
-		if err != nil {
-			log.Fatal("could not find process")
+		// SIGTERM cannot be used with Go in Windows Ref: https://golang.org/pkg/os/#Signal
+		if runtime.GOOS == "windows" {
+			fmt.Printf("%s [Glim] ⇨ stop command is not supported for Windows platform as it doesn't support the SIGTERM signal. You should terminate Glim process by hand (Ctrl-C). \n", time.Now().Format(time.RFC3339))
+			os.Exit(1)
 		}
-		p.Signal(os.Interrupt)
+
+		// Try to read glim.pid file in order to get server's PID
+		pidFile := fmt.Sprintf("%s\\glim.pid", os.TempDir())
+		data, err := ioutil.ReadFile(pidFile)
+		if err != nil {
+			fmt.Printf("%s [Glim] ⇨ could not find process file: %s. You should terminate Glim process by hand. \n", pidFile, time.Now().Format(time.RFC3339))
+			os.Exit(1)
+		}
+
+		pid, err := strconv.Atoi(string(data))
+		if err != nil {
+			fmt.Printf("%s [Glim] ⇨ could not read PID from %s. You should terminate Glim process by hand. \n", pidFile, time.Now().Format(time.RFC3339))
+			os.Exit(1)
+		}
+
+		p, err := os.FindProcess(pid)
+		if err != nil {
+			fmt.Printf("%s [Glim] ⇨ could not find PID in process list. You should terminate Glim process by hand. \n", time.Now().Format(time.RFC3339))
+			os.Exit(1)
+		}
+
+		err = p.Signal(syscall.SIGTERM)
+		if err != nil {
+			fmt.Printf("%s [Glim] ⇨ could not send SIGTERM signal to Glim. You should terminate Glim process by hand. \n", time.Now().Format(time.RFC3339))
+			os.Exit(1)
+		}
 	},
 }

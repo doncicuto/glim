@@ -24,7 +24,9 @@ package client
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -113,6 +115,15 @@ var serverStartCmd = &cobra.Command{
 			DB:      database,
 			TLSCert: tlscert,
 			TLSKey:  tlskey,
+		}
+
+		// get current PID and store it in glim.pid at our tmp directory
+		pid := os.Getpid()
+		pidFile := fmt.Sprintf("%s\\glim.pid", os.TempDir())
+		err = ioutil.WriteFile(pidFile, []byte(strconv.Itoa(pid)), 0644)
+		if err != nil {
+			fmt.Printf("%s [Glim] ⇨ could not store PID in glim.pid. Exiting now...\n", time.Now().Format(time.RFC3339))
+			os.Exit(1)
 		}
 
 		// Start go routines for both REST and LDAP servers...
