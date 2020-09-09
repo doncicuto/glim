@@ -67,6 +67,16 @@ glim logout
 glim server stop
 ```
 
+### LDAP Tree
+
+When we search entries in our LDAP tree, the following diagram shows how Glim works.
+
+![ldap_tree](./docs/ldap_tree.png)
+
+Users will be shown as entries under organization unit ou=Users. 
+
+Groups will be shown as entries under organization unit ou=Groups. 
+
 ### Testing Glim with OpenLDAP
 
 We can test our server using the following examples.
