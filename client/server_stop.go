@@ -41,10 +41,10 @@ var serverStopCmd = &cobra.Command{
 	Short: "Stop a Glim server. Windows systems are not supported.",
 	Run: func(cmd *cobra.Command, args []string) {
 		// SIGTERM cannot be used with Go in Windows Ref: https://golang.org/pkg/os/#Signal
-		if runtime.GOOS == "windows" {
+		/* if runtime.GOOS == "windows" {
 			fmt.Printf("%s [Glim] ⇨ stop command is not supported for Windows platform as it doesn't support the SIGTERM signal. You should terminate Glim process by hand (Ctrl-C). \n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
-		}
+		} */
 
 		// Try to read glim.pid file in order to get server's PID
 		pidFile := filepath.FromSlash(fmt.Sprintf("%s/glim.pid", os.TempDir()))
@@ -67,10 +67,18 @@ var serverStopCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		err = p.Signal(syscall.SIGTERM)
-		if err != nil {
-			fmt.Printf("%s [Glim] ⇨ could not send SIGTERM signal to Glim. You should terminate Glim process by hand. \n", time.Now().Format(time.RFC3339))
-			os.Exit(1)
+		if runtime.GOOS == "windows" {
+			err = p.Signal(syscall.SIGINT)
+			if err != nil {
+				fmt.Printf("%s [Glim] ⇨ could not send SIGTERM signal to Glim. You should terminate Glim process by hand. \n", time.Now().Format(time.RFC3339))
+				os.Exit(1)
+			}
+		} else {
+			err = p.Signal(syscall.SIGTERM)
+			if err != nil {
+				fmt.Printf("%s [Glim] ⇨ could not send SIGTERM signal to Glim. You should terminate Glim process by hand. \n", time.Now().Format(time.RFC3339))
+				os.Exit(1)
+			}
 		}
 	},
 }

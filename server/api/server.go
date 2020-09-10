@@ -27,7 +27,7 @@ type Settings struct {
 const apiAddr = ":1323"
 
 //Server - TODO command
-func Server(wg *sync.WaitGroup, ch chan os.Signal, settings Settings) {
+func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	defer wg.Done()
 
 	// New Echo framework server
@@ -87,14 +87,17 @@ func Server(wg *sync.WaitGroup, ch chan os.Signal, settings Settings) {
 	go func() {
 		if err := e.StartTLS(addr, settings.TLSCert, settings.TLSKey); err != nil {
 			e.Logger.Printf("shutting down REST API server...")
-			return
 		}
 	}()
-	<-ch
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := e.Shutdown(ctx); err != nil {
-		e.Logger.Fatal(err)
-	}
 
+	// Wait for shutdown signals and gracefully shutdown echo server (10 seconds tiemout)
+	// Reference: https://gist.github.com/rcrowley/5474430
+	// Reference: https://echo.labstack.com/cookbook/graceful-shutdown
+	if <-shutdownChannel {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := e.Shutdown(ctx); err != nil {
+			e.Logger.Fatal(err)
+		}
+	}
 }

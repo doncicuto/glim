@@ -104,7 +104,7 @@ L:
 }
 
 // Server - TODO comment
-func Server(wg *sync.WaitGroup, ch chan os.Signal, settings Settings) {
+func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	defer wg.Done()
 
 	addr, ok := os.LookupEnv("LDAP_SERVER_ADDRESS")
@@ -135,10 +135,21 @@ func Server(wg *sync.WaitGroup, ch chan os.Signal, settings Settings) {
 
 	// Handle LDAP connections in a for loop
 	for {
+		// Wait for shutdown signals and gracefully shutdown TLS listener
+		// Reference: https://gist.github.com/rcrowley/5474430
+		// Reference: https://echo.labstack.com/cookbook/graceful-shutdown
+		if <-shutdownChannel {
+			log.SetHeader("${time_rfc3339} [Glim] ⇨")
+			log.Printf("shutting down LDAPS server...")
+			l.Close()
+			break
+		}
+
 		c, err := l.Accept()
 		if err != nil {
-			fmt.Println(err)
-			return
+			log.SetHeader("${time_rfc3339} [Glim] ⇨")
+			log.Printf("an error occurred accepting connections...")
+			break
 		}
 		go handleConnection(c, settings.DB)
 	}

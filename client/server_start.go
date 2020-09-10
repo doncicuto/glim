@@ -135,23 +135,31 @@ var serverStartCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Start go routines for both REST and LDAP servers...
+		// Create channels to recieve termination signals and
+		// communicate shutdown to servers
 		ch := make(chan os.Signal)
-		signal.Notify(ch, syscall.SIGTERM)
+		apiShutdownChannel := make(chan bool)
+		ldapShutdownChannel := make(chan bool)
+		// We listen for the following signals
+		signal.Notify(ch, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-		var wg sync.WaitGroup
+		// Start go routines for both REST and LDAP servers...
+		// and add them to a waitgroup
+		wg := new(sync.WaitGroup)
 		wg.Add(1)
-		go api.Server(&wg, ch, apiSettings)
-		// wg.Add(2)
-		go ldap.Server(&wg, ch, ldapSettings)
+		go api.Server(wg, apiShutdownChannel, apiSettings)
+		wg.Add(1)
+		go ldap.Server(wg, ldapShutdownChannel, ldapSettings)
 
 		// Wait for SIGTERM signal
 		// Reference: https://gist.github.com/rcrowley/5474430
-
 		<-ch
 		close(ch)
+		// Send a signal to shutdown both servers
+		ldapShutdownChannel <- true
+		apiShutdownChannel <- true
+		// Wait for both servers to finish
 		wg.Wait()
-
 	},
 }
 
