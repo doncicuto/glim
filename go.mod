@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/Songmu/prompter v0.3.0
+	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
 	github.com/badoux/checkmail v0.0.0-20200623144435-f9f80cb795fa
 	github.com/dgraph-io/badger v1.6.1
 	github.com/dgraph-io/badger/v2 v2.0.3 // indirect

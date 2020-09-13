@@ -1,6 +1,8 @@
 package ldap
 
 import (
+	"fmt"
+
 	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
@@ -115,7 +117,7 @@ func encodeSearchResultEntry(messageID int64, values map[string][]string) *ber.P
 
 	// Response packet
 	bp := encodeResponseType(SearchResultEntry)
-	bp.AppendChild(encodeOctetString("cn=admin,dc=example,dc=com", "objectName"))
+	bp.AppendChild(encodeOctetString(fmt.Sprintf("cn=admin,%s", Domain()), "objectName"))
 	bp.AppendChild(a)
 	r.AppendChild(bp)
 	return r

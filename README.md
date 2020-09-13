@@ -73,9 +73,9 @@ When we search entries in our LDAP tree, the following diagram shows how Glim wo
 
 ![ldap_tree](./docs/ldap_tree.png)
 
-Users will be shown as entries under organization unit ou=Users. 
+Users will be shown as entries under organization unit ou=Users.
 
-Groups will be shown as entries under organization unit ou=Groups. 
+Groups will be shown as entries under organization unit ou=Groups.
 
 ### Testing Glim with OpenLDAP
 
@@ -84,10 +84,14 @@ We can test our server using the following examples.
 > Note: we must specify the location for our CA certificate so OpenLDAP can verify Glim server's certificate and the TLS handshake can run smoothly. We use the **LDAPTLS_CACERT** environment variable.
 
 ```(bash)
-$ LDAPTLS_CACERT=ca.pem ldapwhoami -x -D "cn=manager,dc=example,dc=com" -W -H ldaps://127.0.0.1:1636
+$ LDAPTLS_CACERT=ca.pem ldapwhoami -x -D "cn=manager,dc=example,dc=org" -W -H ldaps://127.0.0.1:1636
 Enter LDAP Password: (type the manager password and press Enter)
 dn:cn=manager,dc=example,dc=org (cool this is who I am)
 ```
+
+### Environment variables
+
+- LDAP_DOMAIN: our ldap domain. Default value: example.org
 
 ### Server logging
 

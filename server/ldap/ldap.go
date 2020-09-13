@@ -322,8 +322,8 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 
 	values := map[string][]string{
 		"objectClass": []string{"top", "dcObject", "organization"},
-		"o":           []string{"dc=example,dc=com"},
-		"dc":          []string{"example"},
+		"o":           []string{Domain()},
+		"dc":          []string{"example"}, //TODO hardcoded top o
 	}
 
 	e := encodeSearchResultEntry(id, values)
@@ -357,8 +357,8 @@ func HandleExtRequest(message *Message) (*ber.Packet, error) {
 	switch n {
 	case WhoamIOID: // TODO - WHOAMI
 		printLog("whoami requested by client")
-		printLog("whoami response: dn:cn=admin,dc=example,dc=org")
-		r := encodeExtendedResponse(id, Success, "", "dn:cn=admin,dc=example,dc=org")
+		printLog(fmt.Sprintf("whoami response: dn:cn=admin,%s", Domain()))
+		r := encodeExtendedResponse(id, Success, "", fmt.Sprintf("dn:cn=admin,%s", Domain()))
 		return r, nil
 	default:
 		printLog("unsupported extended request")
