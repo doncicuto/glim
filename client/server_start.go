@@ -151,13 +151,13 @@ var serverStartCmd = &cobra.Command{
 		wg.Add(1)
 		go ldap.Server(wg, ldapShutdownChannel, ldapSettings)
 
-		// Wait for SIGTERM signal
-		// Reference: https://gist.github.com/rcrowley/5474430
+		// Blocking wait for server stop signal
 		<-ch
-		close(ch)
+
 		// Send a signal to shutdown both servers
-		ldapShutdownChannel <- true
 		apiShutdownChannel <- true
+		ldapShutdownChannel <- true
+
 		// Wait for both servers to finish
 		wg.Wait()
 	},

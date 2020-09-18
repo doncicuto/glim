@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"strings"
 	"sync"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
@@ -103,6 +104,19 @@ L:
 	}
 }
 
+func waitForShutdown(l net.Listener, ch chan bool) {
+	for {
+		select {
+		case <-ch:
+			log.SetHeader("${time_rfc3339} [Glim] ⇨")
+			log.Printf("shutting down LDAPS server...")
+			l.Close()
+			return
+		default:
+		}
+	}
+}
+
 // Server - TODO comment
 func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	defer wg.Done()
@@ -135,22 +149,22 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 
 	// Handle LDAP connections in a for loop
 	for {
-		// Wait for shutdown signals and gracefully shutdown TLS listener
-		// Reference: https://gist.github.com/rcrowley/5474430
-		// Reference: https://echo.labstack.com/cookbook/graceful-shutdown
-		if <-shutdownChannel {
-			log.SetHeader("${time_rfc3339} [Glim] ⇨")
-			log.Printf("shutting down LDAPS server...")
-			l.Close()
-			break
-		}
+		// Wait for shutdown signals and close our TLS listener
+		// TODO: In a future revision we could wait for servers
+		// termination before closing our listener
+		go waitForShutdown(l, shutdownChannel)
 
+		// Accept new connections
 		c, err := l.Accept()
 		if err != nil {
-			log.SetHeader("${time_rfc3339} [Glim] ⇨")
-			log.Printf("an error occurred accepting connections...")
-			break
+			if !strings.Contains(err.Error(), "use of closed network connection") {
+				log.SetHeader("${time_rfc3339} [Glim] ⇨")
+				log.Printf("an error occurred accepting connections...")
+			}
+			return
 		}
+
+		// Handle our server connection
 		go handleConnection(c, settings.DB)
 	}
 }

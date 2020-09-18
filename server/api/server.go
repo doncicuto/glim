@@ -91,13 +91,12 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	}()
 
 	// Wait for shutdown signals and gracefully shutdown echo server (10 seconds tiemout)
-	// Reference: https://gist.github.com/rcrowley/5474430
 	// Reference: https://echo.labstack.com/cookbook/graceful-shutdown
-	if <-shutdownChannel {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		if err := e.Shutdown(ctx); err != nil {
-			e.Logger.Fatal(err)
-		}
+	<-shutdownChannel
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
 	}
+
 }

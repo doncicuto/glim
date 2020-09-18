@@ -51,32 +51,32 @@ var serverStopCmd = &cobra.Command{
 
 		data, err := ioutil.ReadFile(pidFile)
 		if err != nil {
-			fmt.Printf("%s [Glim] ⇨ could not find process file: %s. You should terminate Glim process by hand. \n", pidFile, time.Now().Format(time.RFC3339))
+			fmt.Printf("%s [Glim] ⇨ could not find process file: %s. You should terminate Glim process by hand (Ctrl-C?). \n", pidFile, time.Now().Format(time.RFC3339))
 			os.Exit(1)
 		}
 
 		pid, err := strconv.Atoi(string(data))
 		if err != nil {
-			fmt.Printf("%s [Glim] ⇨ could not read PID from %s. You should terminate Glim process by hand. \n", pidFile, time.Now().Format(time.RFC3339))
+			fmt.Printf("%s [Glim] ⇨ could not read PID from %s. You should terminate Glim process by hand (Ctrl-C?). \n", pidFile, time.Now().Format(time.RFC3339))
 			os.Exit(1)
 		}
 
 		p, err := os.FindProcess(pid)
 		if err != nil {
-			fmt.Printf("%s [Glim] ⇨ could not find PID in process list. You should terminate Glim process by hand. \n", time.Now().Format(time.RFC3339))
+			fmt.Printf("%s [Glim] ⇨ could not find PID in process list. You should terminate Glim process by hand (Ctrl-C?). \n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
 		}
 
 		if runtime.GOOS == "windows" {
 			err = p.Signal(syscall.SIGINT)
 			if err != nil {
-				fmt.Printf("%s [Glim] ⇨ could not send SIGTERM signal to Glim. You should terminate Glim process by hand. \n", time.Now().Format(time.RFC3339))
+				fmt.Printf("%s [Glim] ⇨ could not send SIGTERM signal to Glim. You should terminate Glim process by hand (Ctrl-C?). \n", time.Now().Format(time.RFC3339))
 				os.Exit(1)
 			}
 		} else {
 			err = p.Signal(syscall.SIGTERM)
 			if err != nil {
-				fmt.Printf("%s [Glim] ⇨ could not send SIGTERM signal to Glim. You should terminate Glim process by hand. \n", time.Now().Format(time.RFC3339))
+				fmt.Printf("%s [Glim] ⇨ could not send SIGTERM signal to Glim. You should terminate Glim process by hand (Ctrl-C?). \n", time.Now().Format(time.RFC3339))
 				os.Exit(1)
 			}
 		}
