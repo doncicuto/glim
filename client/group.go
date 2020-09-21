@@ -24,29 +24,44 @@ package client
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
+
+var gid string
 
 // groupCmd represents the group command
 var groupCmd = &cobra.Command{
 	Use:   "group",
 	Short: "Manage Glim groups",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("group called")
+
+		if cmd.Flags().Changed("gid") {
+			if gid == "" {
+				fmt.Println("Error non-null gid required")
+				os.Exit(1)
+			}
+			id, err := strconv.Atoi(gid)
+			if err != nil {
+				fmt.Println("Error numeric gid required")
+				os.Exit(1)
+			}
+			getGroup(id)
+			os.Exit(0)
+		}
+		getGroups()
+		os.Exit(0)
+
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(groupCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// groupCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// groupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	groupCmd.AddCommand(listGroupCmd)
+	// groupCmd.AddCommand(newGroupCmd)
+	// groupCmd.AddCommand(updateGroupCmd)
+	// groupCmd.AddCommand(deleteGroupCmd)
+	groupCmd.Flags().StringVarP(&gid, "gid", "i", "", "group id")
 }

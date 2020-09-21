@@ -32,8 +32,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func getUser(id int) {
-	endpoint := fmt.Sprintf("%s/users/%d", url, id)
+var url = "https://127.0.0.1:1323" // TODO - this should not be hardcoded
+
+func getGroup(id int) {
+	endpoint := fmt.Sprintf("%s/groups/%d", url, id)
 	// Read credentials
 	token := ReadCredentials()
 
@@ -51,7 +53,7 @@ func getUser(id int) {
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetResult(models.User{}).
+		SetResult(models.Group{}).
 		SetError(&APIError{}).
 		Get(endpoint)
 
@@ -65,30 +67,24 @@ func getUser(id int) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-10s %-20s %-35s %-35s %-8s %-8s\n",
-		"UID",
-		"USERNAME",
-		"FULLNAME",
-		"EMAIL",
-		"MANAGER",
-		"READONLY",
-	)
+	result := resp.Result().(*models.Group)
+	fmt.Printf("%-15s %-100s\n", "Group:", *result.Name)
+	fmt.Printf("%-15s %-100d\n", " GID:", result.ID)
+	fmt.Printf("%-15s %-100s\n\n", " Description:", *result.Description)
 
-	result := resp.Result().(*models.User)
-	fmt.Printf("%-10d %-20s %-35s %-35s %-8v %-8v\n",
-		result.ID,
-		*result.Username,
-		*result.Fullname,
-		*result.Email,
-		*result.Manager,
-		*result.Readonly,
-	)
+	fmt.Printf("%-15s\n", "Members:")
+	fmt.Printf("====\n")
+	for _, member := range result.Members {
+		fmt.Printf("%-15s %-100d\n", " UID:", member.ID)
+		fmt.Printf("%-15s %-100s\n", " Username:", *member.Username)
+		fmt.Printf("----\n")
+	}
 }
 
-func getUsers() {
+func getGroups() {
 	// Read credentials
 	token := ReadCredentials()
-	endpoint := fmt.Sprintf("%s/users", url)
+	endpoint := fmt.Sprintf("%s/groups", url)
 	// Check expiration
 	if NeedsRefresh(token) {
 		Refresh(token.RefreshToken)
@@ -103,7 +99,7 @@ func getUsers() {
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetResult([]models.User{}).
+		SetResult([]models.Group{}).
 		SetError(&APIError{}).
 		Get(endpoint)
 
@@ -117,33 +113,39 @@ func getUsers() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-10s %-20s %-35s %-35s %-8s %-8s\n",
-		"UID",
-		"USERNAME",
-		"FULLNAME",
-		"EMAIL",
-		"MANAGER",
-		"READONLY",
+	fmt.Printf("%-10s %-20s %-35s %-50s\n",
+		"GID",
+		"GROUP",
+		"DESCRIPTION",
+		"MEMBERS",
 	)
 
-	results := resp.Result().(*[]models.User)
+	results := resp.Result().(*[]models.Group)
 	for _, result := range *results {
-		fmt.Printf("%-10d %-20s %-35s %-35s %-8v %-8v\n",
+		members := "none"
+		if len(result.Members) > 0 {
+			members = ""
+			for i, member := range result.Members {
+				if i == len(result.Members)-1 {
+					members += *member.Username
+				} else {
+					members += *member.Username + ", "
+				}
+			}
+		}
+		fmt.Printf("%-10d %-20s %-35s %-50s\n",
 			result.ID,
-			*result.Username,
-			*result.Fullname,
-			*result.Email,
-			*result.Manager,
-			*result.Readonly,
-		)
+			*result.Name,
+			*result.Description,
+			members)
 	}
 }
 
-// ListUserCmd - TODO comment
-var listUserCmd = &cobra.Command{
+// ListGroupCmd - TODO comment
+var listGroupCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "List Glim user accounts",
+	Short: "List Glim groups",
 	Run: func(cmd *cobra.Command, args []string) {
-		getUsers()
+		getGroups()
 	},
 }

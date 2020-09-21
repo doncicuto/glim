@@ -24,6 +24,7 @@ package client
 
 import (
 	"bufio"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"os"
@@ -47,6 +48,8 @@ var loginCmd = &cobra.Command{
 If no server is specified, the default is localhost.`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+
+		url := "https://127.0.0.1:1323" // TODO - This should not be hardcoded
 
 		if !cmd.Flags().Changed("username") {
 			username = prompter.Prompt("Username", "")
@@ -106,6 +109,8 @@ If no server is specified, the default is localhost.`,
 
 		// Rest API authentication
 		client := resty.New()
+		// TODO - We should verify server's certificate
+		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(Credentials{

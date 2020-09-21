@@ -6,7 +6,7 @@ import (
 
 //Group - TODO comment
 type Group struct {
-	ID          uint32    `gorm:"primary_key;auto_increment" json:"id"`
+	ID          uint32    `gorm:"primary_key;auto_increment" json:"gid"`
 	Name        *string   `gorm:"size:100;unique;not null" json:"name"`
 	Description *string   `gorm:"size:255" json:"description"`
 	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -16,9 +16,15 @@ type Group struct {
 
 //GroupInfo - TODO comment
 type GroupInfo struct {
-	ID          uint32 `json:"gid"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	ID          uint32      `json:"gid"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	Members     []*UserInfo `json:"members"`
+}
+
+//GroupMembers - TODO comment
+type GroupMembers struct {
+	Members string `json:"members"`
 }
 
 //GetGroupInfo - TODO comment
@@ -30,6 +36,12 @@ func GetGroupInfo(g *Group) *GroupInfo {
 	if g.Description != nil {
 		i.Description = *g.Description
 	}
+
+	var members []*UserInfo
+	for _, member := range g.Members {
+		members = append(members, GetUserInfo(*member))
+	}
+	i.Members = members
 
 	return &i
 }

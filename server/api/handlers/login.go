@@ -39,8 +39,8 @@ func (h *Handler) Login(c echo.Context) error {
 
 	// Access token expiry times
 	expiry := config.AccessTokenExpiry()
-	expiresIn := time.Second * time.Duration(expiry)
-	expiresOn := time.Now().Add(expiresIn).Unix()
+	atExpiresIn := time.Second * time.Duration(expiry)
+	atExpiresOn := time.Now().Add(atExpiresIn).Unix()
 
 	// Prepare JWT tokens common claims
 	cc := jwt.MapClaims{}
@@ -49,7 +49,7 @@ func (h *Handler) Login(c echo.Context) error {
 	cc["sub"] = "api.glim.client"
 	cc["uid"] = dbUser.ID
 	cc["iat"] = time.Now().Unix()
-	cc["exp"] = expiresOn
+	cc["exp"] = atExpiresOn
 
 	// Create access claims and token
 	ajti := uuid.New() // token id
@@ -65,22 +65,21 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	// Add access token to Key-Value store
-	err = h.KV.Set(fmt.Sprintf("%s", ajti), "false", expiresIn)
+	err = h.KV.Set(fmt.Sprintf("%s", ajti), "false", atExpiresIn)
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not add access token to key-value store"}
 	}
 
 	// Refresh token expiry times
 	expiry = config.RefreshTokenExpiry()
-	expiresIn = time.Second * time.Duration(expiry)
-	expiresOn = time.Now().Add(expiresIn).Unix()
+	rtExpiresIn := time.Second * time.Duration(expiry)
 
 	// Create response token
 	rjti := uuid.New() // token id
 	rc := cc           // add common claims to refresh token claims
 	rc["jti"] = rjti
 	rc["ajti"] = ajti
-	rc["exp"] = expiresOn
+	rc["exp"] = time.Now().Add(rtExpiresIn).Unix()
 
 	t = jwt.New(jwt.SigningMethodHS256)
 	t.Claims = rc
@@ -90,7 +89,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	// Add response token to Key-Value store
-	err = h.KV.Set(fmt.Sprintf("%s", rjti), "false", expiresIn)
+	err = h.KV.Set(fmt.Sprintf("%s", rjti), "false", rtExpiresIn)
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not add refresh token to key-value store"}
 	}
@@ -100,8 +99,8 @@ func (h *Handler) Login(c echo.Context) error {
 	response.AccessToken = at
 	response.RefreshToken = rt
 	response.TokenType = "Bearer"
-	response.ExpiresIn = expiresIn.Seconds()
-	response.ExpiresOn = expiresOn
+	response.ExpiresIn = atExpiresIn.Seconds()
+	response.ExpiresOn = atExpiresOn
 
 	return c.JSON(http.StatusOK, response)
 }

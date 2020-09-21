@@ -84,7 +84,7 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 	var err error
 	gid := c.Param("gid")
 
-	err = h.DB.Model(&models.Group{}).Where("id = ?", gid).Take(&g).Error
+	err = h.DB.Preload("Members").Model(&models.Group{}).Where("id = ?", gid).Take(&g).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
@@ -112,6 +112,7 @@ func (h *Handler) FindAllGroups(c echo.Context) error {
 	// Retrieve groups from database
 	groups := []models.Group{}
 	if err := h.DB.
+		Preload("Members").
 		Model(&models.Group{}).
 		Offset((page - 1) * limit).
 		Limit(limit).
@@ -177,13 +178,63 @@ func (h *Handler) DeleteGroup(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-//FindGroupMembers - TODO comment
-func (h *Handler) FindGroupMembers(c echo.Context) error {
-	var g models.Group
-	err := h.DB.Debug().Model(&models.Group{}).Where("id = ?", c.Param("gid")).Take(&g).Association("Members").Error
+//AddGroupMembers - TODO comment
+func (h *Handler) AddGroupMembers(c echo.Context) error {
+	// Get gid
+	gid := c.Param("gid")
+
+	// Group cannot be empty
+	if gid == "" {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required group gid"}
+	}
+
+	// Bind
+	m := new(models.GroupMembers)
+	if err := c.Bind(m); err != nil {
+		return err
+	}
+	members := strings.Split(m.Members, ",")
+
+	// Find group
+	g := new(models.Group)
+	err := h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&g).Error
+	if err != nil {
+		// Does group exist?
+		if gorm.IsRecordNotFoundError(err) {
+			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
+		}
+		fmt.Println("1")
+		return err
+	}
+
+	// Update group
+	for _, member := range members {
+
+		// Find user
+		u := new(models.User)
+		err = h.DB.Model(&models.User{}).Where("username = ?", member).Take(&u).Error
+		if err != nil {
+			if gorm.IsRecordNotFoundError(err) {
+				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("user %s not found", member)}
+			}
+			fmt.Println("2")
+			return err
+		}
+
+		// Append association
+		err = h.DB.Model(&g).Association("Members").Append(u).Error
+		if err != nil {
+			fmt.Println("3")
+			return err
+		}
+	}
+
+	// Get updated group
+	err = h.DB.Model(&g).Where("id = ?", gid).First(&g).Error
 	if err != nil {
 		return err
 	}
-	fmt.Println(g.Members)
-	return nil
+
+	// Return group
+	return c.JSON(http.StatusOK, models.GetGroupInfo(g))
 }
