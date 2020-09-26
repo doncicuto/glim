@@ -23,6 +23,7 @@
 package client
 
 import (
+	"crypto/tls"
 	"fmt"
 	"os"
 
@@ -51,9 +52,11 @@ var logoutCmd = &cobra.Command{
 
 		// Logout
 		client := resty.New()
+		// TODO - We should verify server's certificate
+		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
-			SetQueryString(fmt.Sprintf("refreshToken=%s", token.RefreshToken)).
+			SetBody(fmt.Sprintf(`{"refresh_token":"%s"}`, token.RefreshToken)).
 			SetError(&APIError{}).
 			Delete(fmt.Sprintf("%s/login/refreshToken", url))
 
