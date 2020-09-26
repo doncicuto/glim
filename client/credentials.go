@@ -1,6 +1,7 @@
 package client
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -72,13 +73,15 @@ func DeleteCredentials() {
 
 // Refresh - TODO comment
 func Refresh(rt string) {
-	var url = "http://127.0.0.1:1323" // TODO - this should not be hardcoded
+	var url = "https://127.0.0.1:1323" // TODO - this should not be hardcoded
 
 	// Rest API authentication
 	client := resty.New()
 
 	// Set bearer token
 	client.SetAuthToken(rt)
+	// TODO - We should verify server's certificate
+	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
 	// Query refresh token
 	resp, err := client.R().
