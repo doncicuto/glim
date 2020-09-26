@@ -16,10 +16,10 @@ type Group struct {
 
 //GroupInfo - TODO comment
 type GroupInfo struct {
-	ID          uint32      `json:"gid"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Members     []*UserInfo `json:"members"`
+	ID          uint32     `json:"gid"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Members     []UserInfo `json:"members"`
 }
 
 //GroupMembers - TODO comment
@@ -37,7 +37,7 @@ func GetGroupInfo(g *Group) *GroupInfo {
 		i.Description = *g.Description
 	}
 
-	var members []*UserInfo
+	members := []UserInfo{}
 	for _, member := range g.Members {
 		members = append(members, GetUserInfo(*member))
 	}

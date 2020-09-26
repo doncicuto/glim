@@ -38,7 +38,7 @@ func (h *Handler) FindAllUsers(c echo.Context) error {
 
 	var allUsers []models.UserInfo
 	for _, user := range users {
-		allUsers = append(allUsers, *models.GetUserInfo(user))
+		allUsers = append(allUsers, models.GetUserInfo(user))
 	}
 
 	return c.JSON(http.StatusOK, allUsers)

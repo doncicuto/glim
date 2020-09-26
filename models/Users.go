@@ -41,7 +41,7 @@ func VerifyPassword(hashedPassword, password string) error {
 }
 
 //GetUserInfo - TODO comment
-func GetUserInfo(u User) *UserInfo {
+func GetUserInfo(u User) UserInfo {
 	var i UserInfo
 	i.ID = u.ID
 	if u.Username != nil {
@@ -60,5 +60,5 @@ func GetUserInfo(u User) *UserInfo {
 		i.Readonly = *u.Readonly
 	}
 
-	return &i
+	return i
 }
