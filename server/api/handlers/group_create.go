@@ -13,7 +13,6 @@ import (
 // AddMembers - TODO comment
 func (h *Handler) AddMembers(g *models.Group, members []string) error {
 	var err error
-
 	// Update group
 	for _, member := range members {
 		member = strings.TrimSpace(member)
@@ -39,7 +38,7 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 // SaveGroup - TODO comment
 func (h *Handler) SaveGroup(c echo.Context) error {
 	g := new(models.Group)
-	body := models.NewGroup{}
+	body := models.JSONGroupBody{}
 
 	// Get request body
 	if err := c.Bind(&body); err != nil {
@@ -68,10 +67,12 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 	}
 
 	// Add members to group
-	members := strings.Split(body.Members, ",")
-	err = h.AddMembers(g, members)
-	if err != nil {
-		return err
+	if body.Members != "" {
+		members := strings.Split(body.Members, ",")
+		err = h.AddMembers(g, members)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Send group information

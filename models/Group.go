@@ -27,11 +27,12 @@ type GroupMembers struct {
 	Members string `json:"members"`
 }
 
-// NewGroup - TODO comment
-type NewGroup struct {
-	Name        string `json:"username"`
-	Description string `json:"password"`
-	Members     string `json:"members"`
+// JSONGroupBody - TODO comment
+type JSONGroupBody struct {
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	Members        string `json:"members"`
+	ReplaceMembers bool   `json:"replace"`
 }
 
 //GetGroupInfo - TODO comment

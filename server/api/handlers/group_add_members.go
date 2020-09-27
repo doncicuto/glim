@@ -37,14 +37,17 @@ func (h *Handler) AddGroupMembers(c echo.Context) error {
 	}
 
 	// Update group members
-	members := strings.Split(m.Members, ",")
-	err = h.AddMembers(g, members)
-	if err != nil {
-		return err
+	if m.Members != "" {
+		members := strings.Split(m.Members, ",")
+		err = h.AddMembers(g, members)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Get updated group
-	err = h.DB.Model(&g).Where("id = ?", gid).First(&g).Error
+	g = new(models.Group)
+	err = h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&g).Error
 	if err != nil {
 		return err
 	}

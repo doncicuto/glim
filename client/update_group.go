@@ -33,13 +33,13 @@ import (
 )
 
 var (
-	groupName, groupDesc, groupMembers string
+	replaceMembers bool
 )
 
 // newGroupCmd - TODO comment
-var newGroupCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a Glim group",
+var updateGroupCmd = &cobra.Command{
+	Use:   "update",
+	Short: "Update a Glim group",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		url := "https://127.0.0.1:1323" // TODO - This should not be hardcoded
@@ -66,12 +66,13 @@ var newGroupCmd = &cobra.Command{
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONGroupBody{
-				Name:        groupName,
-				Description: groupDesc,
-				Members:     groupMembers,
+				Name:           groupName,
+				Description:    groupDesc,
+				Members:        groupMembers,
+				ReplaceMembers: replaceMembers,
 			}).
 			SetError(&APIError{}).
-			Post(endpoint)
+			Put(endpoint)
 
 		if err != nil {
 			fmt.Printf("Error connecting with Glim: %v\n", err)
@@ -83,17 +84,17 @@ var newGroupCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Println("Group created")
+		fmt.Println("Group updated")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(newGroupCmd)
+	rootCmd.AddCommand(updateGroupCmd)
 
-	newGroupCmd.Flags().StringVarP(&groupName, "name", "n", "", "our group name")
-	newGroupCmd.Flags().StringVarP(&groupDesc, "description", "d", "", "our group description")
-	newGroupCmd.Flags().StringVarP(&groupMembers, "members", "m", "", "comma-separated list of usernames e.g: manager,tux")
-
+	updateGroupCmd.Flags().StringVarP(&groupName, "name", "n", "", "our group name")
+	updateGroupCmd.Flags().StringVarP(&groupDesc, "description", "d", "", "our group description")
+	updateGroupCmd.Flags().StringVarP(&groupMembers, "members", "m", "", "comma-separated list of usernames e.g: manager,tux")
+	updateGroupCmd.Flags().BoolVar(&replaceMembers, "replace", false, "Replace group members with those specified with -m. Usernames are appended to members by default")
 	// Mark required flags
 	cobra.MarkFlagRequired(newGroupCmd.Flags(), "name")
 }

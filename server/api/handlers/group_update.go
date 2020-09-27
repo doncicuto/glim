@@ -14,6 +14,8 @@ import (
 //UpdateGroup - TODO comment
 func (h *Handler) UpdateGroup(c echo.Context) error {
 	var newGroup = make(map[string]interface{})
+	g := new(models.Group)
+	body := models.JSONGroupBody{}
 
 	// Get gid
 	gid := c.Param("gid")
@@ -23,9 +25,8 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required group gid"}
 	}
 
-	// Bind
-	g := new(models.Group)
-	if err := c.Bind(g); err != nil {
+	// Get request body
+	if err := c.Bind(&body); err != nil {
 		return err
 	}
 
@@ -40,34 +41,62 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 	}
 
 	// Validate other fields
-	if g.Name != nil && *g.Name != "" {
+	if body.Name != "" {
 		err := h.DB.Model(&models.Group{}).Where("name = ? AND id <> ?", g.Name, gid).First(&models.Group{}).Error
 		if err != nil {
 			// Does group name exist?
 			if gorm.IsRecordNotFoundError(err) {
-				newGroup["name"] = html.EscapeString(strings.TrimSpace(*g.Name))
+				newGroup["name"] = html.EscapeString(strings.TrimSpace(body.Name))
 			}
 		} else {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "group name cannot be duplicated"}
 		}
 	}
 
-	if g.Description != nil && *g.Description != "" {
-		newGroup["description"] = html.EscapeString(strings.TrimSpace(*g.Description))
+	if body.Description != "" {
+		newGroup["description"] = html.EscapeString(strings.TrimSpace(body.Description))
 	}
 
 	// New update date
 	g.UpdatedAt = time.Now()
 
-	// Update user
-	err = h.DB.Model(&g).Where("id = ?", gid).Updates(newGroup).Error
-
+	// Update group
+	err = h.DB.Model(&models.Group{}).Where("id = ?", gid).Updates(newGroup).Error
 	if err != nil {
 		return err
 	}
 
 	// Get updated group
-	err = h.DB.Model(&g).Where("id = ?", gid).First(&g).Error
+	err = h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&g).Error
+	if err != nil {
+		// Does group exist?
+		if gorm.IsRecordNotFoundError(err) {
+			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
+		}
+		return err
+	}
+
+	// Update group members
+	if body.Members != "" {
+		members := strings.Split(body.Members, ",")
+
+		if body.ReplaceMembers {
+			// We are going to replace all group members, so let's clear the associations first
+			err = h.DB.Model(&g).Association("Members").Clear().Error
+			if err != nil {
+				return err
+			}
+		}
+
+		err = h.AddMembers(g, members)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Get updated group
+	g = new(models.Group)
+	err = h.DB.Preload("Members").Model(&models.Group{}).Where("id = ?", gid).First(&g).Error
 	if err != nil {
 		return err
 	}
