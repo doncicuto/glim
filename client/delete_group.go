@@ -23,45 +23,65 @@
 package client
 
 import (
+	"crypto/tls"
 	"fmt"
 	"os"
-	"strconv"
 
+	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 )
 
-var gid string
+var groupID uint32
 
-// groupCmd represents the group command
-var groupCmd = &cobra.Command{
-	Use:   "group",
-	Short: "Manage Glim groups",
+// DeleteGroupCmd - TODO comment
+var deleteGroupCmd = &cobra.Command{
+	Use:   "rm",
+	Short: "Remove a Glim group",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if cmd.Flags().Changed("gid") {
-			if gid == "" {
-				fmt.Println("Error non-null gid required")
-				os.Exit(1)
-			}
-			id, err := strconv.Atoi(gid)
-			if err != nil {
-				fmt.Println("Error numeric gid required")
-				os.Exit(1)
-			}
-			getGroup(id)
-			os.Exit(0)
-		}
-		getGroups()
-		os.Exit(0)
+		url := "https://127.0.0.1:1323" // TODO - This should not be hardcoded
 
+		// Glim server URL
+		if len(args) > 0 {
+			url = args[0]
+		}
+
+		// Read credentials
+		token := ReadCredentials()
+		endpoint := fmt.Sprintf("%s/groups/%d", url, groupID)
+		// Check expiration
+		if NeedsRefresh(token) {
+			Refresh(token.RefreshToken)
+			token = ReadCredentials()
+		}
+
+		// Rest API authentication
+		client := resty.New()
+		client.SetAuthToken(token.AccessToken)
+		// TODO - We should verify server's certificate
+		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		resp, err := client.R().
+			SetHeader("Content-Type", "application/json").
+			SetError(&APIError{}).
+			Delete(endpoint)
+
+		if err != nil {
+			fmt.Printf("Error connecting with Glim: %v\n", err)
+			os.Exit(1)
+		}
+
+		if resp.IsError() {
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			os.Exit(1)
+		}
+
+		fmt.Println("Group deleted")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(groupCmd)
-	groupCmd.AddCommand(listGroupCmd)
-	groupCmd.AddCommand(newGroupCmd)
-	groupCmd.AddCommand(updateGroupCmd)
-	groupCmd.AddCommand(deleteGroupCmd)
-	groupCmd.Flags().StringVarP(&gid, "gid", "i", "", "group id")
+	deleteGroupCmd.Flags().Uint32VarP(&groupID, "gid", "i", 0, "group id")
+
+	// Mark required flags
+	cobra.MarkFlagRequired(newGroupCmd.Flags(), "gid")
 }
