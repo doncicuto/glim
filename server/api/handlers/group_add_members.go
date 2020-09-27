@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -25,7 +24,6 @@ func (h *Handler) AddGroupMembers(c echo.Context) error {
 	if err := c.Bind(m); err != nil {
 		return err
 	}
-	members := strings.Split(m.Members, ",")
 
 	// Find group
 	g := new(models.Group)
@@ -38,24 +36,11 @@ func (h *Handler) AddGroupMembers(c echo.Context) error {
 		return err
 	}
 
-	// Update group
-	for _, member := range members {
-
-		// Find user
-		u := new(models.User)
-		err = h.DB.Model(&models.User{}).Where("username = ?", member).Take(&u).Error
-		if err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("user %s not found", member)}
-			}
-			return err
-		}
-
-		// Append association
-		err = h.DB.Model(&g).Association("Members").Append(u).Error
-		if err != nil {
-			return err
-		}
+	// Update group members
+	members := strings.Split(m.Members, ",")
+	err = h.AddMembers(g, members)
+	if err != nil {
+		return err
 	}
 
 	// Get updated group

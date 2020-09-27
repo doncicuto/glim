@@ -28,6 +28,7 @@ import (
 	"os"
 
 	resty "github.com/go-resty/resty/v2"
+	"github.com/muultipla/glim/models"
 	"github.com/spf13/cobra"
 )
 
@@ -64,7 +65,7 @@ var newGroupCmd = &cobra.Command{
 		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
-			SetBody(NewGroup{
+			SetBody(models.NewGroup{
 				Name:        groupName,
 				Description: groupDesc,
 				Members:     groupMembers,

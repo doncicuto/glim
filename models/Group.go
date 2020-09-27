@@ -27,6 +27,13 @@ type GroupMembers struct {
 	Members string `json:"members"`
 }
 
+// NewGroup - TODO comment
+type NewGroup struct {
+	Name        string `json:"username"`
+	Description string `json:"password"`
+	Members     string `json:"members"`
+}
+
 //GetGroupInfo - TODO comment
 func GetGroupInfo(g *Group) *GroupInfo {
 	var i GroupInfo
