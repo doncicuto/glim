@@ -60,7 +60,7 @@ var groupCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(groupCmd)
 	groupCmd.AddCommand(listGroupCmd)
-	// groupCmd.AddCommand(newGroupCmd)
+	groupCmd.AddCommand(newGroupCmd)
 	// groupCmd.AddCommand(updateGroupCmd)
 	// groupCmd.AddCommand(deleteGroupCmd)
 	groupCmd.Flags().StringVarP(&gid, "gid", "i", "", "group id")

@@ -15,3 +15,10 @@ type Credentials struct {
 type RefreshToken struct {
 	Token string `json:"refresh_token"`
 }
+
+// NewGroup - TODO comment
+type NewGroup struct {
+	Name        string `json:"username"`
+	Description string `json:"password"`
+	Members     string `json:"members"`
+}
