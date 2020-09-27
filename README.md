@@ -57,10 +57,11 @@ glim server start --tlscert "/tmp/server.pem" --tlskey "/tmp/server.key"
 
 glim login -u cedric.daniels -p glim.muultipla.com
 
-glim group add devops
+glim group add -n homicides -d "Homicides" -m jimmy.mcnulty,kima.greggs
 
-glim account add -u lester.freamon -e lester.freamon@baltimorepolice.org -g devops,support -p
-glim account remove -u jimmy.mcnulty
+glim user add -u lester.freamon -e lester.freamon@baltimorepolice.org -p
+
+glim user remove -u jimmy.mcnulty
 
 glim logout
 
