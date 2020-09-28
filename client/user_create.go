@@ -38,8 +38,8 @@ import (
 )
 
 var (
-	fullname, email   string
-	manager, readonly bool
+	fullname, email, groups string
+	manager, readonly       bool
 )
 
 // NewUserCmd - TODO comment
@@ -166,6 +166,7 @@ func init() {
 	newUserCmd.Flags().StringVarP(&fullname, "fullname", "f", "", "Fullname")
 	newUserCmd.Flags().StringVarP(&email, "email", "e", "", "Email")
 	newUserCmd.Flags().StringVarP(&password, "password", "p", "", "Password")
+	newUserCmd.Flags().StringVarP(&groups, "groups", "g", "", "Comma-separated list of groups that we want the new user account to be a member of")
 	newUserCmd.Flags().BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
 	newUserCmd.Flags().BoolVar(&manager, "manager", false, "Glim manager account?")
 	newUserCmd.Flags().BoolVar(&readonly, "readonly", false, "Glim readonly account?")
