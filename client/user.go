@@ -63,5 +63,5 @@ func init() {
 	userCmd.AddCommand(newUserCmd)
 	userCmd.AddCommand(updateUserCmd)
 	userCmd.AddCommand(deleteUserCmd)
-	userCmd.Flags().StringVarP(&uid, "uid", "i", "", "user id")
+	userCmd.Flags().StringVarP(&uid, "uid", "i", "", "user account id")
 }

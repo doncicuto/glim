@@ -23,16 +23,65 @@
 package client
 
 import (
+	"crypto/tls"
 	"fmt"
+	"os"
 
+	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 )
+
+var userID uint32
 
 // DeleteUserCmd - TODO comment
 var deleteUserCmd = &cobra.Command{
 	Use:   "rm",
 	Short: "Remove a Glim user account",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("remove glim user account")
+
+		url := "https://127.0.0.1:1323" // TODO - This should not be hardcoded
+
+		// Glim server URL
+		if len(args) > 0 {
+			url = args[0]
+		}
+
+		// Read credentials
+		token := ReadCredentials()
+		endpoint := fmt.Sprintf("%s/users/%d", url, userID)
+		// Check expiration
+		if NeedsRefresh(token) {
+			Refresh(token.RefreshToken)
+			token = ReadCredentials()
+		}
+
+		// Rest API authentication
+		client := resty.New()
+		client.SetAuthToken(token.AccessToken)
+		// TODO - We should verify server's certificate
+		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		resp, err := client.R().
+			SetHeader("Content-Type", "application/json").
+			SetError(&APIError{}).
+			Delete(endpoint)
+
+		if err != nil {
+			fmt.Printf("Error connecting with Glim: %v\n", err)
+			os.Exit(1)
+		}
+
+		if resp.IsError() {
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			os.Exit(1)
+		}
+
+		fmt.Println("User account deleted")
 	},
+}
+
+func init() {
+	deleteUserCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "user account id")
+
+	// Mark required flags
+	cobra.MarkFlagRequired(deleteUserCmd.Flags(), "uid")
 }
