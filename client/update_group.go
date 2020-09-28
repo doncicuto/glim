@@ -51,7 +51,7 @@ var updateGroupCmd = &cobra.Command{
 
 		// Read credentials
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/groups", url)
+		endpoint := fmt.Sprintf("%s/groups/%d", url, groupID)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
@@ -91,10 +91,11 @@ var updateGroupCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(updateGroupCmd)
 
+	updateGroupCmd.Flags().Uint32VarP(&groupID, "gid", "i", 0, "group id")
 	updateGroupCmd.Flags().StringVarP(&groupName, "name", "n", "", "our group name")
 	updateGroupCmd.Flags().StringVarP(&groupDesc, "description", "d", "", "our group description")
 	updateGroupCmd.Flags().StringVarP(&groupMembers, "members", "m", "", "comma-separated list of usernames e.g: manager,tux")
 	updateGroupCmd.Flags().BoolVar(&replaceMembers, "replace", false, "Replace group members with those specified with -m. Usernames are appended to members by default")
 	// Mark required flags
-	cobra.MarkFlagRequired(newGroupCmd.Flags(), "name")
+	cobra.MarkFlagRequired(updateGroupCmd.Flags(), "gid")
 }
