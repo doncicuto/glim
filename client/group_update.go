@@ -89,8 +89,6 @@ var updateGroupCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(updateGroupCmd)
-
 	updateGroupCmd.Flags().Uint32VarP(&groupID, "gid", "i", 0, "group id")
 	updateGroupCmd.Flags().StringVarP(&groupName, "name", "n", "", "our group name")
 	updateGroupCmd.Flags().StringVarP(&groupDesc, "description", "d", "", "our group description")

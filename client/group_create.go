@@ -88,8 +88,6 @@ var newGroupCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(newGroupCmd)
-
 	newGroupCmd.Flags().StringVarP(&groupName, "name", "n", "", "our group name")
 	newGroupCmd.Flags().StringVarP(&groupDesc, "description", "d", "", "our group description")
 	newGroupCmd.Flags().StringVarP(&groupMembers, "members", "m", "", "comma-separated list of usernames e.g: manager,tux")

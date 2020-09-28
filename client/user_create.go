@@ -160,8 +160,6 @@ var newUserCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(newUserCmd)
-
 	newUserCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
 	newUserCmd.Flags().StringVarP(&fullname, "fullname", "f", "", "Fullname")
 	newUserCmd.Flags().StringVarP(&email, "email", "e", "", "Email")
