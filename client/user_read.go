@@ -26,7 +26,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -89,8 +88,8 @@ func getUser(id int) {
 		memberOf = strings.Join(groups, ",")
 	}
 
-	fmt.Printf("%-6s %-25s %-25s %-25s %-25s %-8v %-8v\n",
-		truncate(strconv.Itoa(int(result.ID)), 6),
+	fmt.Printf("%-6d %-25s %-25s %-25s %-25s %-8v %-8v\n",
+		result.ID,
 		truncate(result.Username, 25),
 		truncate(result.Fullname, 25),
 		truncate(result.Email, 25),
@@ -157,8 +156,8 @@ func getUsers() {
 			memberOf = strings.Join(groups, ",")
 		}
 
-		fmt.Printf("%-6s %-25s %-25s %-25s %-25s %-8v %-8v\n",
-			truncate(strconv.Itoa(int(result.ID)), 6),
+		fmt.Printf("%-6d %-25s %-25s %-25s %-25s %-8v %-8v\n",
+			result.ID,
 			truncate(result.Username, 25),
 			truncate(result.Fullname, 25),
 			truncate(result.Email, 25),

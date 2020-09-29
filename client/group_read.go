@@ -135,9 +135,9 @@ func getGroups() {
 		}
 		fmt.Printf("%-10d %-20s %-35s %-50s\n",
 			result.ID,
-			*result.Name,
-			*result.Description,
-			members)
+			truncate(*result.Name, 20),
+			truncate(*result.Description, 35),
+			truncate(members, 50))
 	}
 }
 
