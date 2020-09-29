@@ -54,6 +54,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 		return err
 	}
 
-	i := models.GetUserInfo(*u)
+	showMemberOf := true
+	i := models.GetUserInfo(*u, showMemberOf)
 	return c.JSON(http.StatusOK, i)
 }

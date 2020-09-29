@@ -22,12 +22,13 @@ type User struct {
 
 //UserInfo - TODO comment
 type UserInfo struct {
-	ID       uint32 `json:"uid"`
-	Username string `json:"username"`
-	Fullname string `json:"fullname"`
-	Email    string `json:"email"`
-	Manager  bool   `json:"manager"`
-	Readonly bool   `json:"readonly"`
+	ID       uint32      `json:"uid"`
+	Username string      `json:"username"`
+	Fullname string      `json:"fullname"`
+	Email    string      `json:"email"`
+	Manager  bool        `json:"manager"`
+	Readonly bool        `json:"readonly"`
+	MemberOf []GroupInfo `json:"memberOf,omitempty"`
 }
 
 //Hash - TODO comment
@@ -41,7 +42,7 @@ func VerifyPassword(hashedPassword, password string) error {
 }
 
 //GetUserInfo - TODO comment
-func GetUserInfo(u User) UserInfo {
+func GetUserInfo(u User, showMemberOf bool) UserInfo {
 	var i UserInfo
 	i.ID = u.ID
 	if u.Username != nil {
@@ -58,6 +59,14 @@ func GetUserInfo(u User) UserInfo {
 	}
 	if u.Readonly != nil {
 		i.Readonly = *u.Readonly
+	}
+
+	if showMemberOf {
+		members := []GroupInfo{}
+		for _, member := range u.MemberOf {
+			members = append(members, *GetGroupInfo(member, !showMemberOf))
+		}
+		i.MemberOf = members
 	}
 
 	return i

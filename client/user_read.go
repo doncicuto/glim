@@ -26,6 +26,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/muultipla/glim/models"
@@ -51,7 +53,7 @@ func getUser(id int) {
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetResult(models.User{}).
+		SetResult(models.UserInfo{}).
 		SetError(&APIError{}).
 		Get(endpoint)
 
@@ -65,24 +67,38 @@ func getUser(id int) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-10s %-20s %-35s %-35s %-8s %-8s\n",
+	fmt.Printf("%-6s %-25s %-25s %-25s %-25s %-8s %-8s\n",
 		"UID",
 		"USERNAME",
 		"FULLNAME",
 		"EMAIL",
+		"GROUPS",
 		"MANAGER",
 		"READONLY",
 	)
 
-	result := resp.Result().(*models.User)
-	fmt.Printf("%-10d %-20s %-35s %-35s %-8v %-8v\n",
-		result.ID,
-		*result.Username,
-		*result.Fullname,
-		*result.Email,
-		*result.Manager,
-		*result.Readonly,
+	memberOf := "none"
+	groups := []string{}
+
+	result := resp.Result().(*models.UserInfo)
+	for _, group := range result.MemberOf {
+		groups = append(groups, group.Name)
+	}
+
+	if len(groups) > 0 {
+		memberOf = strings.Join(groups, ",")
+	}
+
+	fmt.Printf("%-6s %-25s %-25s %-25s %-25s %-8v %-8v\n",
+		truncate(strconv.Itoa(int(result.ID)), 6),
+		truncate(result.Username, 25),
+		truncate(result.Fullname, 25),
+		truncate(result.Email, 25),
+		truncate(memberOf, 25),
+		result.Manager,
+		result.Readonly,
 	)
+
 }
 
 func getUsers() {
@@ -103,7 +119,7 @@ func getUsers() {
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetResult([]models.User{}).
+		SetResult([]models.UserInfo{}).
 		SetError(&APIError{}).
 		Get(endpoint)
 
@@ -117,24 +133,38 @@ func getUsers() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-10s %-20s %-35s %-35s %-8s %-8s\n",
+	fmt.Printf("%-6s %-25s %-25s %-25s %-25s %-8s %-8s\n",
 		"UID",
 		"USERNAME",
 		"FULLNAME",
 		"EMAIL",
+		"GROUPS",
 		"MANAGER",
 		"READONLY",
 	)
 
-	results := resp.Result().(*[]models.User)
+	results := resp.Result().(*[]models.UserInfo)
+
 	for _, result := range *results {
-		fmt.Printf("%-10d %-20s %-35s %-35s %-8v %-8v\n",
-			result.ID,
-			*result.Username,
-			*result.Fullname,
-			*result.Email,
-			*result.Manager,
-			*result.Readonly,
+		memberOf := "none"
+		groups := []string{}
+
+		for _, group := range result.MemberOf {
+			groups = append(groups, group.Name)
+		}
+
+		if len(groups) > 0 {
+			memberOf = strings.Join(groups, ",")
+		}
+
+		fmt.Printf("%-6s %-25s %-25s %-25s %-25s %-8v %-8v\n",
+			truncate(strconv.Itoa(int(result.ID)), 6),
+			truncate(result.Username, 25),
+			truncate(result.Fullname, 25),
+			truncate(result.Email, 25),
+			truncate(memberOf, 25),
+			result.Manager,
+			result.Readonly,
 		)
 	}
 }

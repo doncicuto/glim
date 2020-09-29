@@ -23,7 +23,8 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 		return err
 	}
 
-	i := models.GetGroupInfo(&g)
+	showMembers := true
+	i := models.GetGroupInfo(&g, showMembers)
 	return c.JSON(http.StatusOK, i)
 }
 
@@ -56,8 +57,9 @@ func (h *Handler) FindAllGroups(c echo.Context) error {
 	}
 
 	var allGroups []models.GroupInfo
+	showMembers := true
 	for _, group := range groups {
-		allGroups = append(allGroups, *models.GetGroupInfo(&group))
+		allGroups = append(allGroups, *models.GetGroupInfo(&group, showMembers))
 	}
 
 	return c.JSON(http.StatusOK, allGroups)

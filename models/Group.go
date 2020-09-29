@@ -19,7 +19,7 @@ type GroupInfo struct {
 	ID          uint32     `json:"gid"`
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
-	Members     []UserInfo `json:"members"`
+	Members     []UserInfo `json:"members,omitempty"`
 }
 
 //GroupMembers - TODO comment
@@ -31,12 +31,12 @@ type GroupMembers struct {
 type JSONGroupBody struct {
 	Name           string `json:"name"`
 	Description    string `json:"description"`
-	Members        string `json:"members"`
+	Members        string `json:"members,omitempty"`
 	ReplaceMembers bool   `json:"replace"`
 }
 
 //GetGroupInfo - TODO comment
-func GetGroupInfo(g *Group) *GroupInfo {
+func GetGroupInfo(g *Group, showMembers bool) *GroupInfo {
 	var i GroupInfo
 	i.ID = g.ID
 	i.Name = *g.Name
@@ -45,11 +45,13 @@ func GetGroupInfo(g *Group) *GroupInfo {
 		i.Description = *g.Description
 	}
 
-	members := []UserInfo{}
-	for _, member := range g.Members {
-		members = append(members, GetUserInfo(*member))
+	if showMembers {
+		members := []UserInfo{}
+		for _, member := range g.Members {
+			members = append(members, GetUserInfo(*member, !showMembers))
+		}
+		i.Members = members
 	}
-	i.Members = members
 
 	return &i
 }

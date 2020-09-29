@@ -25,6 +25,7 @@ func (h *Handler) FindAllUsers(c echo.Context) error {
 	// Retrieve users from database
 	users := []models.User{}
 	if err := h.DB.
+		Preload("MemberOf").
 		Model(&models.User{}).
 		Offset((page - 1) * limit).
 		Limit(limit).
@@ -37,8 +38,9 @@ func (h *Handler) FindAllUsers(c echo.Context) error {
 	}
 
 	var allUsers []models.UserInfo
+	showMemberOf := true
 	for _, user := range users {
-		allUsers = append(allUsers, models.GetUserInfo(user))
+		allUsers = append(allUsers, models.GetUserInfo(user, showMemberOf))
 	}
 
 	return c.JSON(http.StatusOK, allUsers)
@@ -50,7 +52,7 @@ func (h *Handler) FindUserByID(c echo.Context) error {
 	var err error
 	uid := c.Param("uid")
 
-	err = h.DB.Model(&models.User{}).Where("id = ?", uid).Take(&u).Error
+	err = h.DB.Preload("MemberOf").Model(&models.User{}).Where("id = ?", uid).Take(&u).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
@@ -58,6 +60,7 @@ func (h *Handler) FindUserByID(c echo.Context) error {
 		return err
 	}
 
-	i := models.GetUserInfo(u)
+	showMemberOf := true
+	i := models.GetUserInfo(u, showMemberOf)
 	return c.JSON(http.StatusOK, i)
 }

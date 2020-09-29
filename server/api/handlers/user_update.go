@@ -97,5 +97,6 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	// Return user
-	return c.JSON(http.StatusOK, models.GetUserInfo(*u))
+	showMemberOf := true
+	return c.JSON(http.StatusOK, models.GetUserInfo(*u, showMemberOf))
 }

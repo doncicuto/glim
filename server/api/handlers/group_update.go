@@ -102,5 +102,6 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 	}
 
 	// Return group
-	return c.JSON(http.StatusOK, models.GetGroupInfo(g))
+	showMembers := true
+	return c.JSON(http.StatusOK, models.GetGroupInfo(g, showMembers))
 }

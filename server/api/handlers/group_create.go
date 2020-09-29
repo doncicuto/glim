@@ -76,6 +76,7 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 	}
 
 	// Send group information
-	i := models.GetGroupInfo(g)
+	showMembers := true
+	i := models.GetGroupInfo(g, showMembers)
 	return c.JSON(http.StatusOK, i)
 }
