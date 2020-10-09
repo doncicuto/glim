@@ -73,8 +73,6 @@ func DeleteCredentials() {
 
 // Refresh - TODO comment
 func Refresh(rt string) {
-	var url = "https://127.0.0.1:1323" // TODO - this should not be hardcoded
-
 	// Rest API authentication
 	client := resty.New()
 

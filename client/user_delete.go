@@ -31,15 +31,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var userID uint32
-
 // DeleteUserCmd - TODO comment
 var deleteUserCmd = &cobra.Command{
 	Use:   "rm",
 	Short: "Remove a Glim user account",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		url := "https://127.0.0.1:1323" // TODO - This should not be hardcoded
 
 		// Glim server URL
 		if len(args) > 0 {

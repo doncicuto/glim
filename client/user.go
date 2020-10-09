@@ -23,9 +23,7 @@
 package client
 
 import (
-	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -39,16 +37,7 @@ var userCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if cmd.Flags().Changed("uid") {
-			if uid == "" {
-				fmt.Println("Error non-null uid required")
-				os.Exit(1)
-			}
-			id, err := strconv.Atoi(uid)
-			if err != nil {
-				fmt.Println("Error numeric uid required")
-				os.Exit(1)
-			}
-			getUser(id)
+			getUser(userID)
 			os.Exit(0)
 		}
 		getUsers()
@@ -63,5 +52,5 @@ func init() {
 	userCmd.AddCommand(newUserCmd)
 	userCmd.AddCommand(updateUserCmd)
 	userCmd.AddCommand(deleteUserCmd)
-	userCmd.Flags().StringVarP(&uid, "uid", "i", "", "user account id")
+	userCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "user account id")
 }

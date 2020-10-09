@@ -32,17 +32,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	groupName, groupDesc, groupMembers string
-)
-
 // newGroupCmd - TODO comment
 var newGroupCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a Glim group",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		url := "https://127.0.0.1:1323" // TODO - This should not be hardcoded
 
 		// Glim server URL
 		if len(args) > 0 {

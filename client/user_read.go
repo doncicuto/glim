@@ -33,7 +33,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func getUser(id int) {
+func getUser(id uint32) {
 	endpoint := fmt.Sprintf("%s/users/%d", url, id)
 	// Read credentials
 	token := ReadCredentials()

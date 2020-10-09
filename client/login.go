@@ -49,8 +49,6 @@ If no server is specified, the default is localhost.`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		url := "https://127.0.0.1:1323" // TODO - This should not be hardcoded
-
 		if !cmd.Flags().Changed("username") {
 			username = prompter.Prompt("Username", "")
 			if username == "" {

@@ -58,7 +58,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 	}
 
 	// New update date
-	g.UpdatedAt = time.Now()
+	newGroup["updated_at"] = time.Now()
 
 	// Update group
 	err = h.DB.Model(&models.Group{}).Where("id = ?", gid).Updates(newGroup).Error

@@ -21,7 +21,7 @@ func (h *Handler) Refresh(c echo.Context) error {
 	// Get refresh token from body
 	tokens := new(auth.Tokens)
 	if err := c.Bind(tokens); err != nil {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token, you may have to log in again"}
 	}
 
 	// Get refresh token claims
@@ -30,7 +30,7 @@ func (h *Handler) Refresh(c echo.Context) error {
 		return []byte(os.Getenv("API_SECRET")), nil
 	})
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token, you may have to log in again"}
 	}
 
 	// Check if JWT token is valid

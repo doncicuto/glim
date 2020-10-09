@@ -20,6 +20,18 @@ type User struct {
 	MemberOf  []*Group  `gorm:"many2many:group_members"`
 }
 
+// JSONUserBody - TODO comment
+type JSONUserBody struct {
+	Username         string `json:"username"`
+	Fullname         string `json:"fullname"`
+	Email            string `json:"email"`
+	Password         string `json:"password"`
+	MemberOf         string `json:"members,omitempty"`
+	Manager          *bool  `json:"manager"`
+	Readonly         *bool  `json:"readonly"`
+	ReplaceMembersOf bool   `json:"replace"`
+}
+
 //UserInfo - TODO comment
 type UserInfo struct {
 	ID       uint32      `json:"uid"`

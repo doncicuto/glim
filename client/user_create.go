@@ -37,18 +37,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	fullname, email, groups string
-	manager, readonly       bool
-)
-
 // NewUserCmd - TODO comment
 var newUserCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a Glim user account",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		url := "https://127.0.0.1:1323" // TODO - This should not be hardcoded
 
 		// Validate email
 		if err := checkmail.ValidateFormat(email); err != nil {

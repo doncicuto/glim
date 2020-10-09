@@ -32,8 +32,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var url = "https://127.0.0.1:1323" // TODO - this should not be hardcoded
-
 func getGroup(id int) {
 	endpoint := fmt.Sprintf("%s/groups/%d", url, id)
 	// Read credentials

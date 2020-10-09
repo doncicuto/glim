@@ -31,15 +31,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var groupID uint32
-
 // DeleteGroupCmd - TODO comment
 var deleteGroupCmd = &cobra.Command{
 	Use:   "rm",
 	Short: "Remove a Glim group",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		url := "https://127.0.0.1:1323" // TODO - This should not be hardcoded
 
 		// Glim server URL
 		if len(args) > 0 {
@@ -83,5 +79,5 @@ func init() {
 	deleteGroupCmd.Flags().Uint32VarP(&groupID, "gid", "i", 0, "group id")
 
 	// Mark required flags
-	cobra.MarkFlagRequired(newGroupCmd.Flags(), "gid")
+	cobra.MarkFlagRequired(deleteGroupCmd.Flags(), "gid")
 }

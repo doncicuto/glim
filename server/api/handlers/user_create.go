@@ -1,13 +1,40 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/badoux/checkmail"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 	"github.com/muultipla/glim/models"
 )
+
+// AddMembersOf - TODO comment
+func (h *Handler) AddMembersOf(u *models.User, memberOf []string) error {
+	var err error
+	// Update group
+	for _, member := range memberOf {
+		member = strings.TrimSpace(member)
+		// Find group
+		g := new(models.Group)
+		err = h.DB.Model(&models.Group{}).Where("name = ?", member).Take(&g).Error
+		if err != nil {
+			if gorm.IsRecordNotFoundError(err) {
+				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("group %s not found", member)}
+			}
+			return err
+		}
+
+		// Append association
+		err = h.DB.Model(&u).Association("MemberOf").Append(g).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 //SaveUser - TODO comment
 func (h *Handler) SaveUser(c echo.Context) error {
