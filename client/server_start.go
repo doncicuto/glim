@@ -43,9 +43,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	tlscert, tlskey string
-)
+var ()
 
 // serverCmd represents the server command
 var serverStartCmd = &cobra.Command{

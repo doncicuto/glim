@@ -30,8 +30,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var gid string
-
 // groupCmd represents the group command
 var groupCmd = &cobra.Command{
 	Use:   "group",

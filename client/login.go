@@ -36,10 +36,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var username string
-var password string
-var passwordStdin bool
-
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login [flags] [SERVER]",

@@ -32,10 +32,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	replaceMembers bool
-)
-
 // newGroupCmd - TODO comment
 var updateGroupCmd = &cobra.Command{
 	Use:   "update",

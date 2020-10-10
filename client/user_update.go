@@ -33,10 +33,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	replaceMembersOf bool
-)
-
 // NewUserCmd - TODO comment
 var updateUserCmd = &cobra.Command{
 	Use:   "update",

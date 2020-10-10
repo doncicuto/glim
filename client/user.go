@@ -28,8 +28,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var uid string
-
 // userCmd represents the user command
 var userCmd = &cobra.Command{
 	Use:   "user",
