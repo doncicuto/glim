@@ -1,5 +1,5 @@
 //
-// Copyright © 2020 Muultipla Devops <devops@muultipla.com>
+// Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
