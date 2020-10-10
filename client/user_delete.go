@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Songmu/prompter"
 	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 )
@@ -37,15 +38,19 @@ var deleteUserCmd = &cobra.Command{
 	Short: "Remove a Glim user account",
 	Run: func(cmd *cobra.Command, args []string) {
 
+		confirm := prompter.YesNo("Do you really want to delete this user?", false)
+		if !confirm {
+			os.Exit(1)
+		}
+
 		// Glim server URL
 		if len(args) > 0 {
 			url = args[0]
 		}
 
-		// Read credentials
+		// Read credentials and check if token needs refresh
 		token := ReadCredentials()
 		endpoint := fmt.Sprintf("%s/users/%d", url, userID)
-		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
 			token = ReadCredentials()
