@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Songmu/prompter"
 	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 )
@@ -36,6 +37,11 @@ var deleteGroupCmd = &cobra.Command{
 	Use:   "rm",
 	Short: "Remove a Glim group",
 	Run: func(cmd *cobra.Command, args []string) {
+
+		confirm := prompter.YesNo("Do you really want to delete this group?", false)
+		if !confirm {
+			os.Exit(1)
+		}
 
 		// Glim server URL
 		if len(args) > 0 {
