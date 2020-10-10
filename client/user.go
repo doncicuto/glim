@@ -50,5 +50,6 @@ func init() {
 	userCmd.AddCommand(newUserCmd)
 	userCmd.AddCommand(updateUserCmd)
 	userCmd.AddCommand(deleteUserCmd)
+	userCmd.AddCommand(userPasswdCmd)
 	userCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "user account id")
 }

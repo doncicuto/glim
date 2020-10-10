@@ -25,11 +25,16 @@ type JSONUserBody struct {
 	Username         string `json:"username"`
 	Fullname         string `json:"fullname"`
 	Email            string `json:"email"`
-	Password         string `json:"password"`
 	MemberOf         string `json:"members,omitempty"`
 	Manager          *bool  `json:"manager"`
 	Readonly         *bool  `json:"readonly"`
 	ReplaceMembersOf bool   `json:"replace"`
+}
+
+// JSONPasswdBody - TODO comment
+type JSONPasswdBody struct {
+	Password    string `json:"password"`
+	OldPassword string `json:"old_password"`
 }
 
 //UserInfo - TODO comment

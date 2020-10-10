@@ -52,7 +52,7 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
 		SigningKey: []byte(os.Getenv("API_SECRET")),
 		Skipper: func(c echo.Context) bool {
-			if c.Path() == "/login" || c.Path() == "/login/refreshToken" || c.Path() == "/logout" {
+			if c.Path() == "/login" || c.Path() == "/login/refresh_token" || c.Path() == "/logout" {
 				return true
 			}
 			return false
@@ -65,14 +65,15 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 
 	// Routes
 	e.POST("/login", h.Login)
-	e.POST("/login/refreshToken", h.Refresh)
-	e.DELETE("/login/refreshToken", h.Logout)
+	e.POST("/login/refresh_token", h.Refresh)
+	e.DELETE("/login/refresh_token", h.Logout)
 
 	e.GET("/users", h.FindAllUsers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	e.POST("/users", h.SaveUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	e.GET("/users/:uid", h.FindUserByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	e.PUT("/users/:uid", h.UpdateUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	e.DELETE("/users/:uid", h.DeleteUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	e.POST("/users/:uid/passwd", h.Passwd, glimMiddleware.IsBlacklisted(blacklist))
 
 	e.GET("/groups", h.FindAllGroups, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	e.POST("/groups", h.SaveGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)

@@ -28,37 +28,73 @@ import (
 	"os"
 
 	resty "github.com/go-resty/resty/v2"
-	"github.com/muultipla/glim/server/api/auth"
+	"github.com/muultipla/glim/models"
+
+	"github.com/Songmu/prompter"
 	"github.com/spf13/cobra"
 )
 
-// logoutCmd represents the logout command
-var logoutCmd = &cobra.Command{
-	Use:   "logout [flags] [URL]",
-	Short: "Log out from a Glim server",
-	Long:  "Log out from a Glim server",
-	Args:  cobra.MaximumNArgs(1),
+// NewUserCmd - TODO comment
+var userPasswdCmd = &cobra.Command{
+	Use:   "passwd",
+	Short: "Change a Glim user account password",
 	Run: func(cmd *cobra.Command, args []string) {
-		var token *auth.Response
+		passwdBody := models.JSONPasswdBody{}
 
-		// Read token from file
-		token = ReadCredentials()
-
+		// Read credentials
+		token := ReadCredentials()
+		endpoint := fmt.Sprintf("%s/users/%d/passwd", url, userID)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
 			token = ReadCredentials()
 		}
 
-		// Logout
+		if !AmIManager(token) && uint32(WhichIsMyTokenUID(token)) != userID {
+			fmt.Println("Only users with manager role can change other users passwords")
+		}
+
+		if cmd.Flags().Changed("password") {
+			fmt.Println("WARNING! Using --password via the CLI is insecure.")
+		}
+
+		if uint32(WhichIsMyTokenUID(token)) == userID {
+			oldPassword := prompter.Password("Old password")
+			if oldPassword == "" {
+				fmt.Println("Error password required")
+				os.Exit(1)
+			}
+			passwdBody.OldPassword = oldPassword
+		}
+
+		// Prompt for password if needed
+		if !cmd.Flags().Changed("password") {
+			if !passwordStdin {
+				password = prompter.Password("New password")
+				if password == "" {
+					fmt.Println("Error password required")
+					os.Exit(1)
+				}
+				confirmPassword := prompter.Password("Confirm password")
+				if password != confirmPassword {
+					fmt.Println("Error passwords don't match")
+					os.Exit(1)
+				}
+			}
+		}
+
+		passwdBody.Password = password
+
+		// Rest API authentication
 		client := resty.New()
+		client.SetAuthToken(token.AccessToken)
 		// TODO - We should verify server's certificate
 		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
-			SetBody(fmt.Sprintf(`{"refresh_token":"%s"}`, token.RefreshToken)).
+			SetBody(passwdBody).
 			SetError(&APIError{}).
-			Delete(fmt.Sprintf("%s/login/refresh_token", url))
+			Post(endpoint)
 
 		if err != nil {
 			fmt.Printf("Error connecting with Glim: %v\n", err)
@@ -70,13 +106,13 @@ var logoutCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Remove credentials file
-		DeleteCredentials()
-
-		fmt.Println("Removing login credentials")
+		fmt.Println("Password changed")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(logoutCmd)
+	userPasswdCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "User account id")
+	userPasswdCmd.Flags().StringVarP(&password, "password", "p", "", "New user password")
+	// Mark required flags
+	cobra.MarkFlagRequired(userPasswdCmd.Flags(), "uid")
 }

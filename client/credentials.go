@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	resty "github.com/go-resty/resty/v2"
 	"github.com/muultipla/glim/server/api/auth"
 )
@@ -88,7 +89,7 @@ func Refresh(rt string) {
 			Token: rt,
 		}).
 		SetError(&APIError{}).
-		Post(fmt.Sprintf("%s/login/refreshToken", url))
+		Post(fmt.Sprintf("%s/login/refresh_token", url))
 
 	if err != nil {
 		fmt.Printf("Error connecting with Glim: %v\n", err)
@@ -126,4 +127,34 @@ func NeedsRefresh(token *auth.Response) bool {
 	now := time.Now()
 	expiration := time.Unix(token.ExpiresOn, 0)
 	return expiration.Before(now)
+}
+
+// AmIManager - TODO comment
+func AmIManager(token *auth.Response) bool {
+	claims := make(jwt.MapClaims)
+	jwt.ParseWithClaims(token.AccessToken, claims, nil)
+
+	// Extract access token jti
+	manager, ok := claims["manager"].(bool)
+	if !ok {
+		fmt.Printf("Could not parse access token. Please try to log in again\n")
+		os.Exit(1)
+	}
+
+	return manager
+}
+
+// WhichIsMyTokenUID - TODO comment
+func WhichIsMyTokenUID(token *auth.Response) float64 {
+	claims := make(jwt.MapClaims)
+	jwt.ParseWithClaims(token.AccessToken, claims, nil)
+
+	// Extract access token jti
+	uid, ok := claims["uid"].(float64)
+	if !ok {
+		fmt.Printf("Could not parse access token. Please try to log in again\n")
+		os.Exit(1)
+	}
+
+	return uid
 }

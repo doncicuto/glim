@@ -59,13 +59,6 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		newUser["fullname"] = html.EscapeString(strings.TrimSpace(body.Fullname))
 	}
 
-	if body.Password != "" {
-		password, err := models.Hash(body.Password)
-		if err != nil {
-			return err
-		}
-		newUser["password"] = string(password)
-	}
 	if body.Email != "" {
 		if err := checkmail.ValidateFormat(body.Email); err != nil {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
