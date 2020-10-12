@@ -18,7 +18,6 @@ package client
 
 import (
 	"bufio"
-	"crypto/tls"
 	"fmt"
 	"io"
 	"os"
@@ -97,8 +96,8 @@ If no server is specified, the default is localhost.`,
 
 		// Rest API authentication
 		client := resty.New()
-		// TODO - We should verify server's certificate
-		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		client.SetRootCertificate(tlscacert)
+
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(Credentials{

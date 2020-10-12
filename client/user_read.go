@@ -17,7 +17,6 @@ limitations under the License.
 package client
 
 import (
-	"crypto/tls"
 	"fmt"
 	"os"
 	"strings"
@@ -27,7 +26,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func getUser(id uint32) {
+func getUser(id uint32, tlscacert string) {
 	endpoint := fmt.Sprintf("%s/users/%d", url, id)
 	// Read credentials
 	token := ReadCredentials()
@@ -41,8 +40,7 @@ func getUser(id uint32) {
 	// Rest API authentication
 	client := resty.New()
 	client.SetAuthToken(token.AccessToken)
-	// TODO - We should verify server's certificate
-	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	client.SetRootCertificate(tlscacert)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -94,7 +92,7 @@ func getUser(id uint32) {
 
 }
 
-func getUsers() {
+func getUsers(tlscacert string) {
 	// Read credentials
 	token := ReadCredentials()
 	endpoint := fmt.Sprintf("%s/users", url)
@@ -107,8 +105,7 @@ func getUsers() {
 	// Rest API authentication
 	client := resty.New()
 	client.SetAuthToken(token.AccessToken)
-	// TODO - We should verify server's certificate
-	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	client.SetRootCertificate(tlscacert)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -167,6 +164,6 @@ var listUserCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List Glim user accounts",
 	Run: func(cmd *cobra.Command, args []string) {
-		getUsers()
+		getUsers(tlscacert)
 	},
 }

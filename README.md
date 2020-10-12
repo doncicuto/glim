@@ -50,6 +50,18 @@ Creating a client certificate file and private key file...
 Finished! All your certificates and keys should be at /tmp
 ```
 
+When using the CLI a REST API will be consumed using TLS. You should use the --tlscacert flag to specify the path to your Root CA pem file or store it as ca.pem in the .glim directory at your user HOME directory. For example:
+
+```(bash)
+go run main.go user --tlscacert /tmp/root.pem
+```
+
+Failing to provide a valid CA pem file you'll receive the following error message:
+
+```(bash)
+Could not find required CA pem file to validate authority
+```
+
 ## How does it work
 
 ```(bash)

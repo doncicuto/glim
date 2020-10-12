@@ -17,6 +17,7 @@ limitations under the License.
 package client
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -28,11 +29,17 @@ var userCmd = &cobra.Command{
 	Short: "Manage Glim user accounts",
 	Run: func(cmd *cobra.Command, args []string) {
 
+		_, err := os.Stat(tlscacert)
+		if os.IsNotExist(err) {
+			fmt.Println("Could not find required CA pem file to validate authority")
+			os.Exit(1)
+		}
+
 		if cmd.Flags().Changed("uid") {
-			getUser(userID)
+			getUser(userID, tlscacert)
 			os.Exit(0)
 		}
-		getUsers()
+		getUsers(tlscacert)
 		os.Exit(0)
 
 	},

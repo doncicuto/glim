@@ -17,7 +17,6 @@ limitations under the License.
 package client
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -95,8 +94,7 @@ func Refresh(rt string) {
 
 	// Set bearer token
 	client.SetAuthToken(rt)
-	// TODO - We should verify server's certificate
-	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	client.SetRootCertificate(tlscacert)
 
 	// Query refresh token
 	resp, err := client.R().

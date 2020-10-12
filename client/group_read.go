@@ -17,7 +17,6 @@ limitations under the License.
 package client
 
 import (
-	"crypto/tls"
 	"fmt"
 	"os"
 
@@ -40,8 +39,7 @@ func getGroup(id int) {
 	// Rest API authentication
 	client := resty.New()
 	client.SetAuthToken(token.AccessToken)
-	// TODO - We should verify server's certificate
-	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	client.SetRootCertificate(tlscacert)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -86,8 +84,7 @@ func getGroups() {
 	// Rest API authentication
 	client := resty.New()
 	client.SetAuthToken(token.AccessToken)
-	// TODO - We should verify server's certificate
-	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	client.SetRootCertificate(tlscacert)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").

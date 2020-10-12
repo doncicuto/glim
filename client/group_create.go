@@ -17,7 +17,6 @@ limitations under the License.
 package client
 
 import (
-	"crypto/tls"
 	"fmt"
 	"os"
 
@@ -49,8 +48,8 @@ var newGroupCmd = &cobra.Command{
 		// Rest API authentication
 		client := resty.New()
 		client.SetAuthToken(token.AccessToken)
-		// TODO - We should verify server's certificate
-		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		client.SetRootCertificate(tlscacert)
+
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONGroupBody{

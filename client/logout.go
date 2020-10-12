@@ -17,7 +17,6 @@ limitations under the License.
 package client
 
 import (
-	"crypto/tls"
 	"fmt"
 	"os"
 
@@ -46,8 +45,8 @@ var logoutCmd = &cobra.Command{
 
 		// Logout
 		client := resty.New()
-		// TODO - We should verify server's certificate
-		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		client.SetRootCertificate(tlscacert)
+
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(fmt.Sprintf(`{"refresh_token":"%s"}`, token.RefreshToken)).

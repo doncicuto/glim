@@ -22,7 +22,7 @@ var (
 	fullname, email, groups, gid                string
 	groupName, groupDesc, groupMembers          string
 	uid, username, password, cfgFile            string
-	tlscert, tlskey                             string
+	tlscacert, tlscert, tlskey                  string
 	manager, readonly, plainuser, passwordStdin bool
 	replaceMembers, replaceMembersOf            bool
 	userID, groupID                             uint32

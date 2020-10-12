@@ -16,7 +16,9 @@ limitations under the License.
 
 package client
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func truncate(text string, length int) string {
 	if len(text) > length {
