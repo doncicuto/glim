@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"os"
 
-	resty "github.com/go-resty/resty/v2"
 	"github.com/doncicuto/glim/models"
+	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -32,8 +32,9 @@ var updateGroupCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Glim server URL
-		if len(args) > 0 {
-			url = args[0]
+		url := os.Getenv("GLIM_URI")
+		if url == "" {
+			url = serverAddress
 		}
 
 		// Read credentials

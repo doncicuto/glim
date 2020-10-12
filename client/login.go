@@ -31,11 +31,9 @@ import (
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
-	Use:   "login [flags] [SERVER]",
+	Use:   "login",
 	Short: `Log in to a Glim Server`,
-	Long: `Log in to a Glim Server.
-If no server is specified, the default is localhost.`,
-	Args: cobra.MaximumNArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if !cmd.Flags().Changed("username") {
@@ -90,8 +88,10 @@ If no server is specified, the default is localhost.`,
 			}
 		}
 
-		if len(args) > 0 {
-			url = args[0]
+		// Glim server URL
+		url := os.Getenv("GLIM_URI")
+		if url == "" {
+			url = serverAddress
 		}
 
 		// Rest API authentication

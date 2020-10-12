@@ -21,12 +21,18 @@ import (
 	"os"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/doncicuto/glim/models"
+	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 )
 
 func getUser(id uint32, tlscacert string) {
+	// Glim server URL
+	url := os.Getenv("GLIM_URI")
+	if url == "" {
+		url = serverAddress
+	}
+
 	endpoint := fmt.Sprintf("%s/users/%d", url, id)
 	// Read credentials
 	token := ReadCredentials()
@@ -93,6 +99,12 @@ func getUser(id uint32, tlscacert string) {
 }
 
 func getUsers(tlscacert string) {
+	// Glim server URL
+	url := os.Getenv("GLIM_URI")
+	if url == "" {
+		url = serverAddress
+	}
+
 	// Read credentials
 	token := ReadCredentials()
 	endpoint := fmt.Sprintf("%s/users", url)

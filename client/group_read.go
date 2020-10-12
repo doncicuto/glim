@@ -20,12 +20,18 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/doncicuto/glim/models"
+	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 )
 
 func getGroup(id int) {
+	// Glim server URL
+	url := os.Getenv("GLIM_URI")
+	if url == "" {
+		url = serverAddress
+	}
+
 	endpoint := fmt.Sprintf("%s/groups/%d", url, id)
 	// Read credentials
 	token := ReadCredentials()
@@ -72,6 +78,12 @@ func getGroup(id int) {
 }
 
 func getGroups() {
+	// Glim server URL
+	url := os.Getenv("GLIM_URI")
+	if url == "" {
+		url = serverAddress
+	}
+
 	// Read credentials
 	token := ReadCredentials()
 	endpoint := fmt.Sprintf("%s/groups", url)

@@ -38,9 +38,8 @@ type Settings struct {
 	KV      kv.Store
 	TLSCert string
 	TLSKey  string
+	Address string
 }
-
-const apiAddr = ":1323"
 
 //Server - TODO command
 func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
@@ -61,7 +60,7 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	// Get server address
 	addr, ok := os.LookupEnv("API_SERVER_ADDRESS")
 	if !ok {
-		addr = apiAddr
+		addr = settings.Address
 	}
 
 	// JWT tokens will be used for all endpoints but for token requests

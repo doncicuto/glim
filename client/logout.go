@@ -20,16 +20,15 @@ import (
 	"fmt"
 	"os"
 
-	resty "github.com/go-resty/resty/v2"
 	"github.com/doncicuto/glim/server/api/auth"
+	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 )
 
 // logoutCmd represents the logout command
 var logoutCmd = &cobra.Command{
-	Use:   "logout [flags] [URL]",
+	Use:   "logout [flags] [SERVER]",
 	Short: "Log out from a Glim server",
-	Long:  "Log out from a Glim server",
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var token *auth.Response
@@ -41,6 +40,12 @@ var logoutCmd = &cobra.Command{
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
 			token = ReadCredentials()
+		}
+
+		// Glim server URL
+		url := os.Getenv("GLIM_URI")
+		if url == "" {
+			url = serverAddress
 		}
 
 		// Logout

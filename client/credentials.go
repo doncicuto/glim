@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	resty "github.com/go-resty/resty/v2"
 	"github.com/doncicuto/glim/server/api/auth"
+	resty "github.com/go-resty/resty/v2"
 )
 
 // AuthTokenPath - TODO comment
@@ -89,6 +89,12 @@ func DeleteCredentials() {
 
 // Refresh - TODO comment
 func Refresh(rt string) {
+	// Glim server URL
+	url := os.Getenv("GLIM_URI")
+	if url == "" {
+		url = serverAddress
+	}
+
 	// Rest API authentication
 	client := resty.New()
 

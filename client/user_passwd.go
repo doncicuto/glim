@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"os"
 
-	resty "github.com/go-resty/resty/v2"
 	"github.com/doncicuto/glim/models"
+	resty "github.com/go-resty/resty/v2"
 
 	"github.com/Songmu/prompter"
 	"github.com/spf13/cobra"
@@ -33,6 +33,12 @@ var userPasswdCmd = &cobra.Command{
 	Short: "Change a Glim user account password",
 	Run: func(cmd *cobra.Command, args []string) {
 		passwdBody := models.JSONPasswdBody{}
+
+		// Glim server URL
+		url := os.Getenv("GLIM_URI")
+		if url == "" {
+			url = serverAddress
+		}
 
 		// Read credentials
 		token := ReadCredentials()

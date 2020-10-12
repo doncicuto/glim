@@ -21,8 +21,8 @@ import (
 	"os"
 
 	"github.com/badoux/checkmail"
-	resty "github.com/go-resty/resty/v2"
 	"github.com/doncicuto/glim/models"
+	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -56,8 +56,9 @@ var updateUserCmd = &cobra.Command{
 		}
 
 		// Glim server URL
-		if len(args) > 0 {
-			url = args[0]
+		url := os.Getenv("GLIM_URI")
+		if url == "" {
+			url = serverAddress
 		}
 
 		// Read credentials

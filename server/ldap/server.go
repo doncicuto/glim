@@ -36,9 +36,8 @@ type Settings struct {
 	DB      *gorm.DB
 	TLSCert string
 	TLSKey  string
+	Address string
 }
-
-const ldapAddr = ":1636"
 
 func printLog(msg string) {
 	log.SetHeader("${time_rfc3339} [LDAP] ⇨")
@@ -136,10 +135,9 @@ func waitForShutdown(l net.Listener, ch chan bool) {
 // Server - TODO comment
 func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	defer wg.Done()
-
 	addr, ok := os.LookupEnv("LDAP_SERVER_ADDRESS")
 	if !ok {
-		addr = ldapAddr
+		addr = settings.Address
 	}
 
 	// Load server certificate and private key

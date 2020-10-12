@@ -30,10 +30,10 @@ import (
 	"github.com/doncicuto/glim/config"
 	"github.com/doncicuto/glim/server/kv/badgerdb"
 
-	"github.com/joho/godotenv"
 	"github.com/doncicuto/glim/server/api"
 	"github.com/doncicuto/glim/server/db"
 	"github.com/doncicuto/glim/server/ldap"
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
 
@@ -109,6 +109,7 @@ var serverStartCmd = &cobra.Command{
 			KV:      blacklist,
 			TLSCert: tlscert,
 			TLSKey:  tlskey,
+			Address: restAddress,
 		}
 
 		// Preparing LDAP server settings
@@ -116,6 +117,7 @@ var serverStartCmd = &cobra.Command{
 			DB:      database,
 			TLSCert: tlscert,
 			TLSKey:  tlskey,
+			Address: ldapAddress,
 		}
 
 		// get current PID and store it in glim.pid at our tmp directory
@@ -156,10 +158,12 @@ var serverStartCmd = &cobra.Command{
 }
 
 func init() {
-	serverStartCmd.Flags().StringVar(&tlscert, "tlscert", "", "TLS server certificate path (required)")
-	serverStartCmd.Flags().StringVar(&tlskey, "tlskey", "", "TLS server private key path (required)")
+	homeDir, _ := os.UserHomeDir()
+	defaultCertPEMFilePath := filepath.Join(homeDir, ".glim", "server.pem")
+	defaultCertKeyFilePath := filepath.Join(homeDir, ".glim", "server.key")
 
-	// Mark required flags
-	cobra.MarkFlagRequired(serverStartCmd.Flags(), "tlscert")
-	cobra.MarkFlagRequired(serverStartCmd.Flags(), "tlskey")
+	serverStartCmd.Flags().StringVar(&tlscert, "tlscert", defaultCertPEMFilePath, "TLS server certificate path (required)")
+	serverStartCmd.Flags().StringVar(&tlskey, "tlskey", defaultCertKeyFilePath, "TLS server private key path (required)")
+	serverStartCmd.Flags().StringVar(&ldapAddress, "ldap-address", ":1636", "LDAP server address and port (format: <ip:port>)")
+	serverStartCmd.Flags().StringVar(&restAddress, "rest-address", ":1323", "REST API server address and port (format: <ip:port>)")
 }

@@ -54,6 +54,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.glim.yaml)")
 	rootCmd.PersistentFlags().StringVar(&tlscacert, "tlscacert", defaultRootPEMFilePath, "Trust certs signed only by this CA")
+	rootCmd.PersistentFlags().StringVar(&serverAddress, "server", "https://127.0.0.1:1323", "Trust certs signed only by this CA")
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

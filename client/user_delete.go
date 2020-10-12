@@ -37,8 +37,9 @@ var deleteUserCmd = &cobra.Command{
 		}
 
 		// Glim server URL
-		if len(args) > 0 {
-			url = args[0]
+		url := os.Getenv("GLIM_URI")
+		if url == "" {
+			url = serverAddress
 		}
 
 		// Read credentials and check if token needs refresh

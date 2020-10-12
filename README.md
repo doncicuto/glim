@@ -105,6 +105,9 @@ dn:cn=manager,dc=example,dc=org (cool this is who I am)
 ### Environment variables
 
 - LDAP_DOMAIN: our ldap domain. Default value: example.org
+- API_SERVER_ADDRESS: listen address for our REST API server. Default value: 127.0.0.1:1323
+- LDAP_SERVER_ADDRESS: listen address for our LDAP server. Default value: 127.0.0.1:1636
+- GLIM_URI: Glim Rest API URI (format: [https://<ip|hostname>:port](https://<ip|hostname>:port)). Default value: [https://127.0.0.1:1323](https://127.0.0.1:1323)
 
 ### Server logging
 
