@@ -46,6 +46,7 @@ type JSONUserBody struct {
 	Manager          *bool  `json:"manager"`
 	Readonly         *bool  `json:"readonly"`
 	ReplaceMembersOf bool   `json:"replace"`
+	RemoveMembersOf  bool   `json:"remove"`
 }
 
 // JSONPasswdBody - TODO comment

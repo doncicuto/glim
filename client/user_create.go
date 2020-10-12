@@ -26,7 +26,7 @@ import (
 	"github.com/Songmu/prompter"
 	"github.com/badoux/checkmail"
 	resty "github.com/go-resty/resty/v2"
-	"github.com/muultipla/glim/models"
+	"github.com/doncicuto/glim/models"
 	"github.com/spf13/cobra"
 )
 

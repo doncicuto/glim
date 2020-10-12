@@ -24,7 +24,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
-	"github.com/muultipla/glim/models"
+	"github.com/doncicuto/glim/models"
 )
 
 //Passwd - TODO comment

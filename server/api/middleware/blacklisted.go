@@ -21,7 +21,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
-	"github.com/muultipla/glim/server/kv"
+	"github.com/doncicuto/glim/server/kv"
 )
 
 // IsBlacklisted - TODO comment

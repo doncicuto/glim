@@ -1,4 +1,4 @@
-module github.com/muultipla/glim
+module github.com/doncicuto/glim
 
 go 1.13
 

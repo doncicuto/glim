@@ -22,13 +22,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/muultipla/glim/config"
+	"github.com/doncicuto/glim/config"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
-	"github.com/muultipla/glim/models"
-	"github.com/muultipla/glim/server/api/auth"
+	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/server/api/auth"
 )
 
 // Login - TODO comment

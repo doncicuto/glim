@@ -21,7 +21,7 @@ import (
 	"os"
 
 	resty "github.com/go-resty/resty/v2"
-	"github.com/muultipla/glim/server/api/auth"
+	"github.com/doncicuto/glim/server/api/auth"
 	"github.com/spf13/cobra"
 )
 

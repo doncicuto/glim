@@ -22,7 +22,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite" // Sqlite3 database
-	"github.com/muultipla/glim/models"
+	"github.com/doncicuto/glim/models"
 	"github.com/sethvargo/go-password/password"
 )
 

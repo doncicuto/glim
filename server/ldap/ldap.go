@@ -23,7 +23,7 @@ import (
 
 	ber "github.com/go-asn1-ber/asn1-ber"
 	"github.com/jinzhu/gorm"
-	"github.com/muultipla/glim/models"
+	"github.com/doncicuto/glim/models"
 )
 
 // Message - TODO comment

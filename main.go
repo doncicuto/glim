@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/muultipla/glim/client"
+import "github.com/doncicuto/glim/client"
 
 func main() {
 	client.Execute()

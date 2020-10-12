@@ -23,7 +23,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
-	"github.com/muultipla/glim/server/api/auth"
+	"github.com/doncicuto/glim/server/api/auth"
 )
 
 // Logout - TODO comment

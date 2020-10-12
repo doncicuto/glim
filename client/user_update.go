@@ -22,7 +22,7 @@ import (
 
 	"github.com/badoux/checkmail"
 	resty "github.com/go-resty/resty/v2"
-	"github.com/muultipla/glim/models"
+	"github.com/doncicuto/glim/models"
 	"github.com/spf13/cobra"
 )
 
@@ -43,9 +43,15 @@ var updateUserCmd = &cobra.Command{
 			}
 		}
 
-		// Check if both manager and readonly has been set
+		// Check if both manager and readonly have been set
 		if manager && readonly {
 			fmt.Println("a Glim account cannot be both manager and readonly at the same time")
+			os.Exit(1)
+		}
+
+		// Check if both remove and replace flags have been set
+		if replaceMembersOf && removeMembersOf {
+			fmt.Println("replace and remove flags are mutually exclusive")
 			os.Exit(1)
 		}
 
@@ -89,6 +95,10 @@ var updateUserCmd = &cobra.Command{
 			userBody.ReplaceMembersOf = true
 		}
 
+		if removeMembersOf {
+			userBody.RemoveMembersOf = true
+		}
+
 		// Rest API authentication
 		client := resty.New()
 		client.SetAuthToken(token.AccessToken)
@@ -119,11 +129,12 @@ func init() {
 	updateUserCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
 	updateUserCmd.Flags().StringVarP(&fullname, "fullname", "f", "", "Fullname")
 	updateUserCmd.Flags().StringVarP(&email, "email", "e", "", "Email")
-	updateUserCmd.Flags().StringVarP(&groups, "groups", "g", "", "Comma-separated list of new groups that we want the user account to be a member of. ")
+	updateUserCmd.Flags().StringVarP(&groups, "groups", "g", "", "Comma-separated list of group names. ")
 	updateUserCmd.Flags().BoolVar(&manager, "manager", false, "Glim manager account?")
 	updateUserCmd.Flags().BoolVar(&readonly, "readonly", false, "Glim readonly account?")
 	updateUserCmd.Flags().BoolVar(&plainuser, "plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
 	updateUserCmd.Flags().BoolVar(&replaceMembersOf, "replace", false, "Replace groups with those specified with -g. Groups are appended to those that the user is a member of by default")
+	updateUserCmd.Flags().BoolVar(&removeMembersOf, "remove", false, "Remove group membership with those specified with -g.")
 
 	// Mark required flags
 	cobra.MarkFlagRequired(updateUserCmd.Flags(), "uid")

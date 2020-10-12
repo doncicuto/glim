@@ -27,9 +27,9 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 
-	handler "github.com/muultipla/glim/server/api/handlers"
-	glimMiddleware "github.com/muultipla/glim/server/api/middleware"
-	"github.com/muultipla/glim/server/kv"
+	handler "github.com/doncicuto/glim/server/api/handlers"
+	glimMiddleware "github.com/doncicuto/glim/server/api/middleware"
+	"github.com/doncicuto/glim/server/kv"
 )
 
 //Settings - TODO comment

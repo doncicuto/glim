@@ -27,13 +27,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/muultipla/glim/config"
-	"github.com/muultipla/glim/server/kv/badgerdb"
+	"github.com/doncicuto/glim/config"
+	"github.com/doncicuto/glim/server/kv/badgerdb"
 
 	"github.com/joho/godotenv"
-	"github.com/muultipla/glim/server/api"
-	"github.com/muultipla/glim/server/db"
-	"github.com/muultipla/glim/server/ldap"
+	"github.com/doncicuto/glim/server/api"
+	"github.com/doncicuto/glim/server/db"
+	"github.com/doncicuto/glim/server/ldap"
 	"github.com/spf13/cobra"
 )
 

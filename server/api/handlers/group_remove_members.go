@@ -23,7 +23,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
-	"github.com/muultipla/glim/models"
+	"github.com/doncicuto/glim/models"
 )
 
 //RemoveGroupMembers - TODO comment

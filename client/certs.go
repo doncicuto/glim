@@ -21,7 +21,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/muultipla/glim/certs"
+	"github.com/doncicuto/glim/certs"
 	"github.com/spf13/cobra"
 )
 

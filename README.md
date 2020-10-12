@@ -67,7 +67,7 @@ Could not find required CA pem file to validate authority
 ```(bash)
 glim server start --tlscert "/tmp/server.pem" --tlskey "/tmp/server.key"
 
-glim login -u cedric.daniels -p glim.muultipla.com
+glim login -u cedric.daniels -p glim.doncicuto.com
 
 glim group add -n homicides -d "Homicides" -m jimmy.mcnulty,kima.greggs
 

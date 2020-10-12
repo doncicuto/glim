@@ -17,6 +17,7 @@ limitations under the License.
 package handlers
 
 import (
+	"fmt"
 	"html"
 	"net/http"
 	"strings"
@@ -25,8 +26,33 @@ import (
 	"github.com/badoux/checkmail"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
-	"github.com/muultipla/glim/models"
+	"github.com/doncicuto/glim/models"
 )
+
+// RemoveMembersOf - TODO comment
+func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
+	var err error
+	// Update group
+	for _, member := range memberOf {
+		member = strings.TrimSpace(member)
+		// Find group
+		g := new(models.Group)
+		err = h.DB.Model(&models.Group{}).Where("name = ?", member).Take(&g).Error
+		if err != nil {
+			if gorm.IsRecordNotFoundError(err) {
+				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("group %s not found", member)}
+			}
+			return err
+		}
+
+		// Delete association
+		err = h.DB.Model(&u).Association("MemberOf").Delete(g).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 //UpdateUser - TODO comment
 func (h *Handler) UpdateUser(c echo.Context) error {
@@ -68,7 +94,6 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		} else {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "username cannot be duplicated"}
 		}
-
 	}
 
 	if body.Fullname != "" {
@@ -88,6 +113,10 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	if body.Readonly != nil {
 		newUser["readonly"] = *body.Readonly
+	}
+
+	if body.ReplaceMembersOf && body.RemoveMembersOf {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "replace and replace are mutually exclusive"}
 	}
 
 	// Update date
@@ -121,9 +150,16 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 			}
 		}
 
-		err = h.AddMembersOf(u, members)
-		if err != nil {
-			return err
+		if body.RemoveMembersOf {
+			err = h.RemoveMembersOf(u, members)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = h.AddMembersOf(u, members)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
