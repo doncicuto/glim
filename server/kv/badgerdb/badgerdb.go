@@ -17,7 +17,6 @@ limitations under the License.
 package badgerdb
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -39,8 +38,6 @@ func NewBadgerStore(path string) (Store, error) {
 	if badgerEnv != "" {
 		path = badgerEnv
 	}
-
-	fmt.Println(path)
 
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
