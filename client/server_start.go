@@ -92,7 +92,7 @@ var serverStartCmd = &cobra.Command{
 
 		// Key-value store for JWT tokens storage
 		// TODO choose between BadgerDB or Redis
-		blacklist, err := badgerdb.NewBadgerStore()
+		blacklist, err := badgerdb.NewBadgerStore(badgerKV)
 		if err != nil {
 			fmt.Printf("%s [Glim] ⇨ could not connect to Badger key-value store. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
@@ -166,4 +166,5 @@ func init() {
 	serverStartCmd.Flags().StringVar(&tlskey, "tlskey", defaultCertKeyFilePath, "TLS server private key path (required)")
 	serverStartCmd.Flags().StringVar(&ldapAddress, "ldap-address", ":1636", "LDAP server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().StringVar(&restAddress, "rest-address", ":1323", "REST API server address and port (format: <ip:port>)")
+	serverStartCmd.Flags().StringVar(&badgerKV, "badgerdb-store", "/tmp/kv", "Directory path for BadgerDB KV store")
 }

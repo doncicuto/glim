@@ -17,7 +17,9 @@ limitations under the License.
 package badgerdb
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"runtime"
 	"time"
 
@@ -30,13 +32,24 @@ type Store struct {
 }
 
 // NewBadgerStore creates a new connection with BadgerDB
-func NewBadgerStore() (Store, error) {
+func NewBadgerStore(path string) (Store, error) {
 	s := Store{}
 	// Key-value store for JWT tokens storage
-	// TODO badgerDB filesystem path should be passed as ENV
-	options := badger.DefaultOptions("./server/kv")
+	badgerEnv := os.Getenv("BADGER_DB_PATH")
+	if badgerEnv != "" {
+		path = badgerEnv
+	}
 
-	// TODO - Enable or disable badger logging using ENV
+	fmt.Println(path)
+
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		err := os.MkdirAll(path, 0755)
+		if err != nil {
+			log.Fatal("Could not create directory for BadgerDB KV store")
+		}
+	}
+	options := badger.DefaultOptions(path)
 	options.Logger = nil
 
 	// In Windows: To avoid "Value log truncate required to run DB. This might result in

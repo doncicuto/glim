@@ -22,6 +22,7 @@ var (
 	uid, username, password, cfgFile                  string
 	tlscacert, tlscert, tlskey                        string
 	serverAddress, ldapAddress, restAddress           string
+	badgerKV                                          string
 	manager, readonly, plainuser, passwordStdin       bool
 	replaceMembers, replaceMembersOf, removeMembersOf bool
 	userID, groupID                                   uint32
