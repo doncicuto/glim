@@ -54,47 +54,77 @@ func (h *Handler) AddMembersOf(u *models.User, memberOf []string) error {
 
 //SaveUser - TODO comment
 func (h *Handler) SaveUser(c echo.Context) error {
-
-	// Bind
 	u := new(models.User)
-	if err := c.Bind(u); err != nil {
+	body := models.JSONUserBody{}
+	// Bind
+	if err := c.Bind(&body); err != nil {
 		return err
 	}
 
 	// Validate
-	if u.Username == nil || *u.Username == "" {
+	if body.Username == "" {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required username"}
 	}
-	if u.Fullname == nil || *u.Fullname == "" {
+	u.Username = &body.Username
+
+	if body.Fullname == "" {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required fullname"}
 	}
-	if u.Password == nil || *u.Password == "" {
+	u.Fullname = &body.Fullname
+
+	if body.Password == "" {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required password"}
 	}
-	if u.Email == nil || *u.Email == "" {
+
+	if body.Email == "" {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required email"}
 	}
-	if err := checkmail.ValidateFormat(*u.Email); err != nil {
+	if err := checkmail.ValidateFormat(body.Email); err != nil {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
+	}
+	u.Email = &body.Email
+
+	if body.Manager != nil {
+		u.Manager = body.Manager
+	}
+
+	if body.Readonly != nil {
+		u.Readonly = body.Readonly
 	}
 
 	// Check if user already exists
-	err := h.DB.Where("username = ?", *u.Username).First(&u).Error
+	err := h.DB.Model(&models.User{}).Where("username = ?", body.Username).First(&u).Error
 	if !gorm.IsRecordNotFoundError(err) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "user already exists"}
 	}
 
 	// Hash password
-	hashedPassword, err := models.Hash(*u.Password)
+	hashedPassword, err := models.Hash(body.Password)
 	if err != nil {
 		return err
 	}
-	*u.Password = string(hashedPassword)
+	password := string(hashedPassword)
+	u.Password = &password
 
 	// Add new user
-	err = h.DB.Create(&u).Error
+	err = h.DB.Model(models.User{}).Create(&u).Error
 	if err != nil {
 		return err
+	}
+
+	// Get new user
+	err = h.DB.Where("username = ?", body.Username).First(&u).Error
+	if err != nil {
+		return err
+	}
+
+	// Add group members
+	if body.MemberOf != "" {
+		members := strings.Split(body.MemberOf, ",")
+		err = h.AddMembersOf(u, members)
+		if err != nil {
+			return err
+		}
 	}
 
 	showMemberOf := true

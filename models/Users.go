@@ -41,6 +41,7 @@ type JSONUserBody struct {
 	Username         string `json:"username"`
 	Fullname         string `json:"fullname"`
 	Email            string `json:"email"`
+	Password         string `json:"password"`
 	MemberOf         string `json:"members,omitempty"`
 	Manager          *bool  `json:"manager"`
 	Readonly         *bool  `json:"readonly"`

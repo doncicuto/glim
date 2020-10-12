@@ -121,11 +121,12 @@ var newUserCmd = &cobra.Command{
 		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
-			SetBody(models.User{
-				Username: &username,
-				Password: &password,
-				Fullname: &fullname,
-				Email:    &email,
+			SetBody(models.JSONUserBody{
+				Username: username,
+				Password: password,
+				Fullname: fullname,
+				Email:    email,
+				MemberOf: groups,
 				Manager:  &manager,
 				Readonly: &readonly,
 			}).
