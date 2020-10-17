@@ -246,6 +246,11 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, 
 
 	dn := strings.Split(n, ",")
 	username := strings.TrimPrefix(dn[0], "cn=")
+	domain := strings.TrimPrefix(n, dn[0])
+	domain = strings.TrimPrefix(domain, ",")
+	if domain != Domain() {
+		return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong domain: %s", domain)
+	}
 
 	pass, err := bindPassword(p[2])
 	if err != nil {
