@@ -295,6 +295,13 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 		return r, errors.New(err.Msg)
 	}
 
+	// Check if base object is valid
+	if b != Domain() {
+		p := encodeSearchResultDone(id, NoSuchObject, "")
+		r = append(r, p)
+		return r, errors.New("")
+	}
+
 	s, err := searchScope(p[1])
 	if err != nil {
 		p := encodeSearchResultDone(id, err.Code, err.Msg)
@@ -341,22 +348,42 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 	    SearchResultEntry and/or SearchResultReference messages, followed by
 		a single SearchResultDone message */
 
+	// Domain entry
+	dcs := strings.Split(Domain(), ",")
+	dc := strings.TrimPrefix(dcs[0], "dc=")
 	values := map[string][]string{
 		"objectClass": []string{"top", "dcObject", "organization"},
 		"o":           []string{Domain()},
-		"dc":          []string{"example"}, //TODO hardcoded top o
+		"dc":          []string{dc},
 	}
-
-	e := encodeSearchResultEntry(id, values)
+	e := encodeSearchResultEntry(id, values, Domain())
 	r = append(r, e)
 
+	// Manager entry -- Hardcoded TODO
 	values = map[string][]string{
 		"objectClass": []string{"simpleSecurityObject", "organizationalRole"},
-		"cn":          []string{"admin"},
+		"cn":          []string{"manager"},
 		"description": []string{"LDAP administrator"},
 	}
+	e = encodeSearchResultEntry(id, values, fmt.Sprintf("cn=admin,%s", Domain()))
+	r = append(r, e)
 
-	e = encodeSearchResultEntry(id, values)
+	// ou=Users entry
+	ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
+	values = map[string][]string{
+		"objectClass": []string{"organizationalUnit", "top"},
+		"ou":          []string{"Users"},
+	}
+	e = encodeSearchResultEntry(id, values, ouUsers)
+	r = append(r, e)
+
+	// ou=Users entry
+	ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
+	values = map[string][]string{
+		"objectClass": []string{"organizationalUnit", "top"},
+		"ou":          []string{"Groups"},
+	}
+	e = encodeSearchResultEntry(id, values, ouGroups)
 	r = append(r, e)
 
 	d := encodeSearchResultDone(id, Success, "")

@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/doncicuto/glim/models"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite" // Sqlite3 database
-	"github.com/doncicuto/glim/models"
 	"github.com/sethvargo/go-password/password"
 )
 
@@ -37,7 +37,7 @@ func createManager(db *gorm.DB) error {
 	}
 
 	username := "manager"
-	fullname := "Glim Manager"
+	fullname := "LDAP administrator"
 	hashed := string(hash)
 	manager := true
 	readonly := false

@@ -17,8 +17,6 @@ limitations under the License.
 package ldap
 
 import (
-	"fmt"
-
 	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
@@ -114,7 +112,7 @@ func encodeBindResponse(messageID int64, resultCode int64, msg string) *ber.Pack
 	return r
 }
 
-func encodeSearchResultEntry(messageID int64, values map[string][]string) *ber.Packet {
+func encodeSearchResultEntry(messageID int64, values map[string][]string, objectName string) *ber.Packet {
 	// LDAP Message envelope
 	r := responseHeader(messageID)
 
@@ -133,7 +131,7 @@ func encodeSearchResultEntry(messageID int64, values map[string][]string) *ber.P
 
 	// Response packet
 	bp := encodeResponseType(SearchResultEntry)
-	bp.AppendChild(encodeOctetString(fmt.Sprintf("cn=admin,%s", Domain()), "objectName"))
+	bp.AppendChild(encodeOctetString(objectName, "objectName"))
 	bp.AppendChild(a)
 	r.AppendChild(bp)
 	return r
