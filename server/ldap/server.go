@@ -47,6 +47,7 @@ func printLog(msg string) {
 func handleConnection(c net.Conn, db *gorm.DB) {
 	defer c.Close()
 
+	var username = ""
 	remoteAddress := c.RemoteAddr().String()
 	printLog(fmt.Sprintf("serving LDAPS connection from %s", remoteAddress))
 L:
@@ -69,7 +70,8 @@ L:
 		switch message.Op {
 		case BindRequest:
 			printLog(fmt.Sprintf("bind requested by client: %s", remoteAddress))
-			p, err := HandleBind(message, db, remoteAddress)
+			p, n, err := HandleBind(message, db, remoteAddress)
+			username = n
 			if err != nil {
 				printLog(err.Error())
 			}
@@ -78,7 +80,7 @@ L:
 				printLog(err.Error())
 			}
 		case ExtendedRequest:
-			p, err := HandleExtRequest(message)
+			p, err := HandleExtRequest(message, username)
 			if err != nil {
 				printLog(err.Error())
 			}

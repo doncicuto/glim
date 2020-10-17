@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/doncicuto/glim/models"
 	ber "github.com/go-asn1-ber/asn1-ber"
 	"github.com/jinzhu/gorm"
-	"github.com/doncicuto/glim/models"
 )
 
 // Message - TODO comment
@@ -229,27 +229,27 @@ func searchTypesOnly(p *ber.Packet) (bool, *ServerError) {
 }
 
 // HandleBind - TODO comment
-func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, error) {
+func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, string, error) {
 
 	id := message.ID
 	p := message.Request
 
 	v, err := protocolVersion(p[0])
 	if err != nil {
-		return encodeBindResponse(id, err.Code, err.Msg), errors.New(err.Msg)
+		return encodeBindResponse(id, err.Code, err.Msg), "", errors.New(err.Msg)
 	}
 
 	n, err := bindName(p[1])
 	if err != nil {
-		return encodeBindResponse(id, err.Code, err.Msg), errors.New(err.Msg)
+		return encodeBindResponse(id, err.Code, err.Msg), n, errors.New(err.Msg)
 	}
 
-	rdn := strings.Split(n, ",")
-	n = strings.TrimPrefix(rdn[0], "cn=")
+	dn := strings.Split(n, ",")
+	username := strings.TrimPrefix(dn[0], "cn=")
 
 	pass, err := bindPassword(p[2])
 	if err != nil {
-		return encodeBindResponse(id, err.Code, err.Msg), errors.New(err.Msg)
+		return encodeBindResponse(id, err.Code, err.Msg), n, errors.New(err.Msg)
 	}
 
 	// DEBUG - TODO
@@ -261,19 +261,19 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, 
 	var dbUser models.User
 
 	// Check if user exists
-	if db.Where("username = ?", n).First(&dbUser).RecordNotFound() {
-		return encodeBindResponse(id, InsufficientAccessRights, ""), fmt.Errorf("wrong username or password client %s", remoteAddr)
+	if db.Where("username = ?", username).First(&dbUser).RecordNotFound() {
+		return encodeBindResponse(id, InsufficientAccessRights, ""), n, fmt.Errorf("wrong username or password client %s", remoteAddr)
 	}
 
 	// Check if passwords match
 	if err := models.VerifyPassword(*dbUser.Password, pass); err != nil {
-		return encodeBindResponse(id, InsufficientAccessRights, ""), fmt.Errorf("wrong username or password client %s", remoteAddr)
+		return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong username or password client %s", remoteAddr)
 	}
 
 	// Successful bind
 	printLog("success: valid credentials provided")
 	r := encodeBindResponse(id, Success, "")
-	return r, nil
+	return r, n, nil
 }
 
 // HandleSearchRequest - TODO comment
@@ -360,21 +360,21 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 }
 
 // HandleExtRequest - TODO comment
-func HandleExtRequest(message *Message) (*ber.Packet, error) {
+func HandleExtRequest(message *Message, username string) (*ber.Packet, error) {
 
 	id := message.ID
 	p := message.Request
-
 	n, err := requestName(p[0])
 	if err != nil {
 		return encodeExtendedResponse(id, err.Code, "", ""), errors.New(err.Msg)
 	}
 
 	switch n {
-	case WhoamIOID: // TODO - WHOAMI
+	case WhoamIOID:
 		printLog("whoami requested by client")
-		printLog(fmt.Sprintf("whoami response: dn:cn=admin,%s", Domain()))
-		r := encodeExtendedResponse(id, Success, "", fmt.Sprintf("dn:cn=admin,%s", Domain()))
+		response := fmt.Sprintf("dn:%s", username)
+		printLog(fmt.Sprintf("whoami response: %s", response))
+		r := encodeExtendedResponse(id, Success, "", response)
 		return r, nil
 	default:
 		printLog("unsupported extended request")
