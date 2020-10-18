@@ -71,10 +71,11 @@ var updateUserCmd = &cobra.Command{
 		}
 
 		userBody := models.JSONUserBody{
-			Username: username,
-			Fullname: fullname,
-			Email:    email,
-			MemberOf: groups,
+			Username:  username,
+			GivenName: givenName,
+			Surname:   surname,
+			Email:     email,
+			MemberOf:  groups,
 		}
 
 		if manager {
@@ -128,7 +129,8 @@ var updateUserCmd = &cobra.Command{
 func init() {
 	updateUserCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "User account id")
 	updateUserCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
-	updateUserCmd.Flags().StringVarP(&fullname, "fullname", "f", "", "Fullname")
+	updateUserCmd.Flags().StringVarP(&givenName, "firstname", "f", "", "First name")
+	updateUserCmd.Flags().StringVarP(&surname, "lastname", "l", "", "Last name")
 	updateUserCmd.Flags().StringVarP(&email, "email", "e", "", "Email")
 	updateUserCmd.Flags().StringVarP(&groups, "groups", "g", "", "Comma-separated list of group names. ")
 	updateUserCmd.Flags().BoolVar(&manager, "manager", false, "Glim manager account?")

@@ -26,7 +26,8 @@ import (
 type User struct {
 	ID        uint32    `gorm:"primary_key;auto_increment" json:"uid"`
 	Username  *string   `gorm:"size:64;not null;unique" json:"username"`
-	Fullname  *string   `gorm:"size:300;not null" json:"fullname"`
+	GivenName *string   `gorm:"size:150;not null" json:"firstname"`
+	Surname   *string   `gorm:"size:150;not null" json:"lastname"`
 	Email     *string   `gorm:"size:322" json:"email"`
 	Password  *string   `gorm:"size:60;not null;" json:"password"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -39,7 +40,8 @@ type User struct {
 // JSONUserBody - TODO comment
 type JSONUserBody struct {
 	Username         string `json:"username"`
-	Fullname         string `json:"fullname"`
+	GivenName        string `json:"firstname"`
+	Surname          string `json:"lastname"`
 	Email            string `json:"email"`
 	Password         string `json:"password"`
 	MemberOf         string `json:"members,omitempty"`
@@ -57,13 +59,14 @@ type JSONPasswdBody struct {
 
 //UserInfo - TODO comment
 type UserInfo struct {
-	ID       uint32      `json:"uid"`
-	Username string      `json:"username"`
-	Fullname string      `json:"fullname"`
-	Email    string      `json:"email"`
-	Manager  bool        `json:"manager"`
-	Readonly bool        `json:"readonly"`
-	MemberOf []GroupInfo `json:"memberOf,omitempty"`
+	ID        uint32      `json:"uid"`
+	Username  string      `json:"username"`
+	GivenName string      `json:"firstname"`
+	Surname   string      `json:"lastname"`
+	Email     string      `json:"email"`
+	Manager   bool        `json:"manager"`
+	Readonly  bool        `json:"readonly"`
+	MemberOf  []GroupInfo `json:"memberOf,omitempty"`
 }
 
 //Hash - TODO comment
@@ -83,8 +86,11 @@ func GetUserInfo(u User, showMemberOf bool) UserInfo {
 	if u.Username != nil {
 		i.Username = *u.Username
 	}
-	if u.Fullname != nil {
-		i.Fullname = *u.Fullname
+	if u.GivenName != nil {
+		i.GivenName = *u.GivenName
+	}
+	if u.Surname != nil {
+		i.Surname = *u.Surname
 	}
 	if u.Email != nil {
 		i.Email = *u.Email

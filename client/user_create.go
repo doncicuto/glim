@@ -122,13 +122,14 @@ var newUserCmd = &cobra.Command{
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONUserBody{
-				Username: username,
-				Password: password,
-				Fullname: fullname,
-				Email:    email,
-				MemberOf: groups,
-				Manager:  &manager,
-				Readonly: &readonly,
+				Username:  username,
+				Password:  password,
+				GivenName: givenName,
+				Surname:   surname,
+				Email:     email,
+				MemberOf:  groups,
+				Manager:   &manager,
+				Readonly:  &readonly,
 			}).
 			SetError(&APIError{}).
 			Post(endpoint)
@@ -149,7 +150,8 @@ var newUserCmd = &cobra.Command{
 
 func init() {
 	newUserCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
-	newUserCmd.Flags().StringVarP(&fullname, "fullname", "f", "", "Fullname")
+	newUserCmd.Flags().StringVarP(&givenName, "firstname", "f", "", "First name")
+	newUserCmd.Flags().StringVarP(&surname, "lastname", "l", "", "Last name")
 	newUserCmd.Flags().StringVarP(&email, "email", "e", "", "Email")
 	newUserCmd.Flags().StringVarP(&password, "password", "p", "", "Password")
 	newUserCmd.Flags().StringVarP(&groups, "groups", "g", "", "Comma-separated list of groups that we want the new user account to be a member of")
@@ -159,6 +161,7 @@ func init() {
 
 	// Mark required flags
 	cobra.MarkFlagRequired(newUserCmd.Flags(), "username")
-	cobra.MarkFlagRequired(newUserCmd.Flags(), "fullname")
+	cobra.MarkFlagRequired(newUserCmd.Flags(), "givenName")
+	cobra.MarkFlagRequired(newUserCmd.Flags(), "surname")
 	cobra.MarkFlagRequired(newUserCmd.Flags(), "email")
 }

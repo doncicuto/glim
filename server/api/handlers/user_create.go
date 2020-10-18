@@ -22,9 +22,9 @@ import (
 	"strings"
 
 	"github.com/badoux/checkmail"
+	"github.com/doncicuto/glim/models"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
-	"github.com/doncicuto/glim/models"
 )
 
 // AddMembersOf - TODO comment
@@ -67,10 +67,15 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	}
 	u.Username = &body.Username
 
-	if body.Fullname == "" {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required fullname"}
+	if body.GivenName == "" {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required firstname"}
 	}
-	u.Fullname = &body.Fullname
+	u.GivenName = &body.GivenName
+
+	if body.Surname == "" {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required lastname"}
+	}
+	u.Surname = &body.Surname
 
 	if body.Password == "" {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required password"}

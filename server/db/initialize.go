@@ -37,17 +37,19 @@ func createManager(db *gorm.DB) error {
 	}
 
 	username := "manager"
-	fullname := "LDAP administrator"
+	firstname := "LDAP"
+	lastname := "administrator"
 	hashed := string(hash)
 	manager := true
 	readonly := false
 
 	if err := db.Create(&models.User{
-		Username: &username,
-		Fullname: &fullname,
-		Password: &hashed,
-		Manager:  &manager,
-		Readonly: &readonly,
+		Username:  &username,
+		GivenName: &firstname,
+		Surname:   &lastname,
+		Password:  &hashed,
+		Manager:   &manager,
+		Readonly:  &readonly,
 	}).Error; err != nil {
 		return err
 	}

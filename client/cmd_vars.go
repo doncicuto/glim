@@ -17,7 +17,7 @@ limitations under the License.
 package client
 
 var (
-	fullname, email, groups, gid                      string
+	givenName, surname, email, groups, gid            string
 	groupName, groupDesc, groupMembers                string
 	uid, username, password, cfgFile                  string
 	tlscacert, tlscert, tlskey                        string

@@ -24,9 +24,9 @@ import (
 	"time"
 
 	"github.com/badoux/checkmail"
+	"github.com/doncicuto/glim/models"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
-	"github.com/doncicuto/glim/models"
 )
 
 // RemoveMembersOf - TODO comment
@@ -96,8 +96,12 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		}
 	}
 
-	if body.Fullname != "" {
-		newUser["fullname"] = html.EscapeString(strings.TrimSpace(body.Fullname))
+	if body.GivenName != "" {
+		newUser["fistname"] = html.EscapeString(strings.TrimSpace(body.GivenName))
+	}
+
+	if body.Surname != "" {
+		newUser["lastname"] = html.EscapeString(strings.TrimSpace(body.Surname))
 	}
 
 	if body.Email != "" {

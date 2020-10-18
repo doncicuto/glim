@@ -114,7 +114,7 @@ func getGroups() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-10s %-20s %-35s %-50s\n",
+	fmt.Printf("%-6s %-20s %-35s %-50s\n",
 		"GID",
 		"GROUP",
 		"DESCRIPTION",
@@ -134,7 +134,7 @@ func getGroups() {
 				}
 			}
 		}
-		fmt.Printf("%-10d %-20s %-35s %-50s\n",
+		fmt.Printf("%-6d %-20s %-35s %-50s\n",
 			result.ID,
 			truncate(*result.Name, 20),
 			truncate(*result.Description, 35),

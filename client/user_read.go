@@ -64,7 +64,7 @@ func getUser(id uint32, tlscacert string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-6s %-25s %-25s %-25s %-25s %-8s %-8s\n",
+	fmt.Printf("%-6s %-15s %-20s %-20s %-20s %-8s %-8s\n",
 		"UID",
 		"USERNAME",
 		"FULLNAME",
@@ -86,12 +86,12 @@ func getUser(id uint32, tlscacert string) {
 		memberOf = strings.Join(groups, ",")
 	}
 
-	fmt.Printf("%-6d %-25s %-25s %-25s %-25s %-8v %-8v\n",
+	fmt.Printf("%-6d %-15s %-20s %-20s %-20s %-8v %-8v\n",
 		result.ID,
-		truncate(result.Username, 25),
-		truncate(result.Fullname, 25),
-		truncate(result.Email, 25),
-		truncate(memberOf, 25),
+		truncate(result.Username, 15),
+		truncate(strings.Join([]string{result.GivenName, result.Surname}, " "), 20),
+		truncate(result.Email, 20),
+		truncate(memberOf, 20),
 		result.Manager,
 		result.Readonly,
 	)
@@ -135,7 +135,7 @@ func getUsers(tlscacert string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-6s %-25s %-25s %-25s %-25s %-8s %-8s\n",
+	fmt.Printf("%-6s %-15s %-20s %-20s %-20s %-8s %-8s\n",
 		"UID",
 		"USERNAME",
 		"FULLNAME",
@@ -159,12 +159,12 @@ func getUsers(tlscacert string) {
 			memberOf = strings.Join(groups, ",")
 		}
 
-		fmt.Printf("%-6d %-25s %-25s %-25s %-25s %-8v %-8v\n",
+		fmt.Printf("%-6d %-15s %-20s %-20s %-20s %-8v %-8v\n",
 			result.ID,
-			truncate(result.Username, 25),
-			truncate(result.Fullname, 25),
-			truncate(result.Email, 25),
-			truncate(memberOf, 25),
+			truncate(result.Username, 15),
+			truncate(strings.Join([]string{result.GivenName, result.Surname}, " "), 20),
+			truncate(result.Email, 20),
+			truncate(memberOf, 20),
 			result.Manager,
 			result.Readonly,
 		)
@@ -178,4 +178,8 @@ var listUserCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		getUsers(tlscacert)
 	},
+}
+
+func init() {
+	listUserCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "user account id")
 }
