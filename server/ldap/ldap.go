@@ -282,25 +282,25 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, 
 }
 
 // HandleSearchRequest - TODO comment
-func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
+func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 
 	var r []*ber.Packet
 	id := message.ID
 	p := message.Request
-
 	b, err := baseObject(p[0])
 	if err != nil {
 		p := encodeSearchResultDone(id, err.Code, err.Msg)
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
+	printLog(fmt.Sprintf("search base object: %s", b))
 
 	// Check if base object is valid
-	if b != Domain() {
-		p := encodeSearchResultDone(id, NoSuchObject, "")
-		r = append(r, p)
-		return r, errors.New("")
-	}
+	// if b != Domain() {
+	// 	p := encodeSearchResultDone(id, NoSuchObject, "")
+	// 	r = append(r, p)
+	// 	return r, errors.New("Wrong domain")
+	// }
 
 	s, err := searchScope(p[1])
 	if err != nil {
@@ -308,6 +308,31 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
+	printLog(fmt.Sprintf("search scope: %s", scopes[s]))
+
+	// if scopes[s] == "baseObject" && b == "" {
+	// 	values := map[string][]string{}
+	// 	fmt.Printf("%q", p[7].Data.String())
+	// 	if strings.TrimSpace(p[7].Data.String()) == "+" {
+	// 		values = map[string][]string{
+	// 			"structuralObjectClass": []string{"OpenLDAProotDSE"},
+	// 			"namingContexts":        []string{Domain()},
+	// 			"supportedLDAPVersion":  []string{"3"},
+	// 			"entryDN":               []string{""},
+	// 		}
+	// 	} else {
+	// 		values = map[string][]string{
+	// 			"objectClass": []string{"top", "OpenLDAProotDSE"},
+	// 		}
+	// 	}
+
+	// 	e := encodeSearchResultEntry(id, values, "")
+	// 	r = append(r, e)
+
+	// 	d := encodeSearchResultDone(id, Success, "")
+	// 	r = append(r, d)
+	// 	return r, nil
+	// }
 
 	// p[2] represents derefAliases which are not currently supported by Glim
 
@@ -317,6 +342,7 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
+	printLog(fmt.Sprintf("search maximum number of entries to be returned (0 - No limit restriction): %d", n))
 
 	l, err := searchTimeLimit(p[4])
 	if err != nil {
@@ -324,6 +350,7 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
+	printLog(fmt.Sprintf("search maximum time limit (0 - No limit restriction): %d", l))
 
 	t, err := searchTypesOnly(p[5])
 	if err != nil {
@@ -331,17 +358,11 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
+	printLog(fmt.Sprintf("search show types only: %t", t))
 
 	// TODO parse the following items p[6] filter p[7] attributes
 	// &{{128 0 7} <nil> [] objectclass [] } filter: (objectclass=*)
 	// &{{0 32 16} <nil> []  [] }
-
-	// DEBUG - TODO
-	printLog(fmt.Sprintf("search base object: %s", b))
-	printLog(fmt.Sprintf("search scope: %s", scopes[s]))
-	printLog(fmt.Sprintf("search maximum number of entries to be returned (0 - No limit restriction): %d", n))
-	printLog(fmt.Sprintf("search maximum time limit (0 - No limit restriction): %d", l))
-	printLog(fmt.Sprintf("search show types only: %t", t))
 
 	// TODO - Valid search results
 	/* RFC 4511 - The results of the Search operation are returned as zero or more
@@ -360,13 +381,13 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 	r = append(r, e)
 
 	// Manager entry -- Hardcoded TODO
-	values = map[string][]string{
-		"objectClass": []string{"simpleSecurityObject", "organizationalRole"},
-		"cn":          []string{"manager"},
-		"description": []string{"LDAP administrator"},
+	manager, err := getManager(db, id)
+	if err != nil {
+		return r, errors.New(err.Msg)
 	}
-	e = encodeSearchResultEntry(id, values, fmt.Sprintf("cn=admin,%s", Domain()))
-	r = append(r, e)
+	if r != nil {
+		r = append(r, manager)
+	}
 
 	// ou=Users entry
 	ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
@@ -377,7 +398,7 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 	e = encodeSearchResultEntry(id, values, ouUsers)
 	r = append(r, e)
 
-	// ou=Users entry
+	// ou=Groups entry
 	ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
 	values = map[string][]string{
 		"objectClass": []string{"organizationalUnit", "top"},
@@ -385,6 +406,13 @@ func HandleSearchRequest(message *Message) ([]*ber.Packet, error) {
 	}
 	e = encodeSearchResultEntry(id, values, ouGroups)
 	r = append(r, e)
+
+	// Users entries
+	users, err := getUsers(db, id)
+	if err != nil {
+		return r, errors.New(err.Msg)
+	}
+	r = append(r, users...)
 
 	d := encodeSearchResultDone(id, Success, "")
 	r = append(r, d)

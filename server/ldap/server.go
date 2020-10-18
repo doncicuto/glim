@@ -90,7 +90,7 @@ L:
 			}
 		case SearchRequest:
 			printLog(fmt.Sprintf("search requested by client %s", remoteAddress))
-			p, err := HandleSearchRequest(message)
+			p, err := HandleSearchRequest(message, db)
 			if err != nil {
 				printLog(err.Error())
 			}
