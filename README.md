@@ -119,3 +119,5 @@ This is a sample of a Glim server log showing REST and LDAP interaction
 ## Limitations / Caveats
 
 1. We can start and stop our Glim server using `glim server [start|stop]` but if you are running Glim on a Windows machine, the stop command will fail and you will have to stop it using Ctrl+C, this is due a limitation with signal handling in Windows. In a future we may change this behavior if we find a workaround for prospective Windows users.
+
+2. Glim cannot reply to Root DSE requests, so you cannot use LDAP tools like Apache Directory Studio or phpLDAPadmin to browse your directory. We'll try to include it in our roadmap.
