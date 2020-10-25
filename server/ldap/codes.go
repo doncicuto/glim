@@ -134,3 +134,17 @@ var scopes = map[int64]string{
 	1: "singleLevel",
 	2: "wholeSubtree",
 }
+
+//
+const (
+	FilterAnd             = 0
+	FilterOr              = 1
+	FilterNot             = 2
+	FilterEquality        = 3
+	FilterSubstrings      = 4
+	FilterGreaterOrEqual  = 5
+	FilterLessOrEqual     = 6
+	FilterPresent         = 7
+	FilterApproxMatch     = 8
+	FilterExtensibleMatch = 9
+)
