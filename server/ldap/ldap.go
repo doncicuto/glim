@@ -341,7 +341,7 @@ func showWholeUsersTree(base string, scope string) bool {
 
 // HandleBind - TODO comment
 func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, string, error) {
-
+	username := ""
 	id := message.ID
 	p := message.Request
 
@@ -356,11 +356,28 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, 
 	}
 
 	dn := strings.Split(n, ",")
-	username := strings.TrimPrefix(dn[0], "cn=")
-	domain := strings.TrimPrefix(n, dn[0])
-	domain = strings.TrimPrefix(domain, ",")
-	if domain != Domain() {
-		return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong domain: %s", domain)
+	if strings.HasPrefix(dn[0], "cn=") {
+		username = strings.TrimPrefix(dn[0], "cn=")
+		domain := strings.TrimPrefix(n, dn[0])
+		domain = strings.TrimPrefix(domain, ",")
+		if domain != Domain() {
+			return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong domain: %s", domain)
+		}
+	}
+
+	if strings.HasPrefix(dn[0], "uid=") {
+		username = strings.TrimPrefix(dn[0], "uid=")
+		if dn[1] != "ou=Users" {
+			return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong ou: %s", dn[1])
+		}
+		domain := strings.TrimPrefix(n, dn[0])
+		domain = strings.TrimPrefix(domain, ",")
+		domain = strings.TrimPrefix(domain, dn[1])
+		domain = strings.TrimPrefix(domain, ",")
+
+		if domain != Domain() {
+			return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong domain: %s", domain)
+		}
 	}
 
 	pass, err := bindPassword(p[2])

@@ -100,7 +100,6 @@ L:
 					printLog(err.Error())
 				}
 			}
-			break L
 		case UnbindRequest:
 			printLog(fmt.Sprintf("unbind requested by client: %s", remoteAddress))
 		default:
