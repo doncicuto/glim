@@ -19,6 +19,7 @@ package ldap
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/doncicuto/glim/models"
@@ -331,12 +332,30 @@ func showManagerEntry(base string, scope string) bool {
 
 func showBaseOUEntry(base string, scope string, ou string) bool {
 	return base == Domain() && (scope == "wholeSubtree" || scope == "singleLevel") ||
-		(base == fmt.Sprintf("ou=%s,%s", ou, Domain()) && scope == "base")
+		(base == fmt.Sprintf("ou=%s,%s", ou, Domain()) && (scope == "wholeSubtree" || scope == "base"))
 }
 
 func showWholeUsersTree(base string, scope string) bool {
 	return base == Domain() && scope == "wholeSubtree" ||
 		base == fmt.Sprintf("ou=Users,%s", Domain()) && scope == "wholeSubtree"
+}
+
+func showUserInfo(base string, filter string) (string, bool) {
+	regBase, _ := regexp.Compile(fmt.Sprintf("^uid=([A-Za-z]+),ou=Users,%s$", Domain()))
+	if regBase.MatchString(base) {
+		matches := regBase.FindStringSubmatch(base)
+		if matches != nil {
+			return matches[1], true
+		}
+	}
+	regFilter, _ := regexp.Compile("^[(][&][(]objectClass=inetOrgPerson[)][(]uid=([A-Za-z]+)[)][)]$")
+	if regFilter.MatchString(filter) {
+		matches := regFilter.FindStringSubmatch(filter)
+		if matches != nil {
+			return matches[1], true
+		}
+	}
+	return "", false
 }
 
 // HandleBind - TODO comment
@@ -423,12 +442,13 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	}
 	printLog(fmt.Sprintf("search base object: %s", b))
 
-	// Check if base object is valid
-	// if b != Domain() {
-	// 	p := encodeSearchResultDone(id, NoSuchObject, "")
-	// 	r = append(r, p)
-	// 	return r, errors.New("Wrong domain")
-	// }
+	//Check if base object is valid
+	reg, _ := regexp.Compile(fmt.Sprintf("%s$", Domain()))
+	if !reg.MatchString(b) {
+		p := encodeSearchResultDone(id, NoSuchObject, "")
+		r = append(r, p)
+		return r, errors.New("Wrong domain")
+	}
 
 	s, err := searchScope(p[1])
 	if err != nil {
@@ -480,6 +500,10 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
+	attrs := make(map[string]string)
+	for _, a := range strings.Split(a, " ") {
+		attrs[a] = a
+	}
 	printLog(fmt.Sprintf("search attributes: %s", a))
 
 	// TODO - Valid search results
@@ -487,59 +511,80 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	    SearchResultEntry and/or SearchResultReference messages, followed by
 		a single SearchResultDone message */
 
+	// Show only user info?
+	username, onlyUser := showUserInfo(b, f)
+
 	// Domain entry
-	// if showWholeLDAPTree(b, scopes[s]) {
-	// 	dcs := strings.Split(Domain(), ",")
-	// 	dc := strings.TrimPrefix(dcs[0], "dc=")
-	// 	values := map[string][]string{
-	// 		"objectClass": []string{"top", "dcObject", "organization"},
-	// 		"o":           []string{Domain()},
-	// 		"dc":          []string{dc},
-	// 	}
-	// 	e := encodeSearchResultEntry(id, values, Domain())
-	// 	r = append(r, e)
-	// }
+	if !onlyUser && showWholeLDAPTree(b, scopes[s]) {
+		dcs := strings.Split(Domain(), ",")
+		dc := strings.TrimPrefix(dcs[0], "dc=")
+		values := map[string][]string{
+			"objectClass": []string{"top", "dcObject", "organization"},
+			"o":           []string{Domain()},
+			"dc":          []string{dc},
+		}
+		e := encodeSearchResultEntry(id, values, Domain())
+		r = append(r, e)
+	}
 
 	// Manager entry -- Hardcoded TODO
-	// if showManagerEntry(b, scopes[s]) {
-	// 	manager, err := getManager(db, id)
-	// 	if err != nil {
-	// 		return r, errors.New(err.Msg)
-	// 	}
-	// 	if manager != nil {
-	// 		r = append(r, manager)
-	// 	}
-	// }
-
-	// ou=Users entry
-	// if showBaseOUEntry(b, scopes[s], "Users") {
-	// 	ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
-	// 	values := map[string][]string{
-	// 		"objectClass": []string{"organizationalUnit", "top"},
-	// 		"ou":          []string{"Users"},
-	// 	}
-	// 	e := encodeSearchResultEntry(id, values, ouUsers)
-	// 	r = append(r, e)
-	// }
-
-	// ou=Groups entry
-	// if showBaseOUEntry(b, scopes[s], "Groups") {
-	// 	ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
-	// 	values := map[string][]string{
-	// 		"objectClass": []string{"organizationalUnit", "top"},
-	// 		"ou":          []string{"Groups"},
-	// 	}
-	// 	e := encodeSearchResultEntry(id, values, ouGroups)
-	// 	r = append(r, e)
-	// }
-
-	// Users entries
-	if showWholeUsersTree(b, scopes[s]) {
-		users, err := getUsers(db, id)
+	if !onlyUser && showManagerEntry(b, scopes[s]) {
+		manager, err := getManager(db, id)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
-		r = append(r, users...)
+		if manager != nil {
+			r = append(r, manager)
+		}
+	}
+
+	// ou=Users entry
+	if !onlyUser && showBaseOUEntry(b, scopes[s], "Users") {
+		ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
+		values := map[string][]string{}
+
+		_, ok := attrs["objectClass"]
+		if ok {
+			values["objectClass"] = []string{"organizationalUnit", "top"}
+		}
+
+		_, ok = attrs["ou"]
+		if ok {
+			values["ou"] = []string{"Users"}
+		}
+
+		e := encodeSearchResultEntry(id, values, ouUsers)
+		r = append(r, e)
+	}
+
+	// ou=Groups entry
+	if !onlyUser && showBaseOUEntry(b, scopes[s], "Groups") {
+		ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
+		values := map[string][]string{
+			"objectClass": []string{"organizationalUnit", "top"},
+			"ou":          []string{"Groups"},
+		}
+		e := encodeSearchResultEntry(id, values, ouGroups)
+		r = append(r, e)
+	}
+
+	// Users entries
+	if onlyUser {
+		user, err := getUser(db, username, a, id)
+		if err != nil {
+			return r, errors.New(err.Msg)
+		}
+		r = append(r, user)
+	}
+
+	if !onlyUser {
+		if showWholeUsersTree(b, scopes[s]) {
+			users, err := getUsers(db, a, id)
+			if err != nil {
+				return r, errors.New(err.Msg)
+			}
+			r = append(r, users...)
+		}
 	}
 
 	d := encodeSearchResultDone(id, Success, "")

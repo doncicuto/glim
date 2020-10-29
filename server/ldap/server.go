@@ -17,7 +17,6 @@ limitations under the License.
 package ldap
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net"
@@ -142,16 +141,17 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	}
 
 	// Load server certificate and private key
-	cer, err := tls.LoadX509KeyPair(settings.TLSCert, settings.TLSKey)
-	if err != nil {
-		log.SetHeader("${time_rfc3339} [Glim] ⇨")
-		log.Fatal("could not load server certificate and private key pair")
-		return
-	}
+	// cer, err := tls.LoadX509KeyPair(settings.TLSCert, settings.TLSKey)
+	// if err != nil {
+	// 	log.SetHeader("${time_rfc3339} [Glim] ⇨")
+	// 	log.Fatal("could not load server certificate and private key pair")
+	// 	return
+	// }
 
 	// Start TLS listener
-	config := &tls.Config{Certificates: []tls.Certificate{cer}}
-	l, err := tls.Listen("tcp", addr, config)
+	// config := &tls.Config{Certificates: []tls.Certificate{cer}}
+	// l, err := tls.Listen("tcp", addr, config)
+	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.SetHeader("${time_rfc3339} [Glim] ⇨")
 		log.Fatal("")
