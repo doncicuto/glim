@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/badoux/checkmail"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/models"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
@@ -56,8 +57,21 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 
 //UpdateUser - TODO comment
 func (h *Handler) UpdateUser(c echo.Context) error {
-	var newUser = make(map[string]interface{})
+	var updatedUser = make(map[string]interface{})
+
 	u := new(models.User)
+
+	// Get username that is updating this user
+	modifiedBy := new(models.User)
+	tokenUser := c.Get("user").(*jwt.Token)
+	claims := tokenUser.Claims.(jwt.MapClaims)
+	tokenUID, ok := claims["uid"].(float64)
+	if !ok {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
+	if err := h.DB.Model(&models.User{}).Where("id = ?", tokenUID).First(&modifiedBy).Error; err != nil {
+		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
+	}
 
 	// Get idparam
 	uid := c.Param("uid")
@@ -89,7 +103,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		if err != nil {
 			// Does username exist?
 			if gorm.IsRecordNotFoundError(err) {
-				newUser["username"] = html.EscapeString(strings.TrimSpace(body.Username))
+				updatedUser["username"] = html.EscapeString(strings.TrimSpace(body.Username))
 			}
 		} else {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "username cannot be duplicated"}
@@ -97,26 +111,26 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	if body.GivenName != "" {
-		newUser["fistname"] = html.EscapeString(strings.TrimSpace(body.GivenName))
+		updatedUser["fistname"] = html.EscapeString(strings.TrimSpace(body.GivenName))
 	}
 
 	if body.Surname != "" {
-		newUser["lastname"] = html.EscapeString(strings.TrimSpace(body.Surname))
+		updatedUser["lastname"] = html.EscapeString(strings.TrimSpace(body.Surname))
 	}
 
 	if body.Email != "" {
 		if err := checkmail.ValidateFormat(body.Email); err != nil {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
 		}
-		newUser["email"] = body.Email
+		updatedUser["email"] = body.Email
 	}
 
 	if body.Manager != nil {
-		newUser["manager"] = *body.Manager
+		updatedUser["manager"] = *body.Manager
 	}
 
 	if body.Readonly != nil {
-		newUser["readonly"] = *body.Readonly
+		updatedUser["readonly"] = *body.Readonly
 	}
 
 	if body.ReplaceMembersOf && body.RemoveMembersOf {
@@ -124,10 +138,11 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	// Update date
-	newUser["updated_at"] = time.Now()
+	updatedUser["updated_at"] = time.Now()
+	updatedUser["updated_by"] = *modifiedBy.Username
 
 	// Update user
-	err = h.DB.Model(&models.User{}).Where("id = ?", uid).Updates(newUser).Error
+	err = h.DB.Model(&models.User{}).Where("id = ?", uid).Updates(updatedUser).Error
 	if err != nil {
 		// Does user exist?
 		if gorm.IsRecordNotFoundError(err) {

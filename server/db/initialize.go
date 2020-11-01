@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/doncicuto/glim/models"
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite" // Sqlite3 database
 	"github.com/sethvargo/go-password/password"
@@ -35,8 +36,8 @@ func createManager(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-
-	username := "manager"
+	userUUID := uuid.New().String()
+	username := "admin"
 	firstname := "LDAP"
 	lastname := "administrator"
 	hashed := string(hash)
@@ -50,13 +51,14 @@ func createManager(db *gorm.DB) error {
 		Password:  &hashed,
 		Manager:   &manager,
 		Readonly:  &readonly,
+		UUID:      &userUUID,
 	}).Error; err != nil {
 		return err
 	}
 	fmt.Println("")
 	fmt.Println("------------------------------------- WARNING -------------------------------------")
 	fmt.Println("A new user with manager permissions has been created:")
-	fmt.Println("- Username: manager") // TODO - Allow username with env
+	fmt.Println("- Username: admin") // TODO - Allow username with env
 	fmt.Printf("- Password %s\n", randomPass)
 	fmt.Println("Please store or write down this password to manage Glim.")
 	fmt.Println("You can delete this user once you assign manager permissions to another user")

@@ -543,6 +543,14 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 		ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
 		values := map[string][]string{}
 
+		_, operational := attrs["+"]
+
+		if operational {
+			values["structuralObjectClass"] = []string{"organizationalUnit"}
+			values["entryUUID"] = []string{"7f42ae6a-39b1-490e-8dda-f50597c70b88"}
+			values["creatorsName"] = []string{"cn=admin,dc=example,dc=org"}
+		}
+
 		_, ok := attrs["objectClass"]
 		if ok {
 			values["objectClass"] = []string{"organizationalUnit", "top"}
@@ -553,38 +561,58 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 			values["ou"] = []string{"Users"}
 		}
 
+		if operational {
+			values["entryDN"] = []string{"ou=Users,dc=example,dc=org"}
+			values["subschemaSubentry"] = []string{"cn=Subschema"}
+			values["hasSubordinates"] = []string{"TRUE"}
+		}
+
 		e := encodeSearchResultEntry(id, values, ouUsers)
 		r = append(r, e)
 	}
 
 	// ou=Groups entry
-	if !onlyUser && showBaseOUEntry(b, scopes[s], "Groups") {
-		ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
-		values := map[string][]string{
-			"objectClass": []string{"organizationalUnit", "top"},
-			"ou":          []string{"Groups"},
-		}
-		e := encodeSearchResultEntry(id, values, ouGroups)
-		r = append(r, e)
-	}
+	// if !onlyUser && showBaseOUEntry(b, scopes[s], "Groups") {
+	// 	values := map[string][]string{}
+	// 	ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
+
+	// 	_, operational := attrs["+"]
+
+	// 	if operational {
+	// 		values["structuralObjectClass"] = []string{"organizationalUnit"}
+	// 		values["entryUUID"] = []string{"7958647a-c287-4ae8-96d0-c0f6fc618d77"}
+	// 		values["creatorsName"] = []string{"cn=admin,dc=example,dc=org"}
+	// 	}
+
+	// 	values["objectClass"] = []string{"organizationalUnit", "top"}
+	// 	values["ou"] = []string{"Groups"}
+
+	// 	if operational {
+	// 		values["entryDN"] = []string{"ou=Groups,dc=example,dc=org"}
+	// 		values["subschemaSubentry"] = []string{"cn=Subschema"}
+	// 		values["hasSubordinates"] = []string{"TRUE"}
+	// 	}
+
+	// 	e := encodeSearchResultEntry(id, values, ouGroups)
+	// 	r = append(r, e)
+	// }
 
 	// Users entries
-	if onlyUser {
-		user, err := getUser(db, username, a, id)
+	if !showBaseOUEntry(b, scopes[s], "Groups") {
+		users, err := getUsers(db, username, a, id)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
-		r = append(r, user)
+		r = append(r, users...)
 	}
 
-	if !onlyUser {
-		if showWholeUsersTree(b, scopes[s]) {
-			users, err := getUsers(db, a, id)
-			if err != nil {
-				return r, errors.New(err.Msg)
-			}
-			r = append(r, users...)
+	// Users entries
+	if !onlyUser && !showBaseOUEntry(b, scopes[s], "Users") {
+		groups, err := getGroups(db, "devops", a, id)
+		if err != nil {
+			return r, errors.New(err.Msg)
 		}
+		r = append(r, groups...)
 	}
 
 	d := encodeSearchResultDone(id, Success, "")

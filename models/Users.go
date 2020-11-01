@@ -31,10 +31,13 @@ type User struct {
 	Email     *string   `gorm:"size:322" json:"email"`
 	Password  *string   `gorm:"size:60;not null;" json:"password"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	CreatedBy *string   `gorm:"size:500" json:"created_by"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	UpdatedBy *string   `gorm:"size:500" json:"updated_by"`
 	Manager   *bool     `gorm:"default:false" json:"manager"`
 	Readonly  *bool     `gorm:"default:true" json:"readonly"`
 	MemberOf  []*Group  `gorm:"many2many:group_members"`
+	UUID      *string   `gorm:"size:36" json:"uuid"`
 }
 
 // JSONUserBody - TODO comment

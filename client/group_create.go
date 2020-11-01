@@ -78,7 +78,7 @@ var newGroupCmd = &cobra.Command{
 func init() {
 	newGroupCmd.Flags().StringVarP(&groupName, "name", "n", "", "our group name")
 	newGroupCmd.Flags().StringVarP(&groupDesc, "description", "d", "", "our group description")
-	newGroupCmd.Flags().StringVarP(&groupMembers, "members", "m", "", "comma-separated list of usernames e.g: manager,tux")
+	newGroupCmd.Flags().StringVarP(&groupMembers, "members", "m", "", "comma-separated list of usernames e.g: admin,tux")
 
 	// Mark required flags
 	cobra.MarkFlagRequired(newGroupCmd.Flags(), "name")

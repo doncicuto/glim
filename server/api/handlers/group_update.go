@@ -22,16 +22,29 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
+	"github.com/doncicuto/glim/models"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
-	"github.com/doncicuto/glim/models"
 )
 
 //UpdateGroup - TODO comment
 func (h *Handler) UpdateGroup(c echo.Context) error {
-	var newGroup = make(map[string]interface{})
+	var modifiedBy = make(map[string]interface{})
 	g := new(models.Group)
+	u := new(models.User)
 	body := models.JSONGroupBody{}
+
+	// Get username that is updating this group
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	uid, ok := claims["uid"].(float64)
+	if !ok {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
+	if err := h.DB.Model(&models.User{}).Where("id = ?", uid).First(&u).Error; err != nil {
+		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
+	}
 
 	// Get gid
 	gid := c.Param("gid")
@@ -47,8 +60,8 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 	}
 
 	// Find group
-	err := h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&models.Group{}).Error
-	if err != nil {
+
+	if err := h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&models.Group{}).Error; err != nil {
 		// Does group exist?
 		if gorm.IsRecordNotFoundError(err) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
@@ -62,7 +75,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 		if err != nil {
 			// Does group name exist?
 			if gorm.IsRecordNotFoundError(err) {
-				newGroup["name"] = html.EscapeString(strings.TrimSpace(body.Name))
+				modifiedBy["name"] = html.EscapeString(strings.TrimSpace(body.Name))
 			}
 		} else {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "group name cannot be duplicated"}
@@ -70,21 +83,20 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 	}
 
 	if body.Description != "" {
-		newGroup["description"] = html.EscapeString(strings.TrimSpace(body.Description))
+		modifiedBy["description"] = html.EscapeString(strings.TrimSpace(body.Description))
 	}
 
 	// New update date
-	newGroup["updated_at"] = time.Now()
+	modifiedBy["updated_at"] = time.Now()
+	modifiedBy["updated_by"] = *u.Username
 
 	// Update group
-	err = h.DB.Model(&models.Group{}).Where("id = ?", gid).Updates(newGroup).Error
-	if err != nil {
+	if err := h.DB.Model(&models.Group{}).Where("id = ?", gid).Updates(modifiedBy).Error; err != nil {
 		return err
 	}
 
 	// Get updated group
-	err = h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&g).Error
-	if err != nil {
+	if err := h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&g).Error; err != nil {
 		// Does group exist?
 		if gorm.IsRecordNotFoundError(err) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
@@ -98,13 +110,13 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 
 		if body.ReplaceMembers {
 			// We are going to replace all group members, so let's clear the associations first
-			err = h.DB.Model(&g).Association("Members").Clear().Error
+			err := h.DB.Model(&g).Association("Members").Clear().Error
 			if err != nil {
 				return err
 			}
 		}
 
-		err = h.AddMembers(g, members)
+		err := h.AddMembers(g, members)
 		if err != nil {
 			return err
 		}
@@ -112,8 +124,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 
 	// Get updated group
 	g = new(models.Group)
-	err = h.DB.Preload("Members").Model(&models.Group{}).Where("id = ?", gid).First(&g).Error
-	if err != nil {
+	if err := h.DB.Preload("Members").Model(&models.Group{}).Where("id = ?", gid).First(&g).Error; err != nil {
 		return err
 	}
 

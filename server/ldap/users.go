@@ -9,10 +9,110 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+func userEntry(user models.User, attributes string) map[string][]string {
+	attrs := make(map[string]string)
+	for _, a := range strings.Split(attributes, " ") {
+		attrs[a] = a
+	}
+
+	_, operational := attrs["+"]
+
+	values := map[string][]string{}
+
+	_, ok := attrs["structuralObjectClass"]
+	if ok || operational {
+		values["structuralObjectClass"] = []string{"inetOrgPerson"}
+	}
+
+	_, ok = attrs["entryUUID"]
+	if ok || operational {
+		values["entryUUID"] = []string{*user.UUID}
+	}
+
+	_, ok = attrs["creatorsName"]
+	if ok || operational {
+		creator := *user.CreatedBy
+		createdBy := ""
+		if creator == "admin" {
+			createdBy = fmt.Sprintf("cn=admin,%s", Domain())
+		} else {
+			createdBy = fmt.Sprintf("uid=%s,ou=Users,%s", creator, Domain())
+		}
+		values["creatorsName"] = []string{createdBy}
+	}
+
+	_, ok = attrs["createTimestamp"]
+	if ok || operational {
+		values["createTimestamp"] = []string{user.CreatedAt.Format("20060102150405Z")}
+	}
+
+	_, ok = attrs["creatorsName"]
+	if ok || operational {
+		modifier := *user.UpdatedBy
+		updatedBy := ""
+		if modifier == "admin" {
+			updatedBy = fmt.Sprintf("cn=admin,%s", Domain())
+		} else {
+			updatedBy = fmt.Sprintf("uid=%s,ou=Users,%s", modifier, Domain())
+		}
+		values["modifiersName"] = []string{updatedBy}
+	}
+
+	_, ok = attrs["modifyTimestamp"]
+	if ok || operational {
+		values["modifyTimestamp"] = []string{user.UpdatedAt.Format("20060102150405Z")}
+	}
+
+	_, ok = attrs["objectClass"]
+	if attributes == "ALL" || ok || operational {
+		values["objectClass"] = []string{"top", "person", "inetOrgPerson", "organizationalPerson"}
+	}
+
+	if attributes == "ALL" || attrs["uid"] != "" || attrs["inetOrgPerson"] != "" || operational {
+		values["uid"] = []string{*user.Username}
+	}
+
+	if attributes == "ALL" || attrs["cn"] != "" || attrs["inetOrgPerson"] != "" || operational {
+		values["cn"] = []string{strings.Join([]string{*user.GivenName, *user.Surname}, " ")}
+	}
+
+	_, ok = attrs["sn"]
+	if attributes == "ALL" || ok || operational {
+		values["sn"] = []string{*user.Surname}
+	}
+
+	_, ok = attrs["givenName"]
+	if attributes == "ALL" || ok || operational {
+		values["givenName"] = []string{*user.GivenName}
+	}
+
+	_, ok = attrs["mail"]
+	if attributes == "ALL" || ok || operational {
+		values["mail"] = []string{*user.Email}
+	}
+
+	_, ok = attrs["entryDN"]
+	if ok || operational {
+		values["entryDN"] = []string{fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())}
+	}
+
+	_, ok = attrs["subschemaSubentry"]
+	if ok || operational {
+		values["subschemaSubentry"] = []string{"cn=Subschema"}
+	}
+
+	_, ok = attrs["hasSubordinates"]
+	if ok || operational {
+		values["hasSubordinates"] = []string{"FALSE"}
+	}
+
+	return values
+}
+
 func getManager(db *gorm.DB, id int64) (*ber.Packet, *ServerError) {
 	// Find group
 	u := new(models.User)
-	err := db.Model(&models.User{}).Where("username = ?", "manager").First(&u).Error
+	err := db.Model(&models.User{}).Where("username = ?", "admin").First(&u).Error
 	if err != nil {
 		// Does user exist?
 		if !gorm.IsRecordNotFoundError(err) {
@@ -30,124 +130,44 @@ func getManager(db *gorm.DB, id int64) (*ber.Packet, *ServerError) {
 		"description": []string{strings.Join([]string{*u.GivenName, *u.Surname}, " ")},
 	}
 
-	e := encodeSearchResultEntry(id, values, fmt.Sprintf("cn=manager,%s", Domain()))
+	e := encodeSearchResultEntry(id, values, fmt.Sprintf("cn=admin,%s", Domain()))
 	return e, nil
 }
 
-func getUsers(db *gorm.DB, attributes string, id int64) ([]*ber.Packet, *ServerError) {
-	attrs := make(map[string]string)
-	for _, a := range strings.Split(attributes, " ") {
-		attrs[a] = a
-	}
-	fmt.Printf("%v", attrs)
+func getUsers(db *gorm.DB, username string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
 
 	var r []*ber.Packet
-
 	users := []models.User{}
-	if err := db.
-		Preload("MemberOf").
-		Model(&models.User{}).
-		Where("username <> ?", "manager").
-		Find(&users).Error; err != nil {
-		return r, &ServerError{
-			Msg:  "could not retrieve users from database",
-			Code: Other,
+	if username != "" {
+		if err := db.
+			Preload("MemberOf").
+			Model(&models.User{}).
+			Where("username = ?", username).
+			Find(&users).Error; err != nil {
+			return nil, &ServerError{
+				Msg:  "could not retrieve users from database",
+				Code: Other,
+			}
+		}
+	} else {
+		if err := db.
+			Preload("MemberOf").
+			Model(&models.User{}).
+			Where("username <> ?", "admin").
+			Find(&users).Error; err != nil {
+			return r, &ServerError{
+				Msg:  "could not retrieve users from database",
+				Code: Other,
+			}
 		}
 	}
 
 	for _, user := range users {
 		dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
-		values := map[string][]string{}
-
-		_, ok := attrs["objectClass"]
-		if ok {
-			values["objectClass"] = []string{"top", "person", "inetOrgPerson", "organizationalPerson"}
-		}
-
-		_, ok = attrs["uid"]
-		if ok {
-			values["uid"] = []string{*user.Username}
-		}
-
-		_, ok = attrs["cn"]
-		if ok {
-			values["cn"] = []string{strings.Join([]string{*user.GivenName, *user.Surname}, " ")}
-		}
-
-		_, ok = attrs["sn"]
-		if ok {
-			values["sn"] = []string{*user.Surname}
-		}
-
-		_, ok = attrs["givenName"]
-		if ok {
-			values["givenName"] = []string{*user.GivenName}
-		}
-
-		_, ok = attrs["mail"]
-		if ok {
-			values["mail"] = []string{*user.Email}
-		}
-
+		values := userEntry(user, attributes)
 		e := encodeSearchResultEntry(id, values, dn)
 		r = append(r, e)
 	}
 
 	return r, nil
-}
-
-func getUser(db *gorm.DB, username string, attributes string, id int64) (*ber.Packet, *ServerError) {
-	attrs := make(map[string]string)
-	for _, a := range strings.Split(attributes, " ") {
-		attrs[a] = a
-	}
-
-	user := models.User{}
-	if err := db.
-		Preload("MemberOf").
-		Model(&models.User{}).
-		Where("username = ?", username).
-		Take(&user).Error; err != nil {
-		return nil, &ServerError{
-			Msg:  "could not retrieve user from database",
-			Code: Other,
-		}
-	}
-
-	dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
-	values := map[string][]string{}
-
-	_, ok := attrs["objectClass"]
-	if ok {
-		values["objectClass"] = []string{"top", "person", "inetOrgPerson", "organizationalPerson"}
-	}
-
-	_, ok = attrs["uid"]
-	if ok {
-		values["uid"] = []string{*user.Username}
-	}
-
-	_, ok = attrs["cn"]
-	if ok {
-		values["cn"] = []string{strings.Join([]string{*user.GivenName, *user.Surname}, " ")}
-	}
-
-	_, ok = attrs["sn"]
-	if ok {
-		values["sn"] = []string{*user.Surname}
-	}
-
-	_, ok = attrs["givenName"]
-	if ok {
-		values["givenName"] = []string{*user.GivenName}
-	}
-
-	_, ok = attrs["mail"]
-	if ok {
-		values["mail"] = []string{*user.Email}
-	}
-
-	e := encodeSearchResultEntry(id, values, dn)
-
-	return e, nil
 }

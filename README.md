@@ -97,9 +97,9 @@ We can test our server using the following examples.
 > Note: we must specify the location for our CA certificate so OpenLDAP can verify Glim server's certificate and the TLS handshake can run smoothly. We use the **LDAPTLS_CACERT** environment variable.
 
 ```(bash)
-$ LDAPTLS_CACERT=ca.pem ldapwhoami -x -D "cn=manager,dc=example,dc=org" -W -H ldaps://127.0.0.1:1636
-Enter LDAP Password: (type the manager password and press Enter)
-dn:cn=manager,dc=example,dc=org (cool this is who I am)
+$ LDAPTLS_CACERT=ca.pem ldapwhoami -x -D "cn=admin,dc=example,dc=org" -W -H ldaps://127.0.0.1:1636
+Enter LDAP Password: (type the admin password and press Enter)
+dn:cn=admin,dc=example,dc=org (cool this is who I am)
 ```
 
 ### Environment variables

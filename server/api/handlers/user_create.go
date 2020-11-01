@@ -22,7 +22,9 @@ import (
 	"strings"
 
 	"github.com/badoux/checkmail"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/models"
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 )
@@ -55,6 +57,19 @@ func (h *Handler) AddMembersOf(u *models.User, memberOf []string) error {
 //SaveUser - TODO comment
 func (h *Handler) SaveUser(c echo.Context) error {
 	u := new(models.User)
+
+	// Get username that is updating this user
+	createdBy := new(models.User)
+	tokenUser := c.Get("user").(*jwt.Token)
+	claims := tokenUser.Claims.(jwt.MapClaims)
+	tokenUID, ok := claims["uid"].(float64)
+	if !ok {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
+	if err := h.DB.Model(&models.User{}).Where("id = ?", tokenUID).First(&createdBy).Error; err != nil {
+		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
+	}
+
 	body := models.JSONUserBody{}
 	// Bind
 	if err := c.Bind(&body); err != nil {
@@ -96,6 +111,12 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	if body.Readonly != nil {
 		u.Readonly = body.Readonly
 	}
+
+	userUUID := uuid.New().String()
+	u.UUID = &userUUID
+
+	u.CreatedBy = createdBy.Username
+	u.UpdatedBy = createdBy.Username
 
 	// Check if user already exists
 	err := h.DB.Model(&models.User{}).Where("username = ?", body.Username).First(&u).Error

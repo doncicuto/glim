@@ -21,9 +21,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dgrijalva/jwt-go"
+	"github.com/doncicuto/glim/models"
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
-	"github.com/doncicuto/glim/models"
 )
 
 // AddMembers - TODO comment
@@ -33,8 +35,8 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 	for _, member := range members {
 		member = strings.TrimSpace(member)
 		// Find user
-		u := new(models.User)
-		err = h.DB.Model(&models.User{}).Where("username = ?", member).Take(&u).Error
+		createdBy := new(models.User)
+		err = h.DB.Model(&models.User{}).Where("username = ?", member).Take(&createdBy).Error
 		if err != nil {
 			if gorm.IsRecordNotFoundError(err) {
 				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("user %s not found", member)}
@@ -43,7 +45,7 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 		}
 
 		// Append association
-		err = h.DB.Model(&g).Association("Members").Append(u).Error
+		err = h.DB.Model(&g).Association("Members").Append(createdBy).Error
 		if err != nil {
 			return err
 		}
@@ -54,7 +56,19 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 // SaveGroup - TODO comment
 func (h *Handler) SaveGroup(c echo.Context) error {
 	g := new(models.Group)
+	createdBy := new(models.User)
 	body := models.JSONGroupBody{}
+
+	// Get username that is updating this group
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	uid, ok := claims["uid"].(float64)
+	if !ok {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
+	if err := h.DB.Model(&models.User{}).Where("id = ?", uid).First(&createdBy).Error; err != nil {
+		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
+	}
 
 	// Get request body
 	if err := c.Bind(&body); err != nil {
@@ -72,9 +86,17 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "group already exists"}
 	}
 
+	// Prepare new UUID
+	groupUUID := uuid.New().String()
+	g.UUID = &groupUUID
+
 	// Prepare new group
 	g.Name = &body.Name
 	g.Description = &body.Description
+
+	// Created by
+	g.CreatedBy = createdBy.Username
+	g.UpdatedBy = createdBy.Username
 
 	// Create group
 	err = h.DB.Create(&g).Error

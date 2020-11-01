@@ -26,7 +26,10 @@ type Group struct {
 	Name        *string   `gorm:"size:100;unique;not null" json:"name"`
 	Description *string   `gorm:"size:255" json:"description"`
 	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	CreatedBy   *string   `gorm:"size:500" json:"created_by"`
 	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	UpdatedBy   *string   `gorm:"size:500" json:"updated_by"`
+	UUID        *string   `gorm:"size:36" json:"uuid"`
 	Members     []*User   `gorm:"many2many:group_members"`
 }
 

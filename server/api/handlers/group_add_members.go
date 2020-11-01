@@ -20,9 +20,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/doncicuto/glim/models"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
-	"github.com/doncicuto/glim/models"
 )
 
 //AddGroupMembers - TODO comment
