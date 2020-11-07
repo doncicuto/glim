@@ -139,11 +139,18 @@ func getUsers(db *gorm.DB, username string, attributes string, id int64) ([]*ber
 	var r []*ber.Packet
 	users := []models.User{}
 	if username != "" {
-		if err := db.
-			Preload("MemberOf").
-			Model(&models.User{}).
-			Where("username = ?", username).
-			Find(&users).Error; err != nil {
+		if username != "admin" {
+			if err := db.
+				Preload("MemberOf").
+				Model(&models.User{}).
+				Where("username = ?", username).
+				Find(&users).Error; err != nil {
+				return nil, &ServerError{
+					Msg:  "could not retrieve users from database",
+					Code: Other,
+				}
+			}
+		} else {
 			return nil, &ServerError{
 				Msg:  "could not retrieve users from database",
 				Code: Other,

@@ -116,10 +116,10 @@ func getGroups(db *gorm.DB, name string, attributes string, id int64) ([]*ber.Pa
 		}
 	} else {
 		if err := db.
-			Preload("Member").
+			Preload("Members").
 			Model(&models.Group{}).
 			Find(&groups).Error; err != nil {
-			return r, &ServerError{
+			return nil, &ServerError{
 				Msg:  "could not retrieve groups from database",
 				Code: Other,
 			}
@@ -131,6 +131,34 @@ func getGroups(db *gorm.DB, name string, attributes string, id int64) ([]*ber.Pa
 		values := groupEntry(group, attributes)
 		e := encodeSearchResultEntry(id, values, dn)
 		r = append(r, e)
+	}
+
+	return r, nil
+}
+
+func getGroupsByUser(db *gorm.DB, username string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
+
+	var r []*ber.Packet
+	groups := []models.Group{}
+	if err := db.
+		Preload("Members").
+		Model(&models.Group{}).
+		Find(&groups).Error; err != nil {
+		return nil, &ServerError{
+			Msg:  "could not retrieve groups from database",
+			Code: Other,
+		}
+	}
+
+	for _, group := range groups {
+		for _, member := range group.Members {
+			if *member.Username == username {
+				dn := fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, Domain())
+				values := groupEntry(group, attributes)
+				e := encodeSearchResultEntry(id, values, dn)
+				r = append(r, e)
+			}
+		}
 	}
 
 	return r, nil

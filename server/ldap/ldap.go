@@ -34,6 +34,15 @@ type Message struct {
 	Request []*ber.Packet
 }
 
+// Query - TODO comment
+type Query struct {
+	showEverything     bool
+	showAllGroups      bool
+	filterUser         string
+	filterGroup        string
+	filterGroupsByUser string
+}
+
 func messageID(p *ber.Packet) (int64, error) {
 	if p.ClassType != ber.ClassUniversal ||
 		p.TagType != ber.TypePrimitive ||
@@ -322,22 +331,56 @@ func searchAttributes(p *ber.Packet) (string, *ServerError) {
 	return strings.Join(attributes, " "), nil
 }
 
-func showWholeLDAPTree(base string, scope string) bool {
-	return base == Domain() && scope == "wholeSubtree"
-}
+func analyzeQuery(base string, filter string) Query {
+	query := Query{}
 
-func showManagerEntry(base string, scope string) bool {
-	return base == Domain() && (scope == "wholeSubtree" || scope == "singleLevel")
-}
+	if base == Domain() && strings.Index(filter, "objectClass=*") != -1 {
+		query.showEverything = true
+		return query
+	}
 
-func showBaseOUEntry(base string, scope string, ou string) bool {
-	return base == Domain() && (scope == "wholeSubtree" || scope == "singleLevel") ||
-		(base == fmt.Sprintf("ou=%s,%s", ou, Domain()) && (scope == "wholeSubtree" || scope == "base"))
-}
+	regBase, _ := regexp.Compile(fmt.Sprintf("^uid=([A-Za-z]+),ou=Users,%s$", Domain()))
+	if regBase.MatchString(base) {
+		matches := regBase.FindStringSubmatch(base)
+		if matches != nil {
+			query.filterUser = matches[1]
+			return query
+		}
+	}
 
-func showWholeUsersTree(base string, scope string) bool {
-	return base == Domain() && scope == "wholeSubtree" ||
-		base == fmt.Sprintf("ou=Users,%s", Domain()) && scope == "wholeSubtree"
+	regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z]+),ou=Groups,%s$", Domain()))
+	if regBase.MatchString(base) {
+		matches := regBase.FindStringSubmatch(base)
+		if matches != nil {
+			query.filterGroup = matches[1]
+			return query
+		}
+	}
+
+	filterUser, _ := regexp.Compile("member=uid=([A-Za-z]+)")
+	if filterUser.MatchString(filter) {
+		matches := filterUser.FindStringSubmatch(filter)
+		if matches != nil {
+			query.filterGroupsByUser = matches[1]
+			return query
+		}
+	}
+
+	filterUser, _ = regexp.Compile("uid=([A-Za-z]+)")
+	if filterUser.MatchString(filter) {
+		matches := filterUser.FindStringSubmatch(filter)
+		if matches != nil {
+			query.filterUser = matches[1]
+			return query
+		}
+	}
+
+	if base == fmt.Sprintf("ou=Groups,%s", Domain()) {
+		query.showAllGroups = true
+		return query
+	}
+
+	return query
 }
 
 func showUserInfo(base string, filter string) (string, bool) {
@@ -506,16 +549,15 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	}
 	printLog(fmt.Sprintf("search attributes: %s", a))
 
-	// TODO - Valid search results
 	/* RFC 4511 - The results of the Search operation are returned as zero or more
 	    SearchResultEntry and/or SearchResultReference messages, followed by
 		a single SearchResultDone message */
 
-	// Show only user info?
-	username, onlyUser := showUserInfo(b, f)
+	// Analyze Query using search base and filter
+	query := analyzeQuery(b, f)
 
 	// Domain entry
-	if !onlyUser && showWholeLDAPTree(b, scopes[s]) {
+	if query.showEverything {
 		dcs := strings.Split(Domain(), ",")
 		dc := strings.TrimPrefix(dcs[0], "dc=")
 		values := map[string][]string{
@@ -528,48 +570,48 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	}
 
 	// Manager entry -- Hardcoded TODO
-	if !onlyUser && showManagerEntry(b, scopes[s]) {
-		manager, err := getManager(db, id)
-		if err != nil {
-			return r, errors.New(err.Msg)
-		}
-		if manager != nil {
-			r = append(r, manager)
-		}
-	}
+	// if !showManagerEntry(b, scopes[s]) {
+	// 	manager, err := getManager(db, id)
+	// 	if err != nil {
+	// 		return r, errors.New(err.Msg)
+	// 	}
+	// 	if manager != nil {
+	// 		r = append(r, manager)
+	// 	}
+	// }
 
-	// ou=Users entry
-	if !onlyUser && showBaseOUEntry(b, scopes[s], "Users") {
-		ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
-		values := map[string][]string{}
+	// // ou=Users entry
+	// if !onlyUser && showBaseOUEntry(b, scopes[s], "Users") {
+	// 	ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
+	// 	values := map[string][]string{}
 
-		_, operational := attrs["+"]
+	// 	_, operational := attrs["+"]
 
-		if operational {
-			values["structuralObjectClass"] = []string{"organizationalUnit"}
-			values["entryUUID"] = []string{"7f42ae6a-39b1-490e-8dda-f50597c70b88"}
-			values["creatorsName"] = []string{"cn=admin,dc=example,dc=org"}
-		}
+	// 	if operational {
+	// 		values["structuralObjectClass"] = []string{"organizationalUnit"}
+	// 		values["entryUUID"] = []string{"7f42ae6a-39b1-490e-8dda-f50597c70b88"}
+	// 		values["creatorsName"] = []string{"cn=admin,dc=example,dc=org"}
+	// 	}
 
-		_, ok := attrs["objectClass"]
-		if ok {
-			values["objectClass"] = []string{"organizationalUnit", "top"}
-		}
+	// 	_, ok := attrs["objectClass"]
+	// 	if ok {
+	// 		values["objectClass"] = []string{"organizationalUnit", "top"}
+	// 	}
 
-		_, ok = attrs["ou"]
-		if ok {
-			values["ou"] = []string{"Users"}
-		}
+	// 	_, ok = attrs["ou"]
+	// 	if ok {
+	// 		values["ou"] = []string{"Users"}
+	// 	}
 
-		if operational {
-			values["entryDN"] = []string{"ou=Users,dc=example,dc=org"}
-			values["subschemaSubentry"] = []string{"cn=Subschema"}
-			values["hasSubordinates"] = []string{"TRUE"}
-		}
+	// 	if operational {
+	// 		values["entryDN"] = []string{"ou=Users,dc=example,dc=org"}
+	// 		values["subschemaSubentry"] = []string{"cn=Subschema"}
+	// 		values["hasSubordinates"] = []string{"TRUE"}
+	// 	}
 
-		e := encodeSearchResultEntry(id, values, ouUsers)
-		r = append(r, e)
-	}
+	// 	e := encodeSearchResultEntry(id, values, ouUsers)
+	// 	r = append(r, e)
+	// }
 
 	// ou=Groups entry
 	// if !onlyUser && showBaseOUEntry(b, scopes[s], "Groups") {
@@ -598,17 +640,34 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	// }
 
 	// Users entries
-	if !showBaseOUEntry(b, scopes[s], "Groups") {
-		users, err := getUsers(db, username, a, id)
+	if query.filterUser != "" {
+		users, err := getUsers(db, query.filterUser, a, id)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
 		r = append(r, users...)
 	}
 
-	// Users entries
-	if !onlyUser && !showBaseOUEntry(b, scopes[s], "Users") {
-		groups, err := getGroups(db, "devops", a, id)
+	// Groups entries
+	if query.filterGroupsByUser != "" {
+		groups, err := getGroupsByUser(db, query.filterGroupsByUser, a, id)
+		if err != nil {
+			return r, errors.New(err.Msg)
+		}
+		r = append(r, groups...)
+	}
+
+	// Groups entries
+	if query.filterGroup != "" {
+		groups, err := getGroups(db, query.filterGroup, a, id)
+		if err != nil {
+			return r, errors.New(err.Msg)
+		}
+		r = append(r, groups...)
+	}
+
+	if query.showAllGroups {
+		groups, err := getGroups(db, "", a, id)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
