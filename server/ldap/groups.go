@@ -88,7 +88,7 @@ func groupEntry(group models.Group, attributes string) map[string][]string {
 	}
 
 	_, ok = attrs["member"]
-	if attributes == "ALL" || ok || operational {
+	if attributes == "ALL" || ok || attrs["groupOfNames"] != "" || operational {
 		members := []string{}
 		for _, member := range group.Members {
 			members = append(members, fmt.Sprintf("uid=%s,ou=Users,%s", *member.Username, Domain()))

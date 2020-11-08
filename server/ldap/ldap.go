@@ -339,18 +339,18 @@ func analyzeQuery(base string, filter string) Query {
 		return query
 	}
 
-	regBase, _ := regexp.Compile(fmt.Sprintf("^uid=([A-Za-z]+),ou=Users,%s$", Domain()))
-	if regBase.MatchString(base) {
-		matches := regBase.FindStringSubmatch(base)
+	regBase, _ := regexp.Compile(fmt.Sprintf("^uid=([A-Za-z]+),ou=users,%s$", Domain()))
+	if regBase.MatchString(strings.ToLower(base)) {
+		matches := regBase.FindStringSubmatch(strings.ToLower(base))
 		if matches != nil {
 			query.filterUser = matches[1]
 			return query
 		}
 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z]+),ou=Groups,%s$", Domain()))
-	if regBase.MatchString(base) {
-		matches := regBase.FindStringSubmatch(base)
+	regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z]+),ou=groups,%s$", Domain()))
+	if regBase.MatchString(strings.ToLower(base)) {
+		matches := regBase.FindStringSubmatch(strings.ToLower(base))
 		if matches != nil {
 			query.filterGroup = matches[1]
 			return query
@@ -375,7 +375,7 @@ func analyzeQuery(base string, filter string) Query {
 		}
 	}
 
-	if base == fmt.Sprintf("ou=Groups,%s", Domain()) {
+	if strings.ToLower(base) == fmt.Sprintf("ou=Groups,%s", Domain()) {
 		query.showAllGroups = true
 		return query
 	}
@@ -527,7 +527,6 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	}
 	printLog(fmt.Sprintf("search show types only: %t", t))
 
-	// TODO parse the following items p[6] filter p[7] attributes
 	f, err := searchFilter(p[6])
 	if err != nil {
 		p := encodeSearchResultDone(id, err.Code, err.Msg)
@@ -536,7 +535,6 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	}
 	printLog(fmt.Sprintf("search filter: %s", f))
 
-	// &{{0 32 16} <nil> []  [] }
 	a, err := searchAttributes(p[7])
 	if err != nil {
 		p := encodeSearchResultDone(id, err.Code, err.Msg)
@@ -555,89 +553,6 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 
 	// Analyze Query using search base and filter
 	query := analyzeQuery(b, f)
-
-	// Domain entry
-	if query.showEverything {
-		dcs := strings.Split(Domain(), ",")
-		dc := strings.TrimPrefix(dcs[0], "dc=")
-		values := map[string][]string{
-			"objectClass": []string{"top", "dcObject", "organization"},
-			"o":           []string{Domain()},
-			"dc":          []string{dc},
-		}
-		e := encodeSearchResultEntry(id, values, Domain())
-		r = append(r, e)
-	}
-
-	// Manager entry -- Hardcoded TODO
-	// if !showManagerEntry(b, scopes[s]) {
-	// 	manager, err := getManager(db, id)
-	// 	if err != nil {
-	// 		return r, errors.New(err.Msg)
-	// 	}
-	// 	if manager != nil {
-	// 		r = append(r, manager)
-	// 	}
-	// }
-
-	// // ou=Users entry
-	// if !onlyUser && showBaseOUEntry(b, scopes[s], "Users") {
-	// 	ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
-	// 	values := map[string][]string{}
-
-	// 	_, operational := attrs["+"]
-
-	// 	if operational {
-	// 		values["structuralObjectClass"] = []string{"organizationalUnit"}
-	// 		values["entryUUID"] = []string{"7f42ae6a-39b1-490e-8dda-f50597c70b88"}
-	// 		values["creatorsName"] = []string{"cn=admin,dc=example,dc=org"}
-	// 	}
-
-	// 	_, ok := attrs["objectClass"]
-	// 	if ok {
-	// 		values["objectClass"] = []string{"organizationalUnit", "top"}
-	// 	}
-
-	// 	_, ok = attrs["ou"]
-	// 	if ok {
-	// 		values["ou"] = []string{"Users"}
-	// 	}
-
-	// 	if operational {
-	// 		values["entryDN"] = []string{"ou=Users,dc=example,dc=org"}
-	// 		values["subschemaSubentry"] = []string{"cn=Subschema"}
-	// 		values["hasSubordinates"] = []string{"TRUE"}
-	// 	}
-
-	// 	e := encodeSearchResultEntry(id, values, ouUsers)
-	// 	r = append(r, e)
-	// }
-
-	// ou=Groups entry
-	// if !onlyUser && showBaseOUEntry(b, scopes[s], "Groups") {
-	// 	values := map[string][]string{}
-	// 	ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
-
-	// 	_, operational := attrs["+"]
-
-	// 	if operational {
-	// 		values["structuralObjectClass"] = []string{"organizationalUnit"}
-	// 		values["entryUUID"] = []string{"7958647a-c287-4ae8-96d0-c0f6fc618d77"}
-	// 		values["creatorsName"] = []string{"cn=admin,dc=example,dc=org"}
-	// 	}
-
-	// 	values["objectClass"] = []string{"organizationalUnit", "top"}
-	// 	values["ou"] = []string{"Groups"}
-
-	// 	if operational {
-	// 		values["entryDN"] = []string{"ou=Groups,dc=example,dc=org"}
-	// 		values["subschemaSubentry"] = []string{"cn=Subschema"}
-	// 		values["hasSubordinates"] = []string{"TRUE"}
-	// 	}
-
-	// 	e := encodeSearchResultEntry(id, values, ouGroups)
-	// 	r = append(r, e)
-	// }
 
 	// Users entries
 	if query.filterUser != "" {

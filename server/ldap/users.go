@@ -77,18 +77,27 @@ func userEntry(user models.User, attributes string) map[string][]string {
 	}
 
 	_, ok = attrs["sn"]
-	if attributes == "ALL" || ok || operational {
+	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
 		values["sn"] = []string{*user.Surname}
 	}
 
 	_, ok = attrs["givenName"]
-	if attributes == "ALL" || ok || operational {
+	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
 		values["givenName"] = []string{*user.GivenName}
 	}
 
 	_, ok = attrs["mail"]
-	if attributes == "ALL" || ok || operational {
+	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
 		values["mail"] = []string{*user.Email}
+	}
+
+	_, ok = attrs["memberOf"]
+	if attributes == "ALL" || ok {
+		groups := []string{}
+		for _, memberOf := range user.MemberOf {
+			groups = append(groups, fmt.Sprintf("cn=%s,ou=Groups,dc=example,dc=org", *memberOf.Name))
+		}
+		values["memberOf"] = groups
 	}
 
 	_, ok = attrs["entryDN"]
