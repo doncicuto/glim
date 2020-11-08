@@ -37,10 +37,12 @@ type Message struct {
 // Query - TODO comment
 type Query struct {
 	showEverything     bool
-	showAllGroups      bool
+	showUsers          bool
+	showGroups         bool
 	filterUser         string
 	filterGroup        string
 	filterGroupsByUser string
+	filterUsersByGroup string
 }
 
 func messageID(p *ber.Packet) (int64, error) {
@@ -339,12 +341,21 @@ func analyzeQuery(base string, filter string) Query {
 		return query
 	}
 
-	regBase, _ := regexp.Compile(fmt.Sprintf("^uid=([A-Za-z]+),ou=users,%s$", Domain()))
+	regBase, _ := regexp.Compile(fmt.Sprintf("^ou=users,%s$", Domain()))
+	if regBase.MatchString(strings.ToLower(base)) {
+		query.showUsers = true
+	}
+
+	regBase, _ = regexp.Compile(fmt.Sprintf("^ou=groups,%s$", Domain()))
+	if regBase.MatchString(strings.ToLower(base)) {
+		query.showGroups = true
+	}
+
+	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z]+),ou=users,%s$", Domain()))
 	if regBase.MatchString(strings.ToLower(base)) {
 		matches := regBase.FindStringSubmatch(strings.ToLower(base))
 		if matches != nil {
 			query.filterUser = matches[1]
-			return query
 		}
 	}
 
@@ -353,7 +364,6 @@ func analyzeQuery(base string, filter string) Query {
 		matches := regBase.FindStringSubmatch(strings.ToLower(base))
 		if matches != nil {
 			query.filterGroup = matches[1]
-			return query
 		}
 	}
 
@@ -375,8 +385,17 @@ func analyzeQuery(base string, filter string) Query {
 		}
 	}
 
+	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z]+),ou=Groups,%s", Domain()))
+	if filterGroup.MatchString(filter) {
+		matches := filterGroup.FindStringSubmatch(filter)
+		if matches != nil {
+			query.filterUsersByGroup = matches[1]
+			return query
+		}
+	}
+
 	if strings.ToLower(base) == fmt.Sprintf("ou=Groups,%s", Domain()) {
-		query.showAllGroups = true
+		query.showGroups = true
 		return query
 	}
 
@@ -555,8 +574,8 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	query := analyzeQuery(b, f)
 
 	// Users entries
-	if query.filterUser != "" {
-		users, err := getUsers(db, query.filterUser, a, id)
+	if query.filterUser != "" || query.filterUsersByGroup != "" {
+		users, err := getUsers(db, query.filterUser, query.filterUsersByGroup, a, id)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
@@ -581,7 +600,7 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 		r = append(r, groups...)
 	}
 
-	if query.showAllGroups {
+	if query.showGroups && query.filterGroupsByUser == "" {
 		groups, err := getGroups(db, "", a, id)
 		if err != nil {
 			return r, errors.New(err.Msg)

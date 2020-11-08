@@ -143,16 +143,17 @@ func getManager(db *gorm.DB, id int64) (*ber.Packet, *ServerError) {
 	return e, nil
 }
 
-func getUsers(db *gorm.DB, username string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
+func getUsers(db *gorm.DB, username string, groupName string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
 
 	var r []*ber.Packet
 	users := []models.User{}
+
 	if username != "" {
 		if username != "admin" {
 			if err := db.
 				Preload("MemberOf").
 				Model(&models.User{}).
-				Where("username = ?", username).
+				Where("username = ? ", username).
 				Find(&users).Error; err != nil {
 				return nil, &ServerError{
 					Msg:  "could not retrieve users from database",
@@ -169,20 +170,32 @@ func getUsers(db *gorm.DB, username string, attributes string, id int64) ([]*ber
 		if err := db.
 			Preload("MemberOf").
 			Model(&models.User{}).
-			Where("username <> ?", "admin").
 			Find(&users).Error; err != nil {
-			return r, &ServerError{
+			return nil, &ServerError{
 				Msg:  "could not retrieve users from database",
 				Code: Other,
 			}
 		}
 	}
 
-	for _, user := range users {
-		dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
-		values := userEntry(user, attributes)
-		e := encodeSearchResultEntry(id, values, dn)
-		r = append(r, e)
+	if groupName != "" {
+		for _, user := range users {
+			for _, member := range user.MemberOf {
+				if *member.Name == groupName {
+					dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
+					values := userEntry(user, attributes)
+					e := encodeSearchResultEntry(id, values, dn)
+					r = append(r, e)
+				}
+			}
+		}
+	} else {
+		for _, user := range users {
+			dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
+			values := userEntry(user, attributes)
+			e := encodeSearchResultEntry(id, values, dn)
+			r = append(r, e)
+		}
 	}
 
 	return r, nil
