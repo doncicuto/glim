@@ -381,7 +381,19 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	query := analyzeQuery(b, f)
 
 	// Users entries
-	if query.filterUser != "" || query.filterUsersByGroup != "" {
+
+	// ou=Users entry
+	if query.showUsers && query.filterUser == "" && query.filterUsersByGroup == "" {
+		ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
+		values := map[string][]string{
+			"objectClass": []string{"organizationalUnit", "top"},
+			"ou":          []string{"Users"},
+		}
+		e := encodeSearchResultEntry(id, values, ouUsers)
+		r = append(r, e)
+	}
+
+	if query.showUsers || query.filterUser != "" || query.filterUsersByGroup != "" {
 		users, err := getUsers(db, query.filterUser, query.filterUsersByGroup, a, id)
 		if err != nil {
 			return r, errors.New(err.Msg)
@@ -390,6 +402,18 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	}
 
 	// Groups entries
+
+	// ou=Groups entry
+	if query.showGroups && query.filterGroupsByUser == "" && query.filterGroup == "" {
+		ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
+		values := map[string][]string{
+			"objectClass": []string{"organizationalUnit", "top"},
+			"ou":          []string{"Groups"},
+		}
+		e := encodeSearchResultEntry(id, values, ouGroups)
+		r = append(r, e)
+	}
+
 	if query.filterGroupsByUser != "" {
 		groups, err := getGroupsByUser(db, query.filterGroupsByUser, a, id)
 		if err != nil {
@@ -398,7 +422,6 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 		r = append(r, groups...)
 	}
 
-	// Groups entries
 	if query.filterGroup != "" {
 		groups, err := getGroups(db, query.filterGroup, a, id)
 		if err != nil {

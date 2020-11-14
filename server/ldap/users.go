@@ -69,26 +69,36 @@ func userEntry(user models.User, attributes string) map[string][]string {
 	}
 
 	if attributes == "ALL" || attrs["uid"] != "" || attrs["inetOrgPerson"] != "" || operational {
-		values["uid"] = []string{*user.Username}
+		if user.Username != nil {
+			values["uid"] = []string{*user.Username}
+		}
 	}
 
 	if attributes == "ALL" || attrs["cn"] != "" || attrs["inetOrgPerson"] != "" || operational {
-		values["cn"] = []string{strings.Join([]string{*user.GivenName, *user.Surname}, " ")}
+		if user.GivenName != nil && user.Surname != nil {
+			values["cn"] = []string{strings.Join([]string{*user.GivenName, *user.Surname}, " ")}
+		}
 	}
 
 	_, ok = attrs["sn"]
 	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
-		values["sn"] = []string{*user.Surname}
+		if user.Surname != nil {
+			values["sn"] = []string{*user.Surname}
+		}
 	}
 
 	_, ok = attrs["givenName"]
 	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
-		values["givenName"] = []string{*user.GivenName}
+		if user.GivenName != nil {
+			values["givenName"] = []string{*user.GivenName}
+		}
 	}
 
 	_, ok = attrs["mail"]
 	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
-		values["mail"] = []string{*user.Email}
+		if user.Email != nil {
+			values["mail"] = []string{*user.Email}
+		}
 	}
 
 	_, ok = attrs["memberOf"]
@@ -102,7 +112,9 @@ func userEntry(user models.User, attributes string) map[string][]string {
 
 	_, ok = attrs["entryDN"]
 	if ok || operational {
-		values["entryDN"] = []string{fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())}
+		if user.Username != nil {
+			values["entryDN"] = []string{fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())}
+		}
 	}
 
 	_, ok = attrs["subschemaSubentry"]
@@ -191,10 +203,12 @@ func getUsers(db *gorm.DB, username string, groupName string, attributes string,
 		}
 	} else {
 		for _, user := range users {
-			dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
-			values := userEntry(user, attributes)
-			e := encodeSearchResultEntry(id, values, dn)
-			r = append(r, e)
+			if *user.Username != "admin" {
+				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
+				values := userEntry(user, attributes)
+				e := encodeSearchResultEntry(id, values, dn)
+				r = append(r, e)
+			}
 		}
 	}
 
