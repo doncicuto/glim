@@ -21,9 +21,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/jinzhu/gorm"
-	"github.com/labstack/echo"
 	"github.com/doncicuto/glim/models"
+	"github.com/jinzhu/gorm"
+	"github.com/labstack/echo/v4"
 )
 
 //RemoveGroupMembers - TODO comment

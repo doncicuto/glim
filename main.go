@@ -15,7 +15,10 @@ limitations under the License.
 */
 package main
 
-import "github.com/doncicuto/glim/client"
+import (
+	"github.com/doncicuto/glim/client"
+	_ "github.com/doncicuto/glim/docs"
+)
 
 func main() {
 	client.Execute()

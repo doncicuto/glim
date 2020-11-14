@@ -22,7 +22,7 @@ import (
 
 	"github.com/doncicuto/glim/models"
 	"github.com/jinzhu/gorm"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 //AddGroupMembers - TODO comment

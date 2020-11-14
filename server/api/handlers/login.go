@@ -25,10 +25,10 @@ import (
 	"github.com/doncicuto/glim/config"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
-	"github.com/labstack/echo"
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/server/api/auth"
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 )
 
 // Login - TODO comment

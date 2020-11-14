@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo"
 	"github.com/doncicuto/glim/server/api/auth"
+	"github.com/labstack/echo/v4"
 )
 
 // Logout - TODO comment

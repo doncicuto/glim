@@ -17,8 +17,8 @@ limitations under the License.
 package middleware
 
 import (
-	"github.com/labstack/echo"
 	"github.com/doncicuto/glim/server/kv"
+	"github.com/labstack/echo/v4"
 )
 
 //GlimContext - TODO comment

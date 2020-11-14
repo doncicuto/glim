@@ -23,9 +23,11 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+
+	echoSwagger "github.com/swaggo/echo-swagger"
 
 	handler "github.com/doncicuto/glim/server/api/handlers"
 	glimMiddleware "github.com/doncicuto/glim/server/api/middleware"
@@ -41,7 +43,21 @@ type Settings struct {
 	Address string
 }
 
-//Server - TODO command
+// Server - TODO command
+// @title Swagger Example API
+// @version 1.0
+// @description This is a sample server Glim server.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host petstore.swagger.io
+// @BasePath /v2
 func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	defer wg.Done()
 
@@ -63,41 +79,37 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 		addr = settings.Address
 	}
 
-	// JWT tokens will be used for all endpoints but for token requests
-	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
-		SigningKey: []byte(os.Getenv("API_SECRET")),
-		Skipper: func(c echo.Context) bool {
-			if c.Path() == "/login" || c.Path() == "/login/refresh_token" || c.Path() == "/logout" {
-				return true
-			}
-			return false
-		},
-	}))
-
 	// Initialize handler
 	blacklist := settings.KV
 	h := &handler.Handler{DB: settings.DB, KV: blacklist}
 
 	// Routes
+	// JWT tokens will be used for all endpoints but for token requests and swagger
+
 	e.POST("/login", h.Login)
 	e.POST("/login/refresh_token", h.Refresh)
 	e.DELETE("/login/refresh_token", h.Logout)
 
-	e.GET("/users", h.FindAllUsers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
-	e.POST("/users", h.SaveUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	e.GET("/users/:uid", h.FindUserByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
-	e.PUT("/users/:uid", h.UpdateUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	e.DELETE("/users/:uid", h.DeleteUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	e.POST("/users/:uid/passwd", h.Passwd, glimMiddleware.IsBlacklisted(blacklist))
+	u := e.Group("/users")
+	u.Use(middleware.JWT([]byte(os.Getenv("API_SECRET"))))
+	u.GET("", h.FindAllUsers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
+	u.POST("", h.SaveUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	u.GET("/:uid", h.FindUserByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
+	u.PUT("/:uid", h.UpdateUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	u.DELETE("/:uid", h.DeleteUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	u.POST("/:uid/passwd", h.Passwd, glimMiddleware.IsBlacklisted(blacklist))
 
-	e.GET("/groups", h.FindAllGroups, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
-	e.POST("/groups", h.SaveGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	e.GET("/groups/:gid", h.FindGroupByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	e.PUT("/groups/:gid", h.UpdateGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	e.DELETE("/groups/:gid", h.DeleteGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	g := e.Group("/groups")
+	g.Use(middleware.JWT([]byte(os.Getenv("API_SECRET"))))
+	g.GET("", h.FindAllGroups, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
+	g.POST("", h.SaveGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	g.GET("/:gid", h.FindGroupByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	g.PUT("/:gid", h.UpdateGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	g.DELETE("/:gid", h.DeleteGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	g.POST("/:gid/members", h.AddGroupMembers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	g.DELETE("/:gid/members", h.RemoveGroupMembers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 
-	e.POST("/groups/:gid/members", h.AddGroupMembers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	e.DELETE("/groups/:gid/members", h.RemoveGroupMembers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// starting API server....
 	e.Logger.Printf("starting REST API in address %s...", addr)
