@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
+Copyright © 2022 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package client
 var (
 	givenName, surname, email, groups, gid            string
 	groupName, groupDesc, groupMembers                string
-	uid, username, password, cfgFile                  string
+	username, password, cfgFile                       string
 	tlscacert, tlscert, tlskey                        string
 	serverAddress, ldapAddress, restAddress           string
 	badgerKV                                          string

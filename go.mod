@@ -3,35 +3,39 @@ module github.com/doncicuto/glim
 go 1.13
 
 require (
-	github.com/Songmu/prompter v0.3.0
+	github.com/Songmu/prompter v0.5.1
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
-	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
-	github.com/badoux/checkmail v0.0.0-20200623144435-f9f80cb795fa
-	github.com/dgraph-io/badger v1.6.1
-	github.com/dgraph-io/badger/v2 v2.0.3 // indirect
+	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+	github.com/badoux/checkmail v1.2.1
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dgraph-io/badger v1.6.2
+	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/go-asn1-ber/asn1-ber v1.5.1
-	github.com/go-openapi/spec v0.19.12 // indirect
-	github.com/go-resty/resty/v2 v2.3.0
-	github.com/google/uuid v1.1.2
-	github.com/jinzhu/gorm v1.9.14
-	github.com/joho/godotenv v1.3.0
-	github.com/labstack/echo v3.3.10+incompatible
-	github.com/labstack/echo/v4 v4.1.17
-	github.com/labstack/gommon v0.3.0
-	github.com/mailru/easyjson v0.7.6 // indirect
-	github.com/mattn/go-colorable v0.1.8 // indirect
+	github.com/go-asn1-ber/asn1-ber v1.5.4
+	github.com/go-openapi/spec v0.20.6 // indirect
+	github.com/go-openapi/swag v0.21.1 // indirect
+	github.com/go-resty/resty/v2 v2.7.0
+	github.com/golang/glog v1.0.0 // indirect
+	github.com/google/uuid v1.3.0
+	github.com/jinzhu/gorm v1.9.16
+	github.com/joho/godotenv v1.4.0
+	github.com/labstack/echo/v4 v4.7.2
+	github.com/labstack/gommon v0.3.1
+	github.com/mattn/go-sqlite3 v1.14.13 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
 	github.com/sethvargo/go-password v0.2.0
-	github.com/spf13/cobra v0.0.5
-	github.com/spf13/viper v1.3.2
-	github.com/swaggo/echo-swagger v1.0.0
-	github.com/swaggo/swag v1.6.9
-	github.com/twinj/uuid v1.0.0
-	go.mongodb.org/mongo-driver v1.3.5
-	golang.org/x/crypto v0.0.0-20201112155050-0c6587e931a9
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
-	golang.org/x/sys v0.0.0-20201113233024-12cec1faf1ba // indirect
-	golang.org/x/text v0.3.4 // indirect
-	golang.org/x/tools v0.0.0-20201113202037-1643af1435f3 // indirect
+	github.com/spf13/cobra v1.4.0
+	github.com/spf13/viper v1.12.0
+	github.com/subosito/gotenv v1.4.0 // indirect
+	github.com/swaggo/echo-swagger v1.3.3
+	github.com/swaggo/swag v1.8.3
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
+	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 // indirect
+	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
+	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
+	golang.org/x/tools v0.1.11 // indirect
+	gopkg.in/ini.v1 v1.66.6 // indirect
+	gorm.io/driver/sqlite v1.3.4
+	gorm.io/gorm v1.23.6
 )

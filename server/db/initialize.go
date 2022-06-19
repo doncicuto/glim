@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
+Copyright © 2022 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@ limitations under the License.
 package db
 
 import (
+	"errors"
 	"fmt"
-	"os"
 
 	"github.com/doncicuto/glim/models"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite" // Sqlite3 database
 	"github.com/sethvargo/go-password/password"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 func createManager(db *gorm.DB) error {
@@ -69,7 +69,7 @@ func createManager(db *gorm.DB) error {
 
 //Initialize - TODO common
 func Initialize() (*gorm.DB, error) {
-	db, err := gorm.Open(os.Getenv("DB_DRIVER"), os.Getenv("DB_NAME"))
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,8 @@ func Initialize() (*gorm.DB, error) {
 
 	// Do we have a manager? if not create one
 	var manager models.User
-	if db.Where("manager = ?", true).Take(&manager).RecordNotFound() {
+	err = db.Where("manager = ?", true).Take(&manager).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		if err := createManager(db); err != nil {
 			return nil, err
 		}

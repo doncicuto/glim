@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
+Copyright © 2022 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ limitations under the License.
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"html"
 	"net/http"
@@ -26,8 +27,8 @@ import (
 	"github.com/badoux/checkmail"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/models"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // RemoveMembersOf - TODO comment
@@ -40,14 +41,14 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 		g := new(models.Group)
 		err = h.DB.Model(&models.Group{}).Where("name = ?", member).Take(&g).Error
 		if err != nil {
-			if gorm.IsRecordNotFoundError(err) {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("group %s not found", member)}
 			}
 			return err
 		}
 
 		// Delete association
-		err = h.DB.Model(&u).Association("MemberOf").Delete(g).Error
+		err = h.DB.Model(&u).Association("MemberOf").Delete(g)
 		if err != nil {
 			return err
 		}
@@ -91,7 +92,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	err := h.DB.Where("id = ?", uid).First(&models.User{}).Error
 	if err != nil {
 		// Does user exist?
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
 		}
 		return err
@@ -102,7 +103,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		err := h.DB.Model(&models.User{}).Where("name = ? AND id <> ?", body.Username, uid).First(&models.User{}).Error
 		if err != nil {
 			// Does username exist?
-			if gorm.IsRecordNotFoundError(err) {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				updatedUser["username"] = html.EscapeString(strings.TrimSpace(body.Username))
 			}
 		} else {
@@ -145,7 +146,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	err = h.DB.Model(&models.User{}).Where("id = ?", uid).Updates(updatedUser).Error
 	if err != nil {
 		// Does user exist?
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
 		}
 		return err
@@ -163,7 +164,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 		if body.ReplaceMembersOf {
 			// We are going to replace all user memberof, so let's clear the associations first
-			err = h.DB.Model(&u).Association("MemberOf").Clear().Error
+			err = h.DB.Model(&u).Association("MemberOf").Clear()
 			if err != nil {
 				return err
 			}

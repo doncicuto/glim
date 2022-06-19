@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
+Copyright © 2022 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -86,7 +86,6 @@ var serverStartCmd = &cobra.Command{
 		}
 		defer func() {
 			fmt.Printf("%s [Glim] ⇨ closing connection to database...\n", time.Now().Format(time.RFC3339))
-			database.Close()
 		}()
 		fmt.Printf("%s [Glim] ⇨ connected to database...\n", time.Now().Format(time.RFC3339))
 
@@ -131,7 +130,7 @@ var serverStartCmd = &cobra.Command{
 
 		// Create channels to recieve termination signals and
 		// communicate shutdown to servers
-		ch := make(chan os.Signal)
+		ch := make(chan os.Signal, 1)
 		apiShutdownChannel := make(chan bool)
 		ldapShutdownChannel := make(chan bool)
 		// We listen for the following signals

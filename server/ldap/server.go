@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
+Copyright © 2022 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,9 +26,8 @@ import (
 	"sync"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite" // Sqlite3 database
 	"github.com/labstack/gommon/log"
+	"gorm.io/gorm"
 )
 
 //Settings - TODO comment
@@ -121,15 +120,11 @@ L:
 }
 
 func waitForShutdown(l net.Listener, ch chan bool) {
-	for {
-		select {
-		case <-ch:
-			log.SetHeader("${time_rfc3339} [Glim] ⇨")
-			log.Printf("shutting down LDAPS server...")
-			l.Close()
-			return
-		default:
-		}
+	for range ch {
+		log.SetHeader("${time_rfc3339} [Glim] ⇨")
+		log.Printf("shutting down LDAPS server...")
+		l.Close()
+		return
 	}
 }
 

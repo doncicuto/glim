@@ -7,3 +7,5 @@
 tasks.md
 *.key
 *.pem
+glim
+*.db

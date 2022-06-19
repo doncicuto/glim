@@ -112,6 +112,8 @@ dn:cn=admin,dc=example,dc=org (cool this is who I am)
 
 ### Environment variables
 
+- API_SECRET: A secret string to be used with JWT tokens
+- DB_NAME: A name for the SQLite database that will store our users and groups
 - LDAP_DOMAIN: our ldap domain. Default value: example.org
 - API_SERVER_ADDRESS: listen address for our REST API server. Default value: 127.0.0.1:1323
 - LDAP_SERVER_ADDRESS: listen address for our LDAP server. Default value: 127.0.0.1:1636
@@ -126,7 +128,7 @@ This is a sample of a Glim server log showing REST and LDAP interaction
 
 ## Limitations / Caveats
 
-1. You can start and stop your Glim server using `glim server [start|stop]` but if you are running Glim on a Windows machine, the stop command will fail and you will have to stop it using Ctrl+C, this is due a limitation with signal handling in Windows. In a future this behavior could be changeg if I find a workaround for prospective Windows users.
+1. You can start and stop your Glim server using `glim server [start|stop]` but if you are running Glim on a Windows machine, the stop command will fail and you will have to stop it using Ctrl+C, this is due a limitation with signal handling in Windows. In a future version this behavior could be changeg if I find a workaround for prospective Windows users.
 
 2. Glim cannot reply to Root DSE requests, so you cannot use LDAP tools like Apache Directory Studio or phpLDAPadmin to browse your directory.
 

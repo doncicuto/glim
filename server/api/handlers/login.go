@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
+Copyright © 2022 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@ limitations under the License.
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/doncicuto/glim/config"
+	"gorm.io/gorm"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/models"
@@ -44,7 +46,8 @@ func (h *Handler) Login(c echo.Context) error {
 	password := *u.Password
 
 	// Check if user exists
-	if h.DB.Where("username = ?", username).First(&dbUser).RecordNotFound() {
+	err := h.DB.Where("username = ?", username).First(&dbUser).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
 	}
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/doncicuto/glim/models"
 	ber "github.com/go-asn1-ber/asn1-ber"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func userEntry(user models.User, attributes string) map[string][]string {
@@ -130,30 +130,31 @@ func userEntry(user models.User, attributes string) map[string][]string {
 	return values
 }
 
-func getManager(db *gorm.DB, id int64) (*ber.Packet, *ServerError) {
-	// Find group
-	u := new(models.User)
-	err := db.Model(&models.User{}).Where("username = ?", "admin").First(&u).Error
-	if err != nil {
-		// Does user exist?
-		if !gorm.IsRecordNotFoundError(err) {
-			return nil, &ServerError{
-				Msg:  "could not retrieve users from database",
-				Code: Other,
-			}
-		}
-		return nil, nil
-	}
+// func getManager(db *gorm.DB, id int64) (*ber.Packet, *ServerError) {
+// 	// Find group
+// 	u := new(models.User)
+// 	err := db.Model(&models.User{}).Where("username = ?", "admin").First(&u).Error
+// 	if err != nil {
+// 		// Does user exist?
 
-	values := map[string][]string{
-		"objectClass": []string{"simpleSecurityObject", "organizationalRole"},
-		"cn":          []string{*u.Username},
-		"description": []string{strings.Join([]string{*u.GivenName, *u.Surname}, " ")},
-	}
+// 		if !errors.Is(err, gorm.ErrRecordNotFound) {
+// 			return nil, &ServerError{
+// 				Msg:  "could not retrieve users from database",
+// 				Code: Other,
+// 			}
+// 		}
+// 		return nil, nil
+// 	}
 
-	e := encodeSearchResultEntry(id, values, fmt.Sprintf("cn=admin,%s", Domain()))
-	return e, nil
-}
+// 	values := map[string][]string{
+// 		"objectClass": {"simpleSecurityObject", "organizationalRole"},
+// 		"cn":          {*u.Username},
+// 		"description": {strings.Join([]string{*u.GivenName, *u.Surname}, " ")},
+// 	}
+
+// 	e := encodeSearchResultEntry(id, values, fmt.Sprintf("cn=admin,%s", Domain()))
+// 	return e, nil
+// }
 
 func getUsers(db *gorm.DB, username string, groupName string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/doncicuto/glim/models"
 	ber "github.com/go-asn1-ber/asn1-ber"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func bindName(p *ber.Packet) (string, *ServerError) {
@@ -100,7 +100,7 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, 
 	var dbUser models.User
 
 	// Check if user exists
-	if db.Where("username = ?", username).First(&dbUser).RecordNotFound() {
+	if errors.Is(db.Where("username = ?", username).First(&dbUser).Error, gorm.ErrRecordNotFound) {
 		return encodeBindResponse(id, InsufficientAccessRights, ""), n, fmt.Errorf("wrong username or password client %s", remoteAddr)
 	}
 

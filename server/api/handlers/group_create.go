@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
+Copyright © 2022 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ limitations under the License.
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -24,8 +25,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/models"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // AddMembers - TODO comment
@@ -38,14 +39,14 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 		createdBy := new(models.User)
 		err = h.DB.Model(&models.User{}).Where("username = ?", member).Take(&createdBy).Error
 		if err != nil {
-			if gorm.IsRecordNotFoundError(err) {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("user %s not found", member)}
 			}
 			return err
 		}
 
 		// Append association
-		err = h.DB.Model(&g).Association("Members").Append(createdBy).Error
+		err = h.DB.Model(&g).Association("Members").Append(createdBy)
 		if err != nil {
 			return err
 		}
@@ -82,7 +83,7 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 
 	// Check if group already exists
 	err := h.DB.Where("name = ?", body.Name).First(&g).Error
-	if !gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "group already exists"}
 	}
 

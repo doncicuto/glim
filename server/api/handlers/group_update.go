@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
+Copyright © 2022 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ limitations under the License.
 package handlers
 
 import (
+	"errors"
 	"html"
 	"net/http"
 	"strings"
@@ -24,8 +25,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/models"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 //UpdateGroup - TODO comment
@@ -63,7 +64,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 
 	if err := h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&models.Group{}).Error; err != nil {
 		// Does group exist?
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
 		return err
@@ -74,7 +75,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 		err := h.DB.Model(&models.Group{}).Where("name = ? AND id <> ?", g.Name, gid).First(&models.Group{}).Error
 		if err != nil {
 			// Does group name exist?
-			if gorm.IsRecordNotFoundError(err) {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				modifiedBy["name"] = html.EscapeString(strings.TrimSpace(body.Name))
 			}
 		} else {
@@ -98,7 +99,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 	// Get updated group
 	if err := h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&g).Error; err != nil {
 		// Does group exist?
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
 		return err
@@ -110,7 +111,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 
 		if body.ReplaceMembers {
 			// We are going to replace all group members, so let's clear the associations first
-			err := h.DB.Model(&g).Association("Members").Clear().Error
+			err := h.DB.Model(&g).Association("Members").Clear()
 			if err != nil {
 				return err
 			}

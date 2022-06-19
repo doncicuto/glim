@@ -6,7 +6,7 @@ import (
 
 	"github.com/doncicuto/glim/models"
 	ber "github.com/go-asn1-ber/asn1-ber"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func groupEntry(group models.Group, attributes string) map[string][]string {

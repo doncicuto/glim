@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
+Copyright © 2022 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,14 +17,15 @@ limitations under the License.
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/models"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 //Passwd - TODO comment
@@ -73,7 +74,8 @@ func (h *Handler) Passwd(c echo.Context) error {
 	}
 
 	// Check if user exists
-	if h.DB.Where("id = ?", uid).First(&dbUser).RecordNotFound() {
+	err = h.DB.Where("id = ?", uid).First(&dbUser).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
 	}
 
@@ -98,7 +100,7 @@ func (h *Handler) Passwd(c echo.Context) error {
 	err = h.DB.Model(&models.User{}).Where("id = ?", uid).Updates(newUser).Error
 	if err != nil {
 		// Does user exist?
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
 		}
 		return err

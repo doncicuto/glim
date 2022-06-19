@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
+Copyright © 2022 Miguel Ángel Álvarez Cabrerizo <mcabrerizo@arrakis.ovh>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ limitations under the License.
 package handlers
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/doncicuto/glim/server/kv"
+	"gorm.io/gorm"
 )
 
 //Handler - TODO comment
