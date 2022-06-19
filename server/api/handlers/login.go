@@ -26,9 +26,9 @@ import (
 	"github.com/doncicuto/glim/config"
 	"gorm.io/gorm"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/server/api/auth"
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )

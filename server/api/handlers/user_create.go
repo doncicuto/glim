@@ -23,8 +23,8 @@ import (
 	"strings"
 
 	"github.com/badoux/checkmail"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/models"
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"

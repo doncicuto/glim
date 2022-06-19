@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/server/api/auth"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 

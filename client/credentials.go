@@ -23,9 +23,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/doncicuto/glim/server/api/auth"
 	resty "github.com/go-resty/resty/v2"
+	"github.com/golang-jwt/jwt"
 )
 
 // AuthTokenPath - TODO comment
