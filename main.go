@@ -17,7 +17,7 @@ package main
 
 import (
 	"github.com/doncicuto/glim/client"
-	_ "github.com/doncicuto/glim/docs"
+	_ "github.com/doncicuto/glim/docs/api"
 )
 
 func main() {

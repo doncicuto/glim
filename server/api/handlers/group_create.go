@@ -83,7 +83,7 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 
 	// Check if group already exists
 	err := h.DB.Where("name = ?", body.Name).First(&g).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "group already exists"}
 	}
 

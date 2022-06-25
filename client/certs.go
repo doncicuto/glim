@@ -53,7 +53,7 @@ var certsCmd = &cobra.Command{
 		}
 		config.Hosts = addresses
 
-		// path path should exist
+		// path should exist
 		err := os.MkdirAll(path, 0755)
 		if err != nil {
 			fmt.Println("Could not create selected directory for certificates path")
@@ -62,7 +62,7 @@ var certsCmd = &cobra.Command{
 		config.OutputPath = path
 
 		// years should be greater than 0
-		if years <= 0 {
+		if years < 1 {
 			fmt.Println("Certificate should be valid for at least 1 year")
 			os.Exit(1)
 		}

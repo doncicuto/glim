@@ -121,7 +121,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 
 	// Check if user already exists
 	err := h.DB.Model(&models.User{}).Where("username = ?", body.Username).First(&u).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "user already exists"}
 	}
 

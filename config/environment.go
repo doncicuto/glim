@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package config implements utility routines for handling environment variables
+// like API_SECRET, ACCESS_TOKEN_EXPIRY_TIME_SECONDS, REFRESH_TOKEN_EXPIRY_TIME_SECONDS
+// and MAX_DAYS_WITHOUT_RELOGIN and setting default values.
 package config
 
 import (
@@ -21,12 +24,15 @@ import (
 	"strconv"
 )
 
-// CheckAPISecret - TODO comment
+// CheckAPISecret returns a boolean value representing if the API_SECRET environment
+// variable has been set
 func CheckAPISecret() bool {
 	return os.Getenv("API_SECRET") != ""
 }
 
-// AccessTokenExpiry - TODO comment
+// AccessTokenExpiry returns the number of seconds for access token expiration if the
+// ACCESS_TOKEN_EXPIRY_TIME_SECONDS environment variable has been set. If the environment
+// variable hasn't been found, the function returns 3600 seconds.
 func AccessTokenExpiry() int {
 	expiry, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRY_TIME_SECONDS"))
 	if err != nil {
@@ -35,7 +41,9 @@ func AccessTokenExpiry() int {
 	return expiry
 }
 
-// RefreshTokenExpiry - TODO comment
+// RefreshTokenExpiry returns the number of seconds for access token expiration if the
+// REFRESH_TOKEN_EXPIRY_TIME_SECONDS environment variable has been set. If the environment
+// variable hasn't been found, the function returns 259200 seconds (3 days).
 func RefreshTokenExpiry() int {
 	expiry, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXPIRY_TIME_SECONDS"))
 	if err != nil {
@@ -44,7 +52,9 @@ func RefreshTokenExpiry() int {
 	return expiry
 }
 
-// MaxDaysWoRelogin - TODO comment
+// MaxDaysWoRelogin returns the number of days that we can use refresh tokens without log in
+// again according to the MAX_DAYS_WITHOUT_RELOGIN environment variable. If the environment
+// variable hasn't been found, the function returns 7 days.
 func MaxDaysWoRelogin() int {
 	maxDays, err := strconv.Atoi(os.Getenv("MAX_DAYS_WITHOUT_RELOGIN"))
 	if err != nil {
