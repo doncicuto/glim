@@ -206,7 +206,7 @@ func analyzeQuery(base string, filter string) Query {
 		query.showGroups = true
 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z]+),ou=users,%s$", Domain()))
+	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z0-9-]+),ou=users,%s$", Domain()))
 	if regBase.MatchString(strings.ToLower(base)) {
 		matches := regBase.FindStringSubmatch(strings.ToLower(base))
 		if matches != nil {
@@ -214,7 +214,7 @@ func analyzeQuery(base string, filter string) Query {
 		}
 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z]+),ou=groups,%s$", Domain()))
+	regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z0-9-]+),ou=groups,%s$", Domain()))
 	if regBase.MatchString(strings.ToLower(base)) {
 		matches := regBase.FindStringSubmatch(strings.ToLower(base))
 		if matches != nil {
@@ -222,7 +222,7 @@ func analyzeQuery(base string, filter string) Query {
 		}
 	}
 
-	filterUser, _ := regexp.Compile("member=uid=([A-Za-z]+)")
+	filterUser, _ := regexp.Compile("member=uid=([A-Za-z0-9-]+)")
 	if filterUser.MatchString(filter) {
 		matches := filterUser.FindStringSubmatch(filter)
 		if matches != nil {
@@ -231,7 +231,7 @@ func analyzeQuery(base string, filter string) Query {
 		}
 	}
 
-	filterUser, _ = regexp.Compile("uid=([A-Za-z]+)")
+	filterUser, _ = regexp.Compile("uid=([A-Za-z0-9-]+)")
 	if filterUser.MatchString(filter) {
 		matches := filterUser.FindStringSubmatch(filter)
 		if matches != nil {
@@ -240,7 +240,7 @@ func analyzeQuery(base string, filter string) Query {
 		}
 	}
 
-	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z]+),ou=Groups,%s", Domain()))
+	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z0-9-]+),ou=Groups,%s", Domain()))
 	if filterGroup.MatchString(filter) {
 		matches := filterGroup.FindStringSubmatch(filter)
 		if matches != nil {
