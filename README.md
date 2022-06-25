@@ -30,7 +30,7 @@ I've tested Glim against the following awesome applications:
 
 - Rancher
 - Gitlab CE
-- Gitea
+- [Gitea](./docs/examples/gitea.md)
 - Portainer
 
 Click on the links above for sample configurations for all these applications. More applications to be added soon, please open a discussion if you want to suggest more applications or an issue if Glim is not working for you.

@@ -65,7 +65,7 @@ func userEntry(user models.User, attributes string) map[string][]string {
 
 	_, ok = attrs["objectClass"]
 	if attributes == "ALL" || ok || operational {
-		values["objectClass"] = []string{"top", "person", "inetOrgPerson", "organizationalPerson"}
+		values["objectClass"] = []string{"top", "person", "inetOrgPerson", "organizationalPerson", "ldapPublicKey"}
 	}
 
 	if attributes == "ALL" || attrs["uid"] != "" || attrs["inetOrgPerson"] != "" || operational {
