@@ -15,6 +15,7 @@ type Query struct {
 	showEverything     bool
 	showUsers          bool
 	showGroups         bool
+	showGroupOfNames   bool
 	filterUser         string
 	filterGroup        string
 	filterGroupsByUser string
@@ -249,6 +250,13 @@ func analyzeQuery(base string, filter string) Query {
 		}
 	}
 
+	filterGroup, _ = regexp.Compile("objectClass=groupOfNames")
+	if filterGroup.MatchString(filter) {
+		query.showGroups = false
+		query.showGroupOfNames = true
+		return query
+	}
+
 	if strings.ToLower(base) == fmt.Sprintf("ou=Groups,%s", Domain()) {
 		query.showGroups = true
 		return query
@@ -430,7 +438,7 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 		r = append(r, groups...)
 	}
 
-	if query.showGroups && query.filterGroupsByUser == "" {
+	if (query.showGroups && query.filterGroupsByUser == "") || query.showGroupOfNames {
 		groups, err := getGroups(db, "", a, id)
 		if err != nil {
 			return r, errors.New(err.Msg)

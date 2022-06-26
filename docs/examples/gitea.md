@@ -1,6 +1,6 @@
 # Gitea - LDAP via BindDN
 
-This page shows how you can configure Gitea to authenticate users with Glim using BindDN. [Gitea documentation](https://docs.gitea.io/en-us/authentication/) explains in detail what is need to use LDAP but here we offer a full example with our suggestions.
+This page shows how you can configure Gitea to authenticate users with Glim using BindDN. [Gitea documentation](https://docs.gitea.io/en-us/authentication/) explains in detail what is needed to use LDAP but here we offer a full example with our suggestions.
 
 First we'll create a Glim account with read-only privilege so it can be used for looking up users. We'll use this account and the password we set in the Bind DN input and Bind Password fields.
 
@@ -34,7 +34,7 @@ We want Gitea to show our first name, surname, email and use our Glim usernames 
 
 ![gitea_bind_dn_auth_1](../images/gitea_bind_dn_auth_4.png)
 
-Sample log showing successful authenticatio, user information retrieval, filtering for administrators...:
+Sample log showing successful authentication, user information retrieval, getting groups...:
 
 ```(text)
 2022-06-25T12:39:51+02:00 [LDAP] ⇨ serving LDAPS connection from 172.21.0.2:48456

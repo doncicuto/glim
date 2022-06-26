@@ -28,7 +28,7 @@ If you're looking for a full LDAP server replacement that fully understands sche
 
 I've tested Glim against the following awesome applications:
 
-- Rancher
+- [Rancher](./docs/examples/rancher.md)
 - Gitlab CE
 - [Gitea](./docs/examples/gitea.md)
 - Portainer
@@ -109,13 +109,15 @@ Glim can use the following environment variables:
 - GLIM_URI: Glim Rest API URI (OPTIONAL format: [https://<ip|hostname>:port](https://<ip|hostname>:port)). Default value: [https://127.0.0.1:1323](https://127.0.0.1:1323)
 - BADGER_DB_PATH (OPTIONAL): Directory path for BadgerDB KV store. Default value: /tmp/kv)
 
-## Single-instance environment
+## Installation scenarios
+
+### Single node scenario
 
 Glim can run as a single instance either using its binary that you can download from the releases page or using its Docker image that can be downloaded from Docker Hub.
 
 Glim stores your users and groups data in a SQLite database and uses [BadgerDB](https://github.com/dgraph-io/badger) as a key value storage to store API auth and refresh tokens.
 
-## Load-balanced environment - Work in progress
+### High-availability scenario - Work in progress
 
 Glim will be able to use Postgres to store users and groups data and Redis will be used to store API auth and refresh tokens.
 
