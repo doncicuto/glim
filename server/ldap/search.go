@@ -11,16 +11,17 @@ import (
 )
 
 // Query - TODO comment
-type Query struct {
-	showEverything     bool
-	showUsers          bool
-	showGroups         bool
-	showGroupOfNames   bool
-	filterUser         string
-	filterGroup        string
-	filterGroupsByUser string
-	filterUsersByGroup string
-}
+// type Query struct {
+// 	showEverything     bool
+// 	showUsers          bool
+// 	showGroups         bool
+// 	showInetOrgPerson  bool
+// 	showGroupOfNames   bool
+// 	filterUser         string
+// 	filterGroup        string
+// 	filterGroupsByUser string
+// 	filterUsersByGroup string
+// }
 
 func searchSize(p *ber.Packet) (int64, *ServerError) {
 	if p.ClassType != ber.ClassUniversal ||
@@ -89,11 +90,50 @@ func searchFilter(p *ber.Packet) (string, *ServerError) {
 	return filter, nil
 }
 
+func decodeAssertionValue(p *ber.Packet) (string, *ServerError) {
+	filter := ""
+	if p.Tag == ber.TagOctetString {
+		filter += fmt.Sprintf("%v", p.Value)
+	}
+	if p.Tag == ber.TagSequence && len(p.Children) == 1 {
+		filter += fmt.Sprintf("=%v*", p.Children[0].Data)
+	}
+	return filter, nil
+}
+
+func decodeSubstringFilter(p *ber.Packet) (string, *ServerError) {
+	filter := "("
+
+	if p.ClassType != ber.ClassContext ||
+		p.TagType != ber.TypeConstructed && p.Tag != ber.TagOctetString {
+		return "", &ServerError{
+			Msg:  "wrong search filter definition",
+			Code: ProtocolError,
+		}
+	}
+
+	for _, f := range p.Children {
+		df, err := decodeAssertionValue(f)
+
+		if err != nil {
+			return "", &ServerError{
+				Msg:  "wrong search filter definition",
+				Code: ProtocolError,
+			}
+		}
+		filter += df
+	}
+
+	filter += ")"
+	return filter, nil
+}
+
 func decodeFilters(p *ber.Packet) (string, *ServerError) {
 	filter := ""
+
 	if p.ClassType != ber.ClassContext ||
 		((p.TagType != ber.TypeConstructed && p.Tag != ber.TagEOC) &&
-			(p.TagType != ber.TypePrimitive && p.Tag != ber.TagObjectDescriptor)) {
+			(p.TagType != ber.TypePrimitive && p.Tag != ber.TagObjectDescriptor && p.Tag != ber.TagSequence)) {
 		return "", &ServerError{
 			Msg:  "wrong search filter definition",
 			Code: ProtocolError,
@@ -104,7 +144,6 @@ func decodeFilters(p *ber.Packet) (string, *ServerError) {
 	case FilterAnd:
 		filter += "(&"
 		for _, f := range p.Children {
-
 			df, err := decodeFilters(f)
 			if err != nil {
 				return "", &ServerError{
@@ -118,8 +157,8 @@ func decodeFilters(p *ber.Packet) (string, *ServerError) {
 
 	case FilterOr:
 		filter += "(|"
-		for _, f := range p.Children {
 
+		for _, f := range p.Children {
 			df, err := decodeFilters(f)
 			if err != nil {
 				return "", &ServerError{
@@ -140,8 +179,20 @@ func decodeFilters(p *ber.Packet) (string, *ServerError) {
 		}
 		filter = fmt.Sprintf("(%v=%v)", p.Children[0].Value, p.Children[1].Value)
 
+	case FilterSubstrings:
+		df, err := decodeSubstringFilter(p)
+		if err != nil {
+			return "", &ServerError{
+				Msg:  "wrong search filter definition",
+				Code: ProtocolError,
+			}
+		}
+		filter += df
+
 	case FilterPresent:
 		filter = fmt.Sprintf("(%v=*)", p.Data)
+	default:
+		printLog(fmt.Sprintf("substring %v, %v", p.Tag, p.TagType))
 	}
 
 	return filter, nil
@@ -189,81 +240,88 @@ func searchAttributes(p *ber.Packet) (string, *ServerError) {
 // 	return "", false
 // }
 
-func analyzeQuery(base string, filter string) Query {
-	query := Query{}
+// func analyzeQuery(base string, filter string) Query {
+// 	query := Query{}
 
-	if base == Domain() && strings.Contains(filter, "objectClass=*") {
-		query.showEverything = true
-		return query
-	}
+// 	if base == Domain() && strings.Contains(filter, "objectClass=*") {
+// 		query.showEverything = true
+// 		return query
+// 	}
 
-	regBase, _ := regexp.Compile(fmt.Sprintf("^ou=users,%s$", Domain()))
-	if regBase.MatchString(strings.ToLower(base)) {
-		query.showUsers = true
-	}
+// 	regBase, _ := regexp.Compile(fmt.Sprintf("^ou=users,%s$", Domain()))
+// 	if regBase.MatchString(strings.ToLower(base)) {
+// 		query.showUsers = true
+// 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^ou=groups,%s$", Domain()))
-	if regBase.MatchString(strings.ToLower(base)) {
-		query.showGroups = true
-	}
+// 	regBase, _ = regexp.Compile(fmt.Sprintf("^ou=groups,%s$", Domain()))
+// 	if regBase.MatchString(strings.ToLower(base)) {
+// 		query.showGroups = true
+// 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z0-9-]+),ou=users,%s$", Domain()))
-	if regBase.MatchString(strings.ToLower(base)) {
-		matches := regBase.FindStringSubmatch(strings.ToLower(base))
-		if matches != nil {
-			query.filterUser = matches[1]
-		}
-	}
+// 	// regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z0-9-]+),ou=users,%s$", Domain()))
+// 	// if regBase.MatchString(strings.ToLower(base)) {
+// 	// 	matches := regBase.FindStringSubmatch(strings.ToLower(base))
+// 	// 	if matches != nil {
+// 	// 		query.filterUser = matches[1]
+// 	// 	}
+// 	// }
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z0-9-]+),ou=groups,%s$", Domain()))
-	if regBase.MatchString(strings.ToLower(base)) {
-		matches := regBase.FindStringSubmatch(strings.ToLower(base))
-		if matches != nil {
-			query.filterGroup = matches[1]
-		}
-	}
+// 	// regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z0-9-]+),ou=groups,%s$", Domain()))
+// 	// if regBase.MatchString(strings.ToLower(base)) {
+// 	// 	matches := regBase.FindStringSubmatch(strings.ToLower(base))
+// 	// 	if matches != nil {
+// 	// 		query.filterGroup = matches[1]
+// 	// 	}
+// 	// }
 
-	filterUser, _ := regexp.Compile("member=uid=([A-Za-z0-9-]+)")
-	if filterUser.MatchString(filter) {
-		matches := filterUser.FindStringSubmatch(filter)
-		if matches != nil {
-			query.filterGroupsByUser = matches[1]
-			return query
-		}
-	}
+// 	// filterUser, _ := regexp.Compile("member=uid=([A-Za-z0-9-]+)")
+// 	// if filterUser.MatchString(filter) {
+// 	// 	matches := filterUser.FindStringSubmatch(filter)
+// 	// 	if matches != nil {
+// 	// 		query.filterGroupsByUser = matches[1]
+// 	// 		return query
+// 	// 	}
+// 	// }
 
-	filterUser, _ = regexp.Compile("uid=([A-Za-z0-9-]+)")
-	if filterUser.MatchString(filter) {
-		matches := filterUser.FindStringSubmatch(filter)
-		if matches != nil {
-			query.filterUser = matches[1]
-			return query
-		}
-	}
+// 	// filterUser, _ = regexp.Compile("uid=([A-Za-z0-9-]+)")
+// 	// if filterUser.MatchString(filter) {
+// 	// 	matches := filterUser.FindStringSubmatch(filter)
+// 	// 	if matches != nil {
+// 	// 		query.filterUser = matches[1]
+// 	// 		return query
+// 	// 	}
+// 	// }
 
-	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z0-9-]+),ou=Groups,%s", Domain()))
-	if filterGroup.MatchString(filter) {
-		matches := filterGroup.FindStringSubmatch(filter)
-		if matches != nil {
-			query.filterUsersByGroup = matches[1]
-			return query
-		}
-	}
+// 	// filterUser, _ = regexp.Compile("objectClass=inetOrgPerson")
+// 	// if filterUser.MatchString(filter) {
+// 	// 	query.showUsers = false
+// 	// 	query.showInetOrgPerson = true
+// 	// 	return query
+// 	// }
 
-	filterGroup, _ = regexp.Compile("objectClass=groupOfNames")
-	if filterGroup.MatchString(filter) {
-		query.showGroups = false
-		query.showGroupOfNames = true
-		return query
-	}
+// 	// filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z0-9-]+),ou=Groups,%s", Domain()))
+// 	// if filterGroup.MatchString(filter) {
+// 	// 	matches := filterGroup.FindStringSubmatch(filter)
+// 	// 	if matches != nil {
+// 	// 		query.filterUsersByGroup = matches[1]
+// 	// 		return query
+// 	// 	}
+// 	// }
 
-	if strings.ToLower(base) == fmt.Sprintf("ou=Groups,%s", Domain()) {
-		query.showGroups = true
-		return query
-	}
+// 	// filterGroup, _ = regexp.Compile("objectClass=groupOfNames")
+// 	// if filterGroup.MatchString(filter) {
+// 	// 	query.showGroups = false
+// 	// 	query.showGroupOfNames = true
+// 	// 	return query
+// 	// }
 
-	return query
-}
+// 	// if strings.ToLower(base) == fmt.Sprintf("ou=Groups,%s", Domain()) {
+// 	// 	query.showGroups = true
+// 	// 	return query
+// 	// }
+
+// 	return query
+// }
 
 func baseObject(p *ber.Packet) (string, *ServerError) {
 	if p.ClassType != ber.ClassUniversal ||
@@ -385,66 +443,108 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	    SearchResultEntry and/or SearchResultReference messages, followed by
 		a single SearchResultDone message */
 
-	// Analyze Query using search base and filter
-	query := analyzeQuery(b, f)
-
-	// Users entries
-
-	// ou=Users entry
-	if query.showUsers && query.filterUser == "" && query.filterUsersByGroup == "" {
-		ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
-		values := map[string][]string{
-			"objectClass": {"organizationalUnit", "top"},
-			"ou":          {"Users"},
-		}
-		e := encodeSearchResultEntry(id, values, ouUsers)
-		r = append(r, e)
-	}
-
-	if query.showUsers || query.filterUser != "" || query.filterUsersByGroup != "" {
-		users, err := getUsers(db, query.filterUser, query.filterUsersByGroup, a, id)
+	regBase, _ := regexp.Compile(fmt.Sprintf("^ou=users,%s$", Domain()))
+	if (b == Domain() && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
+		users, err := getUsers(db, f, f, a, id)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
 		r = append(r, users...)
 	}
 
+	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z0-9-]+),ou=users,%s$", Domain()))
+	if regBase.MatchString(strings.ToLower(b)) {
+		matches := regBase.FindStringSubmatch(strings.ToLower(b))
+		if matches != nil {
+
+			users, err := getUsers(db, fmt.Sprintf("uid=%s", matches[1]), f, a, id)
+			if err != nil {
+				return r, errors.New(err.Msg)
+			}
+			r = append(r, users...)
+		}
+	}
+
+	regBase, _ = regexp.Compile(fmt.Sprintf("^ou=groups,%s$", Domain()))
+	if (b == Domain() && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
+		groups, err := getGroups(db, f, a, id)
+		if err != nil {
+			return r, errors.New(err.Msg)
+		}
+		r = append(r, groups...)
+	}
+
+	// Analyze Query using search base and filter
+	// query := analyzeQuery(b, f)
+
+	// Users entries
+	// if query.showUsers {
+	// 	getUsers(db, f, a, id)
+	// }
+	// // ou=Users entry
+	// if query.showUsers && query.filterUser == "" && query.filterUsersByGroup == "" {
+	// 	ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
+	// 	values := map[string][]string{
+	// 		"objectClass": {"organizationalUnit", "top"},
+	// 		"ou":          {"Users"},
+	// 	}
+	// 	e := encodeSearchResultEntry(id, values, ouUsers)
+	// 	r = append(r, e)
+	// }
+
+	// if query.showUsers || query.filterUser != "" || query.filterUsersByGroup != "" {
+	// 	// users, err := getUsers(db, query.filterUser, query.filterUsersByGroup, a, id)
+	// 	users, err := getUsers(db, f, a, id)
+	// 	if err != nil {
+	// 		return r, errors.New(err.Msg)
+	// 	}
+	// 	r = append(r, users...)
+	// }
+
 	// Groups entries
 
 	// ou=Groups entry
-	if query.showGroups && query.filterGroupsByUser == "" && query.filterGroup == "" {
-		ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
-		values := map[string][]string{
-			"objectClass": {"organizationalUnit", "top"},
-			"ou":          {"Groups"},
-		}
-		e := encodeSearchResultEntry(id, values, ouGroups)
-		r = append(r, e)
-	}
+	// if query.showGroups && query.filterGroupsByUser == "" && query.filterGroup == "" {
+	// 	ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
+	// 	values := map[string][]string{
+	// 		"objectClass": {"organizationalUnit", "top"},
+	// 		"ou":          {"Groups"},
+	// 	}
+	// 	e := encodeSearchResultEntry(id, values, ouGroups)
+	// 	r = append(r, e)
+	// }
 
-	if query.filterGroupsByUser != "" {
-		groups, err := getGroupsByUser(db, query.filterGroupsByUser, a, id)
-		if err != nil {
-			return r, errors.New(err.Msg)
-		}
-		r = append(r, groups...)
-	}
+	// if query.filterGroupsByUser != "" {
+	// 	groups, err := getGroupsByUser(db, query.filterGroupsByUser, a, id)
+	// 	if err != nil {
+	// 		return r, errors.New(err.Msg)
+	// 	}
+	// 	r = append(r, groups...)
+	// }
 
-	if query.filterGroup != "" {
-		groups, err := getGroups(db, query.filterGroup, a, id)
-		if err != nil {
-			return r, errors.New(err.Msg)
-		}
-		r = append(r, groups...)
-	}
+	// if query.showGroups || query.filterGroup != "" || query.showGroupOfNames {
+	// 	groups, err := getGroupsPro(db, f, a, id)
+	// 	if err != nil {
+	// 		return r, errors.New(err.Msg)
+	// 	}
+	// 	r = append(r, groups...)
+	// }
 
-	if (query.showGroups && query.filterGroupsByUser == "") || query.showGroupOfNames {
-		groups, err := getGroups(db, "", a, id)
-		if err != nil {
-			return r, errors.New(err.Msg)
-		}
-		r = append(r, groups...)
-	}
+	// if query.filterGroup != "" {
+	// 	groups, err := getGroups(db, query.filterGroup, a, id)
+	// 	if err != nil {
+	// 		return r, errors.New(err.Msg)
+	// 	}
+	// 	r = append(r, groups...)
+	// }
+
+	// if (query.showGroups && query.filterGroupsByUser == "") || query.showGroupOfNames {
+	// 	groups, err := getGroups(db, "", a, id)
+	// 	if err != nil {
+	// 		return r, errors.New(err.Msg)
+	// 	}
+	// 	r = append(r, groups...)
+	// }
 
 	d := encodeSearchResultDone(id, Success, "")
 	r = append(r, d)

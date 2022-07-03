@@ -70,6 +70,8 @@ func createManager(db *gorm.DB) error {
 //Initialize - TODO common
 func Initialize() (*gorm.DB, error) {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	// If we want to log Gorm queries
+	// db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	if err != nil {
 		return nil, err
 	}

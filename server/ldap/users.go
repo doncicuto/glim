@@ -2,6 +2,7 @@ package ldap
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/doncicuto/glim/models"
@@ -156,62 +157,191 @@ func userEntry(user models.User, attributes string) map[string][]string {
 // 	return e, nil
 // }
 
-func getUsers(db *gorm.DB, username string, groupName string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
+// func getUsers(db *gorm.DB, username string, groupName string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
 
+// 	var r []*ber.Packet
+// 	users := []models.User{}
+
+// 	if username != "" {
+// 		if username != "admin" {
+// 			if err := db.
+// 				Preload("MemberOf").
+// 				Model(&models.User{}).
+// 				Where("username = ? ", username).
+// 				Find(&users).Error; err != nil {
+// 				return nil, &ServerError{
+// 					Msg:  "could not retrieve users from database",
+// 					Code: Other,
+// 				}
+// 			}
+// 		} else {
+// 			return nil, &ServerError{
+// 				Msg:  "could not retrieve users from database",
+// 				Code: Other,
+// 			}
+// 		}
+// 	} else {
+// 		if err := db.
+// 			Preload("MemberOf").
+// 			Model(&models.User{}).
+// 			Find(&users).Error; err != nil {
+// 			return nil, &ServerError{
+// 				Msg:  "could not retrieve users from database",
+// 				Code: Other,
+// 			}
+// 		}
+// 	}
+
+// 	if groupName != "" {
+// 		for _, user := range users {
+// 			for _, member := range user.MemberOf {
+// 				if *member.Name == groupName {
+// 					dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
+// 					values := userEntry(user, attributes)
+// 					e := encodeSearchResultEntry(id, values, dn)
+// 					r = append(r, e)
+// 				}
+// 			}
+// 		}
+// 	} else {
+// 		for _, user := range users {
+// 			if *user.Username != "admin" {
+// 				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
+// 				values := userEntry(user, attributes)
+// 				e := encodeSearchResultEntry(id, values, dn)
+// 				r = append(r, e)
+// 			}
+// 		}
+// 	}
+
+// 	return r, nil
+// }
+
+func getUsers(db *gorm.DB, filter string, originalFilter string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
 	var r []*ber.Packet
 	users := []models.User{}
 
-	if username != "" {
-		if username != "admin" {
-			if err := db.
-				Preload("MemberOf").
-				Model(&models.User{}).
-				Where("username = ? ", username).
-				Find(&users).Error; err != nil {
-				return nil, &ServerError{
-					Msg:  "could not retrieve users from database",
-					Code: Other,
-				}
-			}
-		} else {
-			return nil, &ServerError{
-				Msg:  "could not retrieve users from database",
-				Code: Other,
-			}
-		}
-	} else {
-		if err := db.
-			Preload("MemberOf").
-			Model(&models.User{}).
-			Find(&users).Error; err != nil {
-			return nil, &ServerError{
-				Msg:  "could not retrieve users from database",
-				Code: Other,
-			}
+	db = db.Preload("MemberOf").Model(&models.User{})
+	analyzeUsersCriteria(db, filter, false, "", 0)
+	err := db.Find(&users).Error
+	if err != nil {
+		return nil, &ServerError{
+			Msg:  "could not retrieve information from database",
+			Code: Other,
 		}
 	}
 
-	if groupName != "" {
-		for _, user := range users {
-			for _, member := range user.MemberOf {
-				if *member.Name == groupName {
-					dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
-					values := userEntry(user, attributes)
-					e := encodeSearchResultEntry(id, values, dn)
-					r = append(r, e)
+	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z0-9-]+),ou=Groups,%s", Domain()))
+
+	for _, user := range users {
+		if *user.Username != "admin" && !*user.Readonly {
+			if filterGroup.MatchString(originalFilter) {
+				matches := filterGroup.FindStringSubmatch(originalFilter)
+				if matches != nil {
+					for _, group := range user.MemberOf {
+						if *group.Name == matches[1] {
+							dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
+							values := userEntry(user, attributes)
+							e := encodeSearchResultEntry(id, values, dn)
+							r = append(r, e)
+							break
+						}
+					}
 				}
-			}
-		}
-	} else {
-		for _, user := range users {
-			if *user.Username != "admin" {
+
+			} else {
 				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
 				values := userEntry(user, attributes)
 				e := encodeSearchResultEntry(id, values, dn)
 				r = append(r, e)
 			}
+
 		}
+
 	}
 
 	return r, nil
+}
+
+func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOperator string, index int) {
+	if boolean {
+		re := regexp.MustCompile(`\(\|(.*)\)|\(\&(.*)\)|\(\!(.*)\)|\(([a-zA-Z=*]*)\)`)
+		submatchall := re.FindAllString(filter, -1)
+
+		for index, element := range submatchall {
+			element = strings.TrimPrefix(element, "(")
+			element = strings.TrimSuffix(element, ")")
+			analyzeUsersCriteria(db, element, false, booleanOperator, index)
+		}
+
+	} else {
+		switch {
+		case strings.HasPrefix(filter, "(") && strings.HasSuffix(filter, ")"):
+			element := strings.TrimPrefix(filter, "(")
+			element = strings.TrimSuffix(element, ")")
+			analyzeUsersCriteria(db, element, false, "", 0)
+		case strings.HasPrefix(filter, "&"):
+			element := strings.TrimPrefix(filter, "&")
+			analyzeUsersCriteria(db, element, true, "and", 0)
+		case strings.HasPrefix(filter, "|"):
+			element := strings.TrimPrefix(filter, "|")
+			analyzeUsersCriteria(db, element, true, "or", 0)
+		case strings.HasPrefix(filter, "!"):
+			element := strings.TrimPrefix(filter, "!")
+			analyzeUsersCriteria(db, element, true, "not", 0)
+		case strings.HasPrefix(filter, "uid="):
+			element := strings.TrimPrefix(filter, "uid=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("username LIKE ?", element)
+				} else {
+					db.Or("username LIKE ?", element)
+				}
+			} else {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("username = ?", element)
+				} else {
+					db.Or("username = ?", element)
+				}
+			}
+
+		case strings.HasPrefix(filter, "sn="):
+			element := strings.TrimPrefix(filter, "sn=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("surname LIKE ?", element)
+				} else {
+					db.Or("surname LIKE ?", element)
+				}
+			} else {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("surname = ?", element)
+				} else {
+					db.Or("surname = ?", element)
+				}
+			}
+		case strings.HasPrefix(filter, "givenName="):
+			element := strings.TrimPrefix(filter, "givenName=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("given_name LIKE ?", element)
+				} else {
+					db.Or("given_name LIKE ?", element)
+				}
+			} else {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("given_name = ?", element)
+				} else {
+					db.Or("given_name = ?", element)
+				}
+			}
+
+		}
+	}
 }

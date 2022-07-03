@@ -3,7 +3,7 @@
 
 **WORK IN PROGRESS!!**
 
-Glim is a simple identity access management system that speaks some LDAP and is written in Go.
+Glim is a simple identity access management system that speaks some LDAP and is written in Go. Glim stands for Golang LDAP Identity Management 😄
 
 ## Why Glim
 
@@ -32,6 +32,7 @@ I've tested Glim against the following awesome applications:
 - Gitlab CE
 - [Gitea](./docs/examples/gitea.md)
 - Portainer
+- Harbor
 
 Click on the links above for sample configurations for all these applications. More applications to be added soon, please open a discussion if you want to suggest more applications or an issue if Glim is not working for you.
 
