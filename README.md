@@ -29,10 +29,8 @@ If you're looking for a full LDAP server replacement that fully understands sche
 I've tested Glim against the following awesome applications:
 
 - [Rancher](./docs/examples/rancher.md)
-- Gitlab CE
 - [Gitea](./docs/examples/gitea.md)
-- Portainer
-- Harbor
+- [Portainer Community Edition](./docs/examples/portainer_ce.md)
 
 Click on the links above for sample configurations for all these applications. More applications to be added soon, please open a discussion if you want to suggest more applications or an issue if Glim is not working for you.
 

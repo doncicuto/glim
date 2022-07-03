@@ -1,6 +1,6 @@
 # Rancher
 
-This page shows how you can configure Rancher to authenticate users with Glim using . [Rancher documentation](https://rancher.com/docs/rancher/v2.5/en/admin-settings/authentication/openldap/openldap-config/) explains you how to configure Rancher to use OpenLDAP. Here we offer a full example with our suggestions to use Glim instead.
+This page shows how you can configure Rancher to authenticate users with Glim. [Rancher documentation](https://rancher.com/docs/rancher/v2.5/en/admin-settings/authentication/openldap/openldap-config/) explains you how to configure Rancher to use OpenLDAP. Here we offer a full example with our suggestions to use Glim instead.
 
 First we'll visit the User & Authentication settings in Rancher and select OpenLDAP
 
