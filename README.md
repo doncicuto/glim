@@ -30,8 +30,10 @@ I've tested Glim against the following awesome applications:
 
 - [Rancher](./docs/examples/rancher.md)
 - [Gitea](./docs/examples/gitea.md)
+- [Harbor](./docs/examples/harbor.md)
 - [Portainer Community Edition](./docs/examples/portainer_ce.md)
 - [Kanboard](./docs/examples/kanboard.md)
+- [Gitlab Community Edition](./docs/examples/gitlab_ce.md)
 
 Click on the links above for sample configurations for all these applications. More applications to be added soon, please open a discussion if you want to suggest more applications or an issue if Glim is not working for you.
 
