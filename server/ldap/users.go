@@ -108,7 +108,22 @@ func userEntry(user models.User, attributes string) map[string][]string {
 		for _, memberOf := range user.MemberOf {
 			groups = append(groups, fmt.Sprintf("cn=%s,ou=Groups,dc=example,dc=org", *memberOf.Name))
 		}
+
 		values["memberOf"] = groups
+	}
+
+	_, ok = attrs["memberof"]
+	if attributes == "ALL" || ok {
+		groups := []string{}
+		for _, memberOf := range user.MemberOf {
+			groups = append(groups, fmt.Sprintf("cn=%s,ou=Groups,dc=example,dc=org", *memberOf.Name))
+		}
+
+		_, ok = attrs["memberOf"]
+		if attributes == "ALL" || ok {
+			delete(attrs, "memberOf")
+		}
+		values["memberof"] = groups
 	}
 
 	_, ok = attrs["entryDN"]

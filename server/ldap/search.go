@@ -10,19 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Query - TODO comment
-// type Query struct {
-// 	showEverything     bool
-// 	showUsers          bool
-// 	showGroups         bool
-// 	showInetOrgPerson  bool
-// 	showGroupOfNames   bool
-// 	filterUser         string
-// 	filterGroup        string
-// 	filterGroupsByUser string
-// 	filterUsersByGroup string
-// }
-
 func searchSize(p *ber.Packet) (int64, *ServerError) {
 	if p.ClassType != ber.ClassUniversal ||
 		p.TagType != ber.TypePrimitive ||
@@ -222,41 +209,7 @@ func searchAttributes(p *ber.Packet) (string, *ServerError) {
 	return strings.Join(attributes, " "), nil
 }
 
-// func showUserInfo(base string, filter string) (string, bool) {
-// 	regBase, _ := regexp.Compile(fmt.Sprintf("^uid=([A-Za-z]+),ou=Users,%s$", Domain()))
-// 	if regBase.MatchString(base) {
-// 		matches := regBase.FindStringSubmatch(base)
-// 		if matches != nil {
-// 			return matches[1], true
-// 		}
-// 	}
-// 	regFilter, _ := regexp.Compile("^[(][&][(]objectClass=inetOrgPerson[)][(]uid=([A-Za-z]+)[)][)]$")
-// 	if regFilter.MatchString(filter) {
-// 		matches := regFilter.FindStringSubmatch(filter)
-// 		if matches != nil {
-// 			return matches[1], true
-// 		}
-// 	}
-// 	return "", false
-// }
-
 // func analyzeQuery(base string, filter string) Query {
-// 	query := Query{}
-
-// 	if base == Domain() && strings.Contains(filter, "objectClass=*") {
-// 		query.showEverything = true
-// 		return query
-// 	}
-
-// 	regBase, _ := regexp.Compile(fmt.Sprintf("^ou=users,%s$", Domain()))
-// 	if regBase.MatchString(strings.ToLower(base)) {
-// 		query.showUsers = true
-// 	}
-
-// 	regBase, _ = regexp.Compile(fmt.Sprintf("^ou=groups,%s$", Domain()))
-// 	if regBase.MatchString(strings.ToLower(base)) {
-// 		query.showGroups = true
-// 	}
 
 // 	// regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z0-9-]+),ou=users,%s$", Domain()))
 // 	// if regBase.MatchString(strings.ToLower(base)) {
@@ -444,7 +397,18 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 		a single SearchResultDone message */
 
 	regBase, _ := regexp.Compile(fmt.Sprintf("^ou=users,%s$", Domain()))
+
 	if (b == Domain() && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
+		if f == "(objectclass=*)" {
+			ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
+			values := map[string][]string{
+				"objectClass": {"organizationalUnit", "top"},
+				"ou":          {"Users"},
+			}
+			e := encodeSearchResultEntry(id, values, ouUsers)
+			r = append(r, e)
+		}
+
 		users, err := getUsers(db, f, f, a, id)
 		if err != nil {
 			return r, errors.New(err.Msg)
@@ -467,30 +431,21 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 
 	regBase, _ = regexp.Compile(fmt.Sprintf("^ou=groups,%s$", Domain()))
 	if (b == Domain() && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
+		if f == "(objectclass=*)" {
+			ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
+			values := map[string][]string{
+				"objectClass": {"organizationalUnit", "top"},
+				"ou":          {"Groups"},
+			}
+			e := encodeSearchResultEntry(id, values, ouGroups)
+			r = append(r, e)
+		}
 		groups, err := getGroups(db, f, a, id)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
 		r = append(r, groups...)
 	}
-
-	// Analyze Query using search base and filter
-	// query := analyzeQuery(b, f)
-
-	// Users entries
-	// if query.showUsers {
-	// 	getUsers(db, f, a, id)
-	// }
-	// // ou=Users entry
-	// if query.showUsers && query.filterUser == "" && query.filterUsersByGroup == "" {
-	// 	ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
-	// 	values := map[string][]string{
-	// 		"objectClass": {"organizationalUnit", "top"},
-	// 		"ou":          {"Users"},
-	// 	}
-	// 	e := encodeSearchResultEntry(id, values, ouUsers)
-	// 	r = append(r, e)
-	// }
 
 	// if query.showUsers || query.filterUser != "" || query.filterUsersByGroup != "" {
 	// 	// users, err := getUsers(db, query.filterUser, query.filterUsersByGroup, a, id)
@@ -502,17 +457,6 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	// }
 
 	// Groups entries
-
-	// ou=Groups entry
-	// if query.showGroups && query.filterGroupsByUser == "" && query.filterGroup == "" {
-	// 	ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
-	// 	values := map[string][]string{
-	// 		"objectClass": {"organizationalUnit", "top"},
-	// 		"ou":          {"Groups"},
-	// 	}
-	// 	e := encodeSearchResultEntry(id, values, ouGroups)
-	// 	r = append(r, e)
-	// }
 
 	// if query.filterGroupsByUser != "" {
 	// 	groups, err := getGroupsByUser(db, query.filterGroupsByUser, a, id)
