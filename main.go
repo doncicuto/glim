@@ -16,7 +16,7 @@ limitations under the License.
 package main
 
 import (
-	"github.com/doncicuto/glim/client"
+	client "github.com/doncicuto/glim/cmd"
 	_ "github.com/doncicuto/glim/docs/api"
 )
 
