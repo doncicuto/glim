@@ -44,7 +44,7 @@ var ()
 var serverStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start a Glim server",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		// Get environment variables
 		err := godotenv.Load()
 		if err != nil {

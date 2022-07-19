@@ -34,10 +34,10 @@ import (
 var newUserCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a Glim user account",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		// Validate email
 		email := viper.GetString("email")
 		if email != "" {

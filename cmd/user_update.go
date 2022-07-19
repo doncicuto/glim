@@ -30,10 +30,10 @@ import (
 var updateUserCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Update Glim user account",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 
 		var trueValue = true
 		var falseValue = false

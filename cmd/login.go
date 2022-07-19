@@ -33,7 +33,7 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: `Log in to a Glim Server`,
 	Args:  cobra.MaximumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 
 		username := viper.GetString("username")
 		password := viper.GetString("password")

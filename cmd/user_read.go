@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func getUser(id uint, tlscacert string) {
+func getUser(id uint) {
 	// Glim server URL
 	url := viper.GetString("server")
 	endpoint := fmt.Sprintf("%s/users/%d", url, id)
@@ -58,43 +58,27 @@ func getUser(id uint, tlscacert string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-6s %-15s %-20s %-20s %-20s %-8s %-8s %-8s\n",
-		"UID",
-		"USERNAME",
-		"FULLNAME",
-		"EMAIL",
-		"GROUPS",
-		"MANAGER",
-		"READONLY",
-		"LOCKED",
-	)
-
-	memberOf := "none"
-	groups := []string{}
-
+	// memberOf := "none"
 	result := resp.Result().(*models.UserInfo)
-	for _, group := range result.MemberOf {
-		groups = append(groups, group.Name)
+
+	fmt.Printf("\n%-15s %-100d\n", "UID:", result.ID)
+	fmt.Println("====")
+	fmt.Printf("%-15s %-100s\n", "Username:", result.Username)
+	fmt.Printf("%-15s %-100s\n", "Name:", strings.Join([]string{result.GivenName, result.Surname}, " "))
+	fmt.Printf("%-15s %-100s\n", "Email:", result.Email)
+	fmt.Printf("%-15s %-8v\n", "Manager:", result.Manager)
+	fmt.Printf("%-15s %-8v\n", "Read-Only:", result.Readonly)
+	fmt.Printf("%-15s %-8v\n", "Locked:", result.Locked)
+	fmt.Println("----")
+	if len(result.MemberOf) > 0 {
+		fmt.Println("Member of: ")
+		for _, group := range result.MemberOf {
+			fmt.Printf(" * GID: %-4d Name: %-100s\n", group.ID, group.Name)
+		}
 	}
-
-	if len(groups) > 0 {
-		memberOf = strings.Join(groups, ",")
-	}
-
-	fmt.Printf("%-6d %-15s %-20s %-20s %-20s %-8v %-8v %-8v\n",
-		result.ID,
-		truncate(result.Username, 15),
-		truncate(strings.Join([]string{result.GivenName, result.Surname}, " "), 20),
-		truncate(result.Email, 20),
-		truncate(memberOf, 20),
-		result.Manager,
-		result.Readonly,
-		result.Locked,
-	)
-
 }
 
-func getUsers(tlscacert string) {
+func getUsers() {
 	// Glim server URL
 	url := viper.GetString("server")
 
@@ -168,10 +152,10 @@ func getUsers(tlscacert string) {
 var listUserCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List Glim user accounts",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		tlscacert := viper.GetString("tlscacert")
 		_, err := os.Stat(tlscacert)
 		if os.IsNotExist(err) {
@@ -181,10 +165,10 @@ var listUserCmd = &cobra.Command{
 
 		uid := viper.GetUint("uid")
 		if uid != 0 {
-			getUser(uid, tlscacert)
+			getUser(uid)
 			os.Exit(0)
 		}
-		getUsers(tlscacert)
+		getUsers()
 	},
 }
 

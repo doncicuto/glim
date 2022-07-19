@@ -31,10 +31,10 @@ import (
 var userPasswdCmd = &cobra.Command{
 	Use:   "passwd",
 	Short: "Change a Glim user account password",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		passwdBody := models.JSONPasswdBody{}
 
 		url := viper.GetString("server")

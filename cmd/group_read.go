@@ -136,10 +136,10 @@ func getGroups() {
 var listGroupCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List Glim groups",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		getGroups()
 	},
 }

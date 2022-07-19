@@ -27,10 +27,10 @@ import (
 var groupCmd = &cobra.Command{
 	Use:   "group",
 	Short: "Manage Glim groups",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		gid := viper.GetUint("gid")
 		if gid != 0 {
 			getGroup(gid)

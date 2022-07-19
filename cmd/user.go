@@ -28,10 +28,10 @@ import (
 var userCmd = &cobra.Command{
 	Use:   "user",
 	Short: "Manage Glim user accounts",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 
 		tlscacert := viper.GetString("tlscacert")
 		_, err := os.Stat(tlscacert)
@@ -42,10 +42,10 @@ var userCmd = &cobra.Command{
 
 		uid := viper.GetUint("uid")
 		if uid != 0 {
-			getUser(uid, tlscacert)
+			getUser(uid)
 			os.Exit(0)
 		}
-		getUsers(tlscacert)
+		getUsers()
 		os.Exit(0)
 	},
 }

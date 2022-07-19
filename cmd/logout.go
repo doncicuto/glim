@@ -30,7 +30,7 @@ var logoutCmd = &cobra.Command{
 	Use:   "logout [flags] [SERVER]",
 	Short: "Log out from a Glim server",
 	Args:  cobra.MaximumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		var token *auth.Response
 
 		// Read token from file

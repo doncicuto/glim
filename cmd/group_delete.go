@@ -29,10 +29,10 @@ import (
 var deleteGroupCmd = &cobra.Command{
 	Use:   "rm",
 	Short: "Remove a Glim group",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 
 		confirm := prompter.YesNo("Do you really want to delete this group?", false)
 		if !confirm {

@@ -30,7 +30,7 @@ import (
 var certsCmd = &cobra.Command{
 	Use:   "certs",
 	Short: "Create a self-signed CA and client and server certificates to secure communications with Glim",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 
 		var config = certs.Config{}
 

@@ -29,10 +29,10 @@ import (
 var newGroupCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a Glim group",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 
 		// Glim server URL
 		url := viper.GetString("server")

@@ -33,7 +33,7 @@ import (
 var serverStopCmd = &cobra.Command{
 	Use:   "stop",
 	Short: "Stop a Glim server. Windows systems are not supported.",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		// SIGTERM cannot be used with Go in Windows Ref: https://golang.org/pkg/os/#Signal
 		/* if runtime.GOOS == "windows" {
 			fmt.Printf("%s [Glim] ⇨ stop command is not supported for Windows platform as it doesn't support the SIGTERM signal. You should terminate Glim process by hand (Ctrl-C). \n", time.Now().Format(time.RFC3339))
