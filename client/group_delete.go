@@ -21,14 +21,17 @@ import (
 	"os"
 
 	"github.com/Songmu/prompter"
-	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // DeleteGroupCmd - TODO comment
 var deleteGroupCmd = &cobra.Command{
 	Use:   "rm",
 	Short: "Remove a Glim group",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		confirm := prompter.YesNo("Do you really want to delete this group?", false)
@@ -37,14 +40,12 @@ var deleteGroupCmd = &cobra.Command{
 		}
 
 		// Glim server URL
-		url := os.Getenv("GLIM_URI")
-		if url == "" {
-			url = serverAddress
-		}
+		url := viper.GetString("server")
 
 		// Read credentials
+		gid := viper.GetUint("gid")
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/groups/%d", url, groupID)
+		endpoint := fmt.Sprintf("%s/groups/%d", url, gid)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
@@ -52,9 +53,7 @@ var deleteGroupCmd = &cobra.Command{
 		}
 
 		// Rest API authentication
-		client := resty.New()
-		client.SetAuthToken(token.AccessToken)
-		client.SetRootCertificate(tlscacert)
+		client := RestClient(token.AccessToken)
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
@@ -76,8 +75,6 @@ var deleteGroupCmd = &cobra.Command{
 }
 
 func init() {
-	deleteGroupCmd.Flags().Uint32VarP(&groupID, "gid", "i", 0, "group id")
-
-	// Mark required flags
-	cobra.MarkFlagRequired(deleteGroupCmd.Flags(), "gid")
+	deleteGroupCmd.Flags().UintP("gid", "g", 0, "group id")
+	deleteGroupCmd.MarkFlagRequired("gid")
 }

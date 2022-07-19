@@ -18,6 +18,9 @@ package client
 
 import (
 	"fmt"
+
+	"github.com/go-resty/resty/v2"
+	"github.com/spf13/viper"
 )
 
 func truncate(text string, length int) string {
@@ -26,4 +29,17 @@ func truncate(text string, length int) string {
 		return fmt.Sprintf(format, text)
 	}
 	return text
+}
+
+func RestClient(token string) *resty.Client {
+	// Rest API authentication
+	client := resty.New()
+
+	// Set bearer token
+	if token != "" {
+		client.SetAuthToken(token)
+	}
+	tlscacert := viper.GetString("tlscacert")
+	client.SetRootCertificate(tlscacert)
+	return client
 }

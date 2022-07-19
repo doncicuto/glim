@@ -19,6 +19,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/doncicuto/glim/models"
 	"github.com/labstack/echo/v4"
@@ -28,14 +29,34 @@ import (
 //DeleteUser - TODO comment
 func (h *Handler) DeleteUser(c echo.Context) error {
 	var u models.User
-	uid := c.Param("uid")
-	err := h.DB.Model(&models.User{}).Where("id = ?", uid).Take(&u).Delete(&u).Error
+	// User id cannot be empty
+	if c.Param("uid") == "" {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required user uid"}
+	}
 
+	// Get idparam
+	uid, err := strconv.ParseUint(c.Param("uid"), 10, 32)
+	if err != nil {
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert uid into uint"}
+	}
+
+	// Remove user
+	err = h.DB.Model(&models.User{}).Where("id = ?", uid).Take(&u).Delete(&u).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
 		}
 		return err
 	}
+
+	// Remove user from group
+	err = h.DB.Model(&u).Association("MemberOf").Clear()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not remove user from group"}
+		}
+		return err
+	}
+
 	return c.NoContent(http.StatusNoContent)
 }

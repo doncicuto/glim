@@ -35,6 +35,7 @@ import (
 	"github.com/doncicuto/glim/server/ldap"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var ()
@@ -54,32 +55,35 @@ var serverStartCmd = &cobra.Command{
 		// Check if API secret is present in env variable
 		ok := config.CheckAPISecret()
 		if !ok {
-			fmt.Printf("%s [Glim] ⇨ could not find required API_SECRET environment variable. Exiting now...\n", time.Now().Format(time.RFC3339))
+			fmt.Printf("%s [Glim] ⇨ could not find required GLIM_API_SECRET environment variable. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
 		}
 
 		// Check if certificate file path has been specified
+		tlscert := viper.GetString("tlscert")
 		if tlscert == "" {
 			fmt.Printf("%s [Glim] ⇨ Certificate file path cannot be empty. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
 		}
 		if _, err := os.Stat(tlscert); os.IsNotExist(err) {
-			fmt.Printf("%s [Glim] ⇨ Certificate file cannot be found. Exiting now...\n", time.Now().Format(time.RFC3339))
+			fmt.Printf("%s [Glim] ⇨ Certificate file %s cannot be found. Exiting now...\n", time.Now().Format(time.RFC3339), tlscert)
 			os.Exit(1)
 		}
 
 		// Check if private key file path has been specified
+		tlskey := viper.GetString("tlskey")
 		if tlskey == "" {
 			fmt.Printf("%s [Glim] ⇨ Private key file path cannot be empty. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
 		}
 		if _, err := os.Stat(tlskey); os.IsNotExist(err) {
-			fmt.Printf("%s [Glim] ⇨ Private key file cannot be found. Exiting now...\n", time.Now().Format(time.RFC3339))
+			fmt.Printf("%s [Glim] ⇨ Private key file %s cannot be found. Exiting now...\n", time.Now().Format(time.RFC3339), tlskey)
 			os.Exit(1)
 		}
 
 		// Database
-		database, err := db.Initialize()
+		dbName := viper.GetString("db-name")
+		database, err := db.Initialize(dbName)
 		if err != nil {
 			fmt.Printf("%s [Glim] ⇨ could not connect to database. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
@@ -91,6 +95,7 @@ var serverStartCmd = &cobra.Command{
 
 		// Key-value store for JWT tokens storage
 		// TODO choose between BadgerDB or Redis
+		badgerKV := viper.GetString("badgerdb-store")
 		blacklist, err := badgerdb.NewBadgerStore(badgerKV)
 		if err != nil {
 			fmt.Printf("%s [Glim] ⇨ could not connect to Badger key-value store. Exiting now...\n", time.Now().Format(time.RFC3339))
@@ -102,6 +107,8 @@ var serverStartCmd = &cobra.Command{
 		}()
 		fmt.Printf("%s [Glim] ⇨ connected to key-value store...\n", time.Now().Format(time.RFC3339))
 
+		restAddress := viper.GetString("rest-addr")
+
 		// Preparing API server settings
 		apiSettings := api.Settings{
 			DB:      database,
@@ -110,6 +117,8 @@ var serverStartCmd = &cobra.Command{
 			TLSKey:  tlskey,
 			Address: restAddress,
 		}
+
+		ldapAddress := viper.GetString("ldap-addr")
 
 		// Preparing LDAP server settings
 		ldapSettings := ldap.Settings{
@@ -161,9 +170,12 @@ func init() {
 	defaultCertPEMFilePath := filepath.Join(homeDir, ".glim", "server.pem")
 	defaultCertKeyFilePath := filepath.Join(homeDir, ".glim", "server.key")
 
-	serverStartCmd.Flags().StringVar(&tlscert, "tlscert", defaultCertPEMFilePath, "TLS server certificate path (required)")
-	serverStartCmd.Flags().StringVar(&tlskey, "tlskey", defaultCertKeyFilePath, "TLS server private key path (required)")
-	serverStartCmd.Flags().StringVar(&ldapAddress, "ldap-address", ":1636", "LDAP server address and port (format: <ip:port>)")
-	serverStartCmd.Flags().StringVar(&restAddress, "rest-address", ":1323", "REST API server address and port (format: <ip:port>)")
-	serverStartCmd.Flags().StringVar(&badgerKV, "badgerdb-store", "/tmp/kv", "Directory path for BadgerDB KV store")
+	serverStartCmd.Flags().String("tlscert", defaultCertPEMFilePath, "TLS server certificate path (required)")
+	serverStartCmd.Flags().String("tlskey", defaultCertKeyFilePath, "TLS server private key path (required)")
+	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
+	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
+	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "Directory path for BadgerDB KV store")
+	serverStartCmd.Flags().String("db-name", "new.db", "Name of the file containing Glim's database")
+
+	viper.BindPFlags(serverStartCmd.Flags())
 }

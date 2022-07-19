@@ -21,16 +21,13 @@ import (
 	"os"
 
 	"github.com/doncicuto/glim/models"
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-func getGroup(id int) {
+func getGroup(id uint) {
 	// Glim server URL
-	url := os.Getenv("GLIM_URI")
-	if url == "" {
-		url = serverAddress
-	}
+	url := viper.GetString("server")
 
 	endpoint := fmt.Sprintf("%s/groups/%d", url, id)
 	// Read credentials
@@ -43,9 +40,7 @@ func getGroup(id int) {
 	}
 
 	// Rest API authentication
-	client := resty.New()
-	client.SetAuthToken(token.AccessToken)
-	client.SetRootCertificate(tlscacert)
+	client := RestClient(token.AccessToken)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -79,10 +74,7 @@ func getGroup(id int) {
 
 func getGroups() {
 	// Glim server URL
-	url := os.Getenv("GLIM_URI")
-	if url == "" {
-		url = serverAddress
-	}
+	url := viper.GetString("server")
 
 	// Read credentials
 	token := ReadCredentials()
@@ -94,9 +86,7 @@ func getGroups() {
 	}
 
 	// Rest API authentication
-	client := resty.New()
-	client.SetAuthToken(token.AccessToken)
-	client.SetRootCertificate(tlscacert)
+	client := RestClient(token.AccessToken)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -146,6 +136,9 @@ func getGroups() {
 var listGroupCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List Glim groups",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		getGroups()
 	},

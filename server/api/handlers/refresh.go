@@ -18,7 +18,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -45,7 +44,7 @@ func (h *Handler) Refresh(c echo.Context) error {
 	// Get refresh token claims
 	claims := make(jwt.MapClaims)
 	token, err := jwt.ParseWithClaims(tokens.RefreshToken, claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("API_SECRET")), nil
+		return []byte(os.Getenv("GLIM_API_SECRET")), nil
 	})
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token, you may have to log in again"}
@@ -146,13 +145,13 @@ func (h *Handler) Refresh(c echo.Context) error {
 	ac["readonly"] = dbUser.Readonly
 	t := jwt.New(jwt.SigningMethodHS256)
 	t.Claims = ac
-	at, err := t.SignedString([]byte(os.Getenv("API_SECRET")))
+	at, err := t.SignedString([]byte(os.Getenv("GLIM_API_SECRET")))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}
 
 	// Add access token to Key-Value store
-	err = h.KV.Set(fmt.Sprintf("%s", tokenID), "false", atExpiresIn)
+	err = h.KV.Set(tokenID.String(), "false", atExpiresIn)
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not add access token to key-value store"}
 	}
@@ -169,13 +168,13 @@ func (h *Handler) Refresh(c echo.Context) error {
 	rc["ajti"] = ajti
 	t = jwt.New(jwt.SigningMethodHS256)
 	t.Claims = rc
-	rt, err := t.SignedString([]byte(os.Getenv("API_SECRET")))
+	rt, err := t.SignedString([]byte(os.Getenv("GLIM_API_SECRET")))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}
 
 	// Add response token to Key-Value store
-	err = h.KV.Set(fmt.Sprintf("%s", tokenID), "false", rtExpiresIn)
+	err = h.KV.Set(tokenID.String(), "false", rtExpiresIn)
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not add refresh token to key-value store"}
 	}

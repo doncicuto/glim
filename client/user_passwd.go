@@ -21,43 +21,45 @@ import (
 	"os"
 
 	"github.com/doncicuto/glim/models"
-	resty "github.com/go-resty/resty/v2"
 
 	"github.com/Songmu/prompter"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // NewUserCmd - TODO comment
 var userPasswdCmd = &cobra.Command{
 	Use:   "passwd",
 	Short: "Change a Glim user account password",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		passwdBody := models.JSONPasswdBody{}
 
 		// Glim server URL
-		url := os.Getenv("GLIM_URI")
-		if url == "" {
-			url = serverAddress
-		}
+		url := viper.GetString("server")
 
 		// Read credentials
+		uid := viper.GetUint("uid")
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/users/%d/passwd", url, userID)
+		endpoint := fmt.Sprintf("%s/users/%d/passwd", url, uid)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
 			token = ReadCredentials()
 		}
 
-		if !AmIManager(token) && uint32(WhichIsMyTokenUID(token)) != userID {
+		if !AmIManager(token) && uint(WhichIsMyTokenUID(token)) != uid {
 			fmt.Println("Only users with manager role can change other users passwords")
 		}
 
-		if cmd.Flags().Changed("password") {
+		password := viper.GetString("password")
+		if password != "" {
 			fmt.Println("WARNING! Using --password via the CLI is insecure.")
 		}
 
-		if uint32(WhichIsMyTokenUID(token)) == userID {
+		if uint(WhichIsMyTokenUID(token)) == uid {
 			oldPassword := prompter.Password("Old password")
 			if oldPassword == "" {
 				fmt.Println("Error password required")
@@ -67,7 +69,8 @@ var userPasswdCmd = &cobra.Command{
 		}
 
 		// Prompt for password if needed
-		if !cmd.Flags().Changed("password") {
+		if password != "" {
+			passwordStdin := viper.GetBool("passwd-stdin")
 			if !passwordStdin {
 				password = prompter.Password("New password")
 				if password == "" {
@@ -85,9 +88,7 @@ var userPasswdCmd = &cobra.Command{
 		passwdBody.Password = password
 
 		// Rest API authentication
-		client := resty.New()
-		client.SetAuthToken(token.AccessToken)
-		client.SetRootCertificate(tlscacert)
+		client := RestClient(token.AccessToken)
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
@@ -110,8 +111,8 @@ var userPasswdCmd = &cobra.Command{
 }
 
 func init() {
-	userPasswdCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "User account id")
-	userPasswdCmd.Flags().StringVarP(&password, "password", "p", "", "New user password")
-	// Mark required flags
-	cobra.MarkFlagRequired(userPasswdCmd.Flags(), "uid")
+	userPasswdCmd.Flags().UintP("uid", "i", 0, "User account id")
+	userPasswdCmd.Flags().StringP("password", "p", "", "New user password")
+	userPasswdCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
+	userPasswdCmd.MarkFlagRequired("uid")
 }

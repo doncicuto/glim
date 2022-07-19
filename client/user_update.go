@@ -22,20 +22,24 @@ import (
 
 	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
-	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // NewUserCmd - TODO comment
 var updateUserCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Update Glim user account",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		var trueValue = true
 		var falseValue = false
 
 		// Validate email
+		email := viper.GetString("email")
 		if email != "" {
 			if err := checkmail.ValidateFormat(email); err != nil {
 				fmt.Println("email should have a valid format")
@@ -44,26 +48,28 @@ var updateUserCmd = &cobra.Command{
 		}
 
 		// Check if both manager and readonly have been set
+		manager := viper.GetBool("manager")
+		readonly := viper.GetBool("readonly")
 		if manager && readonly {
 			fmt.Println("a Glim account cannot be both manager and readonly at the same time")
 			os.Exit(1)
 		}
 
 		// Check if both remove and replace flags have been set
-		if replaceMembersOf && removeMembersOf {
+		replace := viper.GetBool("replace")
+		remove := viper.GetBool("remove")
+		if replace && remove {
 			fmt.Println("replace and remove flags are mutually exclusive")
 			os.Exit(1)
 		}
 
 		// Glim server URL
-		url := os.Getenv("GLIM_URI")
-		if url == "" {
-			url = serverAddress
-		}
+		url := viper.GetString("server")
 
 		// Read credentials
+		uid := viper.GetUint("uid")
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/users/%d", url, userID)
+		endpoint := fmt.Sprintf("%s/users/%d", url, uid)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
@@ -71,40 +77,38 @@ var updateUserCmd = &cobra.Command{
 		}
 
 		userBody := models.JSONUserBody{
-			Username:  username,
-			GivenName: givenName,
-			Surname:   surname,
-			Email:     email,
-			MemberOf:  groups,
+			Username:  viper.GetString("username"),
+			GivenName: viper.GetString("firstname"),
+			Surname:   viper.GetString("lastname"),
+			Email:     viper.GetString("email"),
+			MemberOf:  viper.GetString("groups"),
 		}
 
-		if manager {
+		if viper.GetBool("manager") {
 			userBody.Manager = &trueValue
 			userBody.Readonly = &falseValue
 		}
 
-		if readonly {
+		if viper.GetBool("readonly") {
 			userBody.Manager = &falseValue
 			userBody.Readonly = &trueValue
 		}
 
-		if plainuser {
+		if viper.GetBool("plainuser") {
 			userBody.Manager = &falseValue
 			userBody.Readonly = &falseValue
 		}
 
-		if replaceMembersOf {
+		if replace {
 			userBody.ReplaceMembersOf = true
 		}
 
-		if removeMembersOf {
+		if remove {
 			userBody.RemoveMembersOf = true
 		}
 
 		// Rest API authentication
-		client := resty.New()
-		client.SetAuthToken(token.AccessToken)
-		client.SetRootCertificate(tlscacert)
+		client := RestClient(token.AccessToken)
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
@@ -127,18 +131,16 @@ var updateUserCmd = &cobra.Command{
 }
 
 func init() {
-	updateUserCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "User account id")
-	updateUserCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
-	updateUserCmd.Flags().StringVarP(&givenName, "firstname", "f", "", "First name")
-	updateUserCmd.Flags().StringVarP(&surname, "lastname", "l", "", "Last name")
-	updateUserCmd.Flags().StringVarP(&email, "email", "e", "", "Email")
-	updateUserCmd.Flags().StringVarP(&groups, "groups", "g", "", "Comma-separated list of group names. ")
-	updateUserCmd.Flags().BoolVar(&manager, "manager", false, "Glim manager account?")
-	updateUserCmd.Flags().BoolVar(&readonly, "readonly", false, "Glim readonly account?")
-	updateUserCmd.Flags().BoolVar(&plainuser, "plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
-	updateUserCmd.Flags().BoolVar(&replaceMembersOf, "replace", false, "Replace groups with those specified with -g. Groups are appended to those that the user is a member of by default")
-	updateUserCmd.Flags().BoolVar(&removeMembersOf, "remove", false, "Remove group membership with those specified with -g.")
-
-	// Mark required flags
-	cobra.MarkFlagRequired(updateUserCmd.Flags(), "uid")
+	updateUserCmd.Flags().StringP("username", "u", "", "Username")
+	updateUserCmd.Flags().StringP("firstname", "f", "", "First name")
+	updateUserCmd.Flags().StringP("lastname", "l", "", "Last name")
+	updateUserCmd.Flags().StringP("email", "e", "", "Email")
+	updateUserCmd.Flags().StringP("groups", "g", "", "Comma-separated list of group names. ")
+	updateUserCmd.Flags().Bool("manager", false, "Glim manager account?")
+	updateUserCmd.Flags().Bool("readonly", false, "Glim readonly account?")
+	updateUserCmd.Flags().Bool("plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
+	updateUserCmd.Flags().Bool("replace", false, "Replace groups with those specified with -g. Groups are appended to those that the user is a member of by default")
+	updateUserCmd.Flags().Bool("remove", false, "Remove group membership with those specified with -g.")
+	updateUserCmd.Flags().UintP("uid", "i", 0, "user account id")
+	updateUserCmd.MarkFlagRequired("uid")
 }

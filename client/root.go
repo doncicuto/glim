@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -52,16 +53,16 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.glim.yaml)")
-	rootCmd.PersistentFlags().StringVar(&tlscacert, "tlscacert", defaultRootPEMFilePath, "Trust certs signed only by this CA")
-	rootCmd.PersistentFlags().StringVar(&serverAddress, "server", "https://127.0.0.1:1323", "Trust certs signed only by this CA")
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/.glim.yaml)")
+	rootCmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	rootCmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+
+	viper.BindPFlags(rootCmd.PersistentFlags())
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	cfgFile := viper.GetString("config")
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
@@ -78,6 +79,9 @@ func initConfig() {
 		viper.SetConfigName(".glim")
 	}
 
+	replacer := strings.NewReplacer("-", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.SetEnvPrefix("GLIM")
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.

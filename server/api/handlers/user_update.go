@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -70,16 +71,19 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	if !ok {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
-	if err := h.DB.Model(&models.User{}).Where("id = ?", tokenUID).First(&modifiedBy).Error; err != nil {
+	if err := h.DB.Model(&models.User{}).Where("id = ?", int(tokenUID)).First(&modifiedBy).Error; err != nil {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
 	}
 
-	// Get idparam
-	uid := c.Param("uid")
-
 	// User id cannot be empty
-	if uid == "" {
+	if c.Param("uid") == "" {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required user uid"}
+	}
+
+	// Get idparam
+	uid, err := strconv.ParseUint(c.Param("uid"), 10, 32)
+	if err != nil {
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert uid into uint"}
 	}
 
 	// Bind
@@ -89,7 +93,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	// Find user
-	err := h.DB.Where("id = ?", uid).First(&models.User{}).Error
+	err = h.DB.Where("id = ?", uid).First(&models.User{}).Error
 	if err != nil {
 		// Does user exist?
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -112,11 +116,11 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	if body.GivenName != "" {
-		updatedUser["fistname"] = html.EscapeString(strings.TrimSpace(body.GivenName))
+		updatedUser["given_name"] = html.EscapeString(strings.TrimSpace(body.GivenName))
 	}
 
 	if body.Surname != "" {
-		updatedUser["lastname"] = html.EscapeString(strings.TrimSpace(body.Surname))
+		updatedUser["surname"] = html.EscapeString(strings.TrimSpace(body.Surname))
 	}
 
 	if body.Email != "" {

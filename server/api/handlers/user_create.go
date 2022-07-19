@@ -83,25 +83,10 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	}
 	u.Username = &body.Username
 
-	if body.GivenName == "" {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required firstname"}
-	}
-	u.GivenName = &body.GivenName
-
-	if body.Surname == "" {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required lastname"}
-	}
-	u.Surname = &body.Surname
-
-	if body.Password == "" {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required password"}
-	}
-
-	if body.Email == "" {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required email"}
-	}
-	if err := checkmail.ValidateFormat(body.Email); err != nil {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
+	if body.Email != "" {
+		if err := checkmail.ValidateFormat(body.Email); err != nil {
+			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
+		}
 	}
 	u.Email = &body.Email
 

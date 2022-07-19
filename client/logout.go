@@ -21,8 +21,8 @@ import (
 	"os"
 
 	"github.com/doncicuto/glim/server/api/auth"
-	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // logoutCmd represents the logout command
@@ -43,14 +43,10 @@ var logoutCmd = &cobra.Command{
 		}
 
 		// Glim server URL
-		url := os.Getenv("GLIM_URI")
-		if url == "" {
-			url = serverAddress
-		}
+		url := viper.GetString("server")
 
 		// Logout
-		client := resty.New()
-		client.SetRootCertificate(tlscacert)
+		client := RestClient("")
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").

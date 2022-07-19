@@ -24,9 +24,8 @@ import (
 	"strings"
 
 	"github.com/Songmu/prompter"
-	resty "github.com/go-resty/resty/v2"
-
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // loginCmd represents the login command
@@ -36,7 +35,11 @@ var loginCmd = &cobra.Command{
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if !cmd.Flags().Changed("username") {
+		username := viper.GetString("username")
+		password := viper.GetString("password")
+		passwordStdin := viper.GetBool("password-stdin")
+
+		if username == "" {
 			username = prompter.Prompt("Username", "")
 			if username == "" {
 				fmt.Println("Error non-null username required")
@@ -89,14 +92,10 @@ var loginCmd = &cobra.Command{
 		}
 
 		// Glim server URL
-		url := os.Getenv("GLIM_URI")
-		if url == "" {
-			url = serverAddress
-		}
+		url := viper.GetString("server")
 
 		// Rest API authentication
-		client := resty.New()
-		client.SetRootCertificate(tlscacert)
+		client := RestClient("")
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
@@ -140,7 +139,9 @@ var loginCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(loginCmd)
 
-	loginCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
-	loginCmd.Flags().StringVarP(&password, "password", "p", "", "Password")
-	loginCmd.Flags().BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
+	loginCmd.Flags().StringP("username", "u", "", "Username")
+	loginCmd.Flags().StringP("password", "p", "", "Password")
+	loginCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
+
+	viper.BindPFlags(loginCmd.Flags())
 }

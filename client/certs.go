@@ -23,11 +23,7 @@ import (
 
 	"github.com/doncicuto/glim/certs"
 	"github.com/spf13/cobra"
-)
-
-var (
-	organization, hosts, path string
-	years                     int
+	"github.com/spf13/viper"
 )
 
 // certsCmd represents the certs command
@@ -39,6 +35,7 @@ var certsCmd = &cobra.Command{
 		var config = certs.Config{}
 
 		// organization cannot be empty
+		organization := viper.GetString("organization")
 		if organization == "" {
 			fmt.Println("Organization name cannot be empty")
 			os.Exit(1)
@@ -46,14 +43,14 @@ var certsCmd = &cobra.Command{
 		config.Organization = organization
 
 		// address list cannot be empty
-		addresses := strings.Split(hosts, ",")
-		if len(addresses) == 0 {
+		hosts := strings.Split(viper.GetString("hosts"), ",")
+		if len(hosts) == 0 {
 			fmt.Println("Please specify a comma-separated list of hosts and/or IP addresses to be added to certificates")
 			os.Exit(1)
 		}
-		config.Hosts = addresses
+		config.Hosts = hosts
 
-		// path should exist
+		path := viper.GetString("path")
 		err := os.MkdirAll(path, 0755)
 		if err != nil {
 			fmt.Println("Could not create selected directory for certificates path")
@@ -62,6 +59,7 @@ var certsCmd = &cobra.Command{
 		config.OutputPath = path
 
 		// years should be greater than 0
+		years := viper.GetInt("years")
 		if years < 1 {
 			fmt.Println("Certificate should be valid for at least 1 year")
 			os.Exit(1)
@@ -77,9 +75,18 @@ var certsCmd = &cobra.Command{
 }
 
 func init() {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+		os.Exit(1)
+	}
+	path := fmt.Sprintf("%s/.glim", homeDir)
+
 	rootCmd.AddCommand(certsCmd)
-	certsCmd.Flags().StringVarP(&organization, "organization", "o", "Glim Fake Organization, Inc", "organization name. Default: Glim Fake Organization")
-	certsCmd.Flags().StringVarP(&hosts, "addresses", "a", "127.0.0.1, localhost", "comma-separated list of hosts and IP addresses to be added to client/server certificate. Default: 127.0.0.1, localhost")
-	certsCmd.Flags().StringVarP(&path, "path", "p", os.TempDir(), "filesystem path for the folder where certificates and private keys files will be stored")
-	certsCmd.Flags().IntVarP(&years, "duration", "d", 1, "number of years that we want certificates to be valid. Default: 1")
+	certsCmd.Flags().String("organization", "Glim Fake Organization, Inc", "organization name")
+	certsCmd.Flags().String("hosts", "127.0.0.1, localhost", "comma-separated list of hosts and IP addresses to be added to certificates")
+	certsCmd.Flags().String("path", path, "filesystem path where certificates and private keys files will be stored")
+	certsCmd.Flags().Int("years", 1, "number of years that we want certificates to be valid.")
+
+	viper.BindPFlags(certsCmd.Flags())
 }

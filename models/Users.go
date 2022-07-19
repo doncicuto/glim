@@ -26,10 +26,10 @@ import (
 type User struct {
 	ID        uint32    `gorm:"primary_key;auto_increment" json:"uid"`
 	Username  *string   `gorm:"size:64;not null;unique" json:"username"`
-	GivenName *string   `gorm:"size:150;not null" json:"firstname"`
-	Surname   *string   `gorm:"size:150;not null" json:"lastname"`
+	GivenName *string   `gorm:"size:150" json:"firstname"`
+	Surname   *string   `gorm:"size:150" json:"lastname"`
 	Email     *string   `gorm:"size:322" json:"email"`
-	Password  *string   `gorm:"size:60;not null;" json:"password"`
+	Password  *string   `gorm:"size:60" json:"password"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	CreatedBy *string   `gorm:"size:500" json:"created_by"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
@@ -38,6 +38,7 @@ type User struct {
 	Readonly  *bool     `gorm:"default:true" json:"readonly"`
 	MemberOf  []*Group  `gorm:"many2many:group_members"`
 	UUID      *string   `gorm:"size:36" json:"uuid"`
+	Locked    *bool     `gorm:"default:false" json:"locked"`
 }
 
 // JSONUserBody - TODO comment
@@ -70,6 +71,7 @@ type UserInfo struct {
 	Manager   bool        `json:"manager"`
 	Readonly  bool        `json:"readonly"`
 	MemberOf  []GroupInfo `json:"memberOf,omitempty"`
+	Locked    bool        `json:"locked"`
 }
 
 //Hash - TODO comment

@@ -21,25 +21,24 @@ import (
 	"os"
 
 	"github.com/doncicuto/glim/models"
-	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // newGroupCmd - TODO comment
 var updateGroupCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Update a Glim group",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-
 		// Glim server URL
-		url := os.Getenv("GLIM_URI")
-		if url == "" {
-			url = serverAddress
-		}
+		url := viper.GetString("server")
 
 		// Read credentials
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/groups/%d", url, groupID)
+		endpoint := fmt.Sprintf("%s/groups/%d", url, viper.GetUint("gid"))
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
@@ -47,17 +46,15 @@ var updateGroupCmd = &cobra.Command{
 		}
 
 		// Rest API authentication
-		client := resty.New()
-		client.SetAuthToken(token.AccessToken)
-		client.SetRootCertificate(tlscacert)
+		client := RestClient(token.AccessToken)
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONGroupBody{
-				Name:           groupName,
-				Description:    groupDesc,
-				Members:        groupMembers,
-				ReplaceMembers: replaceMembers,
+				Name:           viper.GetString("name"),
+				Description:    viper.GetString("description"),
+				Members:        viper.GetString("members"),
+				ReplaceMembers: viper.GetBool("replace"),
 			}).
 			SetError(&APIError{}).
 			Put(endpoint)
@@ -77,11 +74,10 @@ var updateGroupCmd = &cobra.Command{
 }
 
 func init() {
-	updateGroupCmd.Flags().Uint32VarP(&groupID, "gid", "i", 0, "group id")
-	updateGroupCmd.Flags().StringVarP(&groupName, "name", "n", "", "our group name")
-	updateGroupCmd.Flags().StringVarP(&groupDesc, "description", "d", "", "our group description")
-	updateGroupCmd.Flags().StringVarP(&groupMembers, "members", "m", "", "comma-separated list of usernames e.g: admin,tux")
-	updateGroupCmd.Flags().BoolVar(&replaceMembers, "replace", false, "Replace group members with those specified with -m. Usernames are appended to members by default")
-	// Mark required flags
-	cobra.MarkFlagRequired(updateGroupCmd.Flags(), "gid")
+	updateGroupCmd.Flags().UintP("gid", "g", 0, "group id")
+	updateGroupCmd.Flags().StringP("name", "n", "", "our group name")
+	updateGroupCmd.Flags().StringP("description", "d", "", "our group description")
+	updateGroupCmd.Flags().StringP("members", "m", "", "comma-separated list of usernames e.g: admin,tux")
+	updateGroupCmd.Flags().Bool("replace", false, "Replace group members with those specified with -m. Usernames are appended to members by default")
+	updateGroupCmd.MarkFlagRequired("gid")
 }

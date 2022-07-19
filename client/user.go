@@ -21,27 +21,32 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // userCmd represents the user command
 var userCmd = &cobra.Command{
 	Use:   "user",
 	Short: "Manage Glim user accounts",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
+		tlscacert := viper.GetString("tlscacert")
 		_, err := os.Stat(tlscacert)
 		if os.IsNotExist(err) {
 			fmt.Println("Could not find required CA pem file to validate authority")
 			os.Exit(1)
 		}
 
-		if cmd.Flags().Changed("uid") {
-			getUser(userID, tlscacert)
+		uid := viper.GetUint("uid")
+		if uid != 0 {
+			getUser(uid, tlscacert)
 			os.Exit(0)
 		}
 		getUsers(tlscacert)
 		os.Exit(0)
-
 	},
 }
 
@@ -52,5 +57,5 @@ func init() {
 	userCmd.AddCommand(updateUserCmd)
 	userCmd.AddCommand(deleteUserCmd)
 	userCmd.AddCommand(userPasswdCmd)
-	userCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "user account id")
+	userCmd.Flags().UintP("uid", "i", 0, "user account id")
 }

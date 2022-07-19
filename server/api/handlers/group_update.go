@@ -20,6 +20,7 @@ import (
 	"errors"
 	"html"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,22 +48,24 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
 	}
 
-	// Get gid
-	gid := c.Param("gid")
-
 	// Group cannot be empty
-	if gid == "" {
+	if c.Param("gid") == "" {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required group gid"}
+
 	}
 
+	// Get gid
+	gid, err := strconv.ParseUint(c.Param("gid"), 10, 32)
+	if err != nil {
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert gid into uint"}
+	}
 	// Get request body
 	if err := c.Bind(&body); err != nil {
 		return err
 	}
 
 	// Find group
-
-	if err := h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&models.Group{}).Error; err != nil {
+	if err := h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&g).Error; err != nil {
 		// Does group exist?
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
@@ -72,7 +75,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 
 	// Validate other fields
 	if body.Name != "" {
-		err := h.DB.Model(&models.Group{}).Where("name = ? AND id <> ?", g.Name, gid).First(&models.Group{}).Error
+		err := h.DB.Model(&models.Group{}).Where("name = ? AND id <> ?", body.Name, gid).First(&models.Group{}).Error
 		if err != nil {
 			// Does group name exist?
 			if errors.Is(err, gorm.ErrRecordNotFound) {

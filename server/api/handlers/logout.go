@@ -38,7 +38,7 @@ func (h *Handler) Logout(c echo.Context) error {
 	// Get refresh token claims
 	claims := make(jwt.MapClaims)
 	token, err := jwt.ParseWithClaims(tokens.RefreshToken, claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("API_SECRET")), nil
+		return []byte(os.Getenv("GLIM_API_SECRET")), nil
 	})
 
 	// Extract access token jti

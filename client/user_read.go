@@ -22,17 +22,13 @@ import (
 	"strings"
 
 	"github.com/doncicuto/glim/models"
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-func getUser(id uint32, tlscacert string) {
+func getUser(id uint, tlscacert string) {
 	// Glim server URL
-	url := os.Getenv("GLIM_URI")
-	if url == "" {
-		url = serverAddress
-	}
-
+	url := viper.GetString("server")
 	endpoint := fmt.Sprintf("%s/users/%d", url, id)
 	// Read credentials
 	token := ReadCredentials()
@@ -44,9 +40,7 @@ func getUser(id uint32, tlscacert string) {
 	}
 
 	// Rest API authentication
-	client := resty.New()
-	client.SetAuthToken(token.AccessToken)
-	client.SetRootCertificate(tlscacert)
+	client := RestClient(token.AccessToken)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -64,7 +58,7 @@ func getUser(id uint32, tlscacert string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-6s %-15s %-20s %-20s %-20s %-8s %-8s\n",
+	fmt.Printf("%-6s %-15s %-20s %-20s %-20s %-8s %-8s %-8s\n",
 		"UID",
 		"USERNAME",
 		"FULLNAME",
@@ -72,6 +66,7 @@ func getUser(id uint32, tlscacert string) {
 		"GROUPS",
 		"MANAGER",
 		"READONLY",
+		"LOCKED",
 	)
 
 	memberOf := "none"
@@ -86,7 +81,7 @@ func getUser(id uint32, tlscacert string) {
 		memberOf = strings.Join(groups, ",")
 	}
 
-	fmt.Printf("%-6d %-15s %-20s %-20s %-20s %-8v %-8v\n",
+	fmt.Printf("%-6d %-15s %-20s %-20s %-20s %-8v %-8v %-8v\n",
 		result.ID,
 		truncate(result.Username, 15),
 		truncate(strings.Join([]string{result.GivenName, result.Surname}, " "), 20),
@@ -94,16 +89,14 @@ func getUser(id uint32, tlscacert string) {
 		truncate(memberOf, 20),
 		result.Manager,
 		result.Readonly,
+		result.Locked,
 	)
 
 }
 
 func getUsers(tlscacert string) {
 	// Glim server URL
-	url := os.Getenv("GLIM_URI")
-	if url == "" {
-		url = serverAddress
-	}
+	url := viper.GetString("server")
 
 	// Read credentials
 	token := ReadCredentials()
@@ -115,9 +108,7 @@ func getUsers(tlscacert string) {
 	}
 
 	// Rest API authentication
-	client := resty.New()
-	client.SetAuthToken(token.AccessToken)
-	client.SetRootCertificate(tlscacert)
+	client := RestClient(token.AccessToken)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -135,7 +126,7 @@ func getUsers(tlscacert string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-6s %-15s %-20s %-20s %-20s %-8s %-8s\n",
+	fmt.Printf("%-6s %-15s %-20s %-20s %-20s %-8s %-8s %-8s\n",
 		"UID",
 		"USERNAME",
 		"FULLNAME",
@@ -143,6 +134,7 @@ func getUsers(tlscacert string) {
 		"GROUPS",
 		"MANAGER",
 		"READONLY",
+		"LOCKED",
 	)
 
 	results := resp.Result().(*[]models.UserInfo)
@@ -159,7 +151,7 @@ func getUsers(tlscacert string) {
 			memberOf = strings.Join(groups, ",")
 		}
 
-		fmt.Printf("%-6d %-15s %-20s %-20s %-20s %-8v %-8v\n",
+		fmt.Printf("%-6d %-15s %-20s %-20s %-20s %-8v %-8v %-8v\n",
 			result.ID,
 			truncate(result.Username, 15),
 			truncate(strings.Join([]string{result.GivenName, result.Surname}, " "), 20),
@@ -167,6 +159,7 @@ func getUsers(tlscacert string) {
 			truncate(memberOf, 20),
 			result.Manager,
 			result.Readonly,
+			result.Locked,
 		)
 	}
 }
@@ -175,11 +168,26 @@ func getUsers(tlscacert string) {
 var listUserCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List Glim user accounts",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
+		tlscacert := viper.GetString("tlscacert")
+		_, err := os.Stat(tlscacert)
+		if os.IsNotExist(err) {
+			fmt.Println("Could not find required CA pem file to validate authority")
+			os.Exit(1)
+		}
+
+		uid := viper.GetUint("uid")
+		if uid != 0 {
+			getUser(uid, tlscacert)
+			os.Exit(0)
+		}
 		getUsers(tlscacert)
 	},
 }
 
 func init() {
-	listUserCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "user account id")
+	listUserCmd.Flags().UintP("uid", "i", 0, "user account id")
 }

@@ -34,11 +34,6 @@ type Store struct {
 func NewBadgerStore(path string) (Store, error) {
 	s := Store{}
 	// Key-value store for JWT tokens storage
-	badgerEnv := os.Getenv("BADGER_DB_PATH")
-	if badgerEnv != "" {
-		path = badgerEnv
-	}
-
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		err := os.MkdirAll(path, 0755)

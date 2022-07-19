@@ -18,7 +18,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -78,13 +77,13 @@ func (h *Handler) Login(c echo.Context) error {
 	ac["readonly"] = dbUser.Readonly
 	t := jwt.New(jwt.SigningMethodHS256)
 	t.Claims = ac
-	at, err := t.SignedString([]byte(os.Getenv("API_SECRET")))
+	at, err := t.SignedString([]byte(os.Getenv("GLIM_API_SECRET")))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}
 
 	// Add access token to Key-Value store
-	err = h.KV.Set(fmt.Sprintf("%s", ajti), "false", atExpiresIn)
+	err = h.KV.Set(ajti.String(), "false", atExpiresIn)
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not add access token to key-value store"}
 	}
@@ -102,13 +101,13 @@ func (h *Handler) Login(c echo.Context) error {
 
 	t = jwt.New(jwt.SigningMethodHS256)
 	t.Claims = rc
-	rt, err := t.SignedString([]byte(os.Getenv("API_SECRET")))
+	rt, err := t.SignedString([]byte(os.Getenv("GLIM_API_SECRET")))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}
 
 	// Add response token to Key-Value store
-	err = h.KV.Set(fmt.Sprintf("%s", rjti), "false", rtExpiresIn)
+	err = h.KV.Set(rjti.String(), "false", rtExpiresIn)
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not add refresh token to key-value store"}
 	}

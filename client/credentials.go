@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"github.com/doncicuto/glim/server/api/auth"
-	resty "github.com/go-resty/resty/v2"
 	"github.com/golang-jwt/jwt"
+	"github.com/spf13/viper"
 )
 
 // AuthTokenPath - TODO comment
@@ -90,17 +90,10 @@ func DeleteCredentials() {
 // Refresh - TODO comment
 func Refresh(rt string) {
 	// Glim server URL
-	url := os.Getenv("GLIM_URI")
-	if url == "" {
-		url = serverAddress
-	}
+	url := viper.GetString("server")
 
 	// Rest API authentication
-	client := resty.New()
-
-	// Set bearer token
-	client.SetAuthToken(rt)
-	client.SetRootCertificate(tlscacert)
+	client := RestClient(rt)
 
 	// Query refresh token
 	resp, err := client.R().

@@ -25,6 +25,7 @@ import (
 	"github.com/sethvargo/go-password/password"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func createManager(db *gorm.DB) error {
@@ -67,9 +68,48 @@ func createManager(db *gorm.DB) error {
 	return nil
 }
 
+func createReadonly(db *gorm.DB) error {
+	randomPass, err := password.Generate(64, 10, 0, false, true)
+	if err != nil {
+		return err
+	}
+	hash, err := models.Hash(randomPass)
+	if err != nil {
+		return err
+	}
+	userUUID := uuid.New().String()
+	username := "search"
+	firstname := "Read-Only"
+	lastname := "Account"
+	hashed := string(hash)
+	manager := false
+	readonly := true
+
+	if err := db.Create(&models.User{
+		Username:  &username,
+		GivenName: &firstname,
+		Surname:   &lastname,
+		Password:  &hashed,
+		Manager:   &manager,
+		Readonly:  &readonly,
+		UUID:      &userUUID,
+	}).Error; err != nil {
+		return err
+	}
+	fmt.Println("")
+	fmt.Println("------------------------------------- WARNING -------------------------------------")
+	fmt.Println("A new user with read-only permissions has been created:")
+	fmt.Println("- Username: search") // TODO - Allow username with env
+	fmt.Printf("- Password %s\n", randomPass)
+	fmt.Println("Please store or write down this password to perform search queries in Glim.")
+	fmt.Println("-----------------------------------------------------------------------------------")
+
+	return nil
+}
+
 //Initialize - TODO common
-func Initialize() (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+func Initialize(dbName string) (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	// If we want to log Gorm queries
 	// db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	if err != nil {
@@ -85,6 +125,14 @@ func Initialize() (*gorm.DB, error) {
 	err = db.Where("manager = ?", true).Take(&manager).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		if err := createManager(db); err != nil {
+			return nil, err
+		}
+	}
+
+	var search models.User
+	err = db.Where("readonly = ?", true).Take(&search).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err := createReadonly(db); err != nil {
 			return nil, err
 		}
 	}

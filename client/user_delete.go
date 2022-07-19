@@ -21,14 +21,17 @@ import (
 	"os"
 
 	"github.com/Songmu/prompter"
-	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // DeleteUserCmd - TODO comment
 var deleteUserCmd = &cobra.Command{
 	Use:   "rm",
 	Short: "Remove a Glim user account",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		confirm := prompter.YesNo("Do you really want to delete this user?", false)
@@ -36,25 +39,19 @@ var deleteUserCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Glim server URL
-		url := os.Getenv("GLIM_URI")
-		if url == "" {
-			url = serverAddress
-		}
+		url := viper.GetString("server")
+		uid := viper.GetUint("uid")
 
 		// Read credentials and check if token needs refresh
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/users/%d", url, userID)
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
 			token = ReadCredentials()
 		}
 
 		// Rest API authentication
-		client := resty.New()
-		client.SetAuthToken(token.AccessToken)
-		client.SetRootCertificate(tlscacert)
-
+		client := RestClient(token.AccessToken)
+		endpoint := fmt.Sprintf("%s/users/%d", url, uid)
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetError(&APIError{}).
@@ -75,8 +72,6 @@ var deleteUserCmd = &cobra.Command{
 }
 
 func init() {
-	deleteUserCmd.Flags().Uint32VarP(&userID, "uid", "i", 0, "user account id")
-
-	// Mark required flags
-	cobra.MarkFlagRequired(deleteUserCmd.Flags(), "uid")
+	deleteUserCmd.Flags().UintP("uid", "i", 0, "user account id")
+	deleteUserCmd.MarkPersistentFlagRequired("uid")
 }

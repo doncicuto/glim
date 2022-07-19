@@ -100,16 +100,16 @@ Could not find required CA pem file to validate authority
 
 Glim can use the following environment variables:
 
-- API_SECRET (**REQUIRED**): A secret string to be used with JWT tokens
+- GLIM_API_SECRET (**REQUIRED**): A secret string to be used with JWT tokens
 - ACCESS_TOKEN_EXPIRY_TIME_SECONDS (OPTIONAL): Number of seconds for access token expiration (default: 3600)
 - REFRESH_TOKEN_EXPIRY_TIME_SECONDS (OPTIONAL): Number of seconds for refresh token expiration (default: 3 days).
 - MAX_DAYS_WITHOUT_RELOGIN (OPTIONAL): Number of days that we can use refresh tokens without log in again (default: 7 days).
-- DB_NAME: A name for the SQLite database that will store our users and groups
+- GLIM_DB_NAME: A name for the SQLite database that will store our users and groups
 - LDAP_DOMAIN (OPTIONAL): our ldap domain. Default value: example.org
-- API_SERVER_ADDRESS (OPTIONAL): listen address for our REST API server. Default value: 127.0.0.1:1323
-- LDAP_SERVER_ADDRESS (OPTIONAL): listen address for our LDAP server. Default value: 127.0.0.1:1636
-- GLIM_URI: Glim Rest API URI (OPTIONAL format: [https://<ip|hostname>:port](https://<ip|hostname>:port)). Default value: [https://127.0.0.1:1323](https://127.0.0.1:1323)
-- BADGER_DB_PATH (OPTIONAL): Directory path for BadgerDB KV store. Default value: /tmp/kv)
+- GLIM_REST_ADDR (OPTIONAL): listen address for our REST API server. Default value: 127.0.0.1:1323
+- GLIM_LDAP_ADDR (OPTIONAL): listen address for our LDAP server. Default value: 127.0.0.1:1636
+- GLIM_SERVER: Glim Rest API URI (OPTIONAL):  format `https://<ip|hostname>:port]`. Default value: `https://127.0.0.1:1323`
+- GLIM_BADGERDB_STORE (OPTIONAL): Directory path for BadgerDB KV store. Default value: /tmp/kv)
 
 ## Installation scenarios
 

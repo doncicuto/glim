@@ -26,30 +26,41 @@ import (
 	"github.com/Songmu/prompter"
 	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
-	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // NewUserCmd - TODO comment
 var newUserCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a Glim user account",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-
 		// Validate email
-		if err := checkmail.ValidateFormat(email); err != nil {
-			fmt.Println("email should have a valid format")
-			os.Exit(1)
+		email := viper.GetString("email")
+		if email != "" {
+			if err := checkmail.ValidateFormat(email); err != nil {
+				fmt.Println("email should have a valid format")
+				os.Exit(1)
+			}
 		}
 
 		// Check if both manager and readonly has been set
+
+		manager := viper.GetBool("manager")
+		readonly := viper.GetBool("readonly")
+
 		if manager && readonly {
 			fmt.Println("a Glim account cannot be both manager and readonly at the same time")
 			os.Exit(1)
 		}
 
 		// Prompt for password if needed
-		if !cmd.Flags().Changed("password") {
+		password := viper.GetString("password")
+		passwordStdin := viper.GetBool("password-stdin")
+		if password != "" {
 			if !passwordStdin {
 				password = prompter.Password("Password")
 				if password == "" {
@@ -100,10 +111,7 @@ var newUserCmd = &cobra.Command{
 		}
 
 		// Glim server URL
-		url := os.Getenv("GLIM_URI")
-		if url == "" {
-			url = serverAddress
-		}
+		url := viper.GetString("server")
 
 		// Read credentials
 		token := ReadCredentials()
@@ -115,19 +123,17 @@ var newUserCmd = &cobra.Command{
 		}
 
 		// Rest API authentication
-		client := resty.New()
-		client.SetAuthToken(token.AccessToken)
-		client.SetRootCertificate(tlscacert)
+		client := RestClient(token.AccessToken)
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONUserBody{
-				Username:  username,
+				Username:  viper.GetString("username"),
 				Password:  password,
-				GivenName: givenName,
-				Surname:   surname,
-				Email:     email,
-				MemberOf:  groups,
+				GivenName: viper.GetString("firstname"),
+				Surname:   viper.GetString("surname"),
+				Email:     viper.GetString("email"),
+				MemberOf:  viper.GetString("groups"),
 				Manager:   &manager,
 				Readonly:  &readonly,
 			}).
@@ -149,19 +155,15 @@ var newUserCmd = &cobra.Command{
 }
 
 func init() {
-	newUserCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
-	newUserCmd.Flags().StringVarP(&givenName, "firstname", "f", "", "First name")
-	newUserCmd.Flags().StringVarP(&surname, "lastname", "l", "", "Last name")
-	newUserCmd.Flags().StringVarP(&email, "email", "e", "", "Email")
-	newUserCmd.Flags().StringVarP(&password, "password", "p", "", "Password")
-	newUserCmd.Flags().StringVarP(&groups, "groups", "g", "", "Comma-separated list of groups that we want the new user account to be a member of")
-	newUserCmd.Flags().BoolVar(&passwordStdin, "password-stdin", false, "Take the password from stdin")
-	newUserCmd.Flags().BoolVar(&manager, "manager", false, "Glim manager account?")
-	newUserCmd.Flags().BoolVar(&readonly, "readonly", false, "Glim readonly account?")
-
-	// Mark required flags
-	cobra.MarkFlagRequired(newUserCmd.Flags(), "username")
-	cobra.MarkFlagRequired(newUserCmd.Flags(), "givenName")
-	cobra.MarkFlagRequired(newUserCmd.Flags(), "surname")
-	cobra.MarkFlagRequired(newUserCmd.Flags(), "email")
+	// newUserCmd.Flags().UintP("uid", "i", 0, "User account id")
+	newUserCmd.Flags().StringP("username", "u", "", "Username")
+	newUserCmd.Flags().StringP("firstname", "f", "", "First name")
+	newUserCmd.Flags().StringP("lastname", "l", "", "Last name")
+	newUserCmd.Flags().StringP("email", "e", "", "Email")
+	newUserCmd.Flags().StringP("password", "p", "", "Password")
+	newUserCmd.Flags().StringP("groups", "g", "", "Comma-separated list of groups that we want the new user account to be a member of")
+	newUserCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
+	newUserCmd.Flags().Bool("manager", false, "Glim manager account?")
+	newUserCmd.Flags().Bool("readonly", false, "Glim readonly account?")
+	newUserCmd.MarkFlagRequired("username")
 }

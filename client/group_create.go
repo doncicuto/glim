@@ -21,21 +21,21 @@ import (
 	"os"
 
 	"github.com/doncicuto/glim/models"
-	resty "github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // newGroupCmd - TODO comment
 var newGroupCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a Glim group",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Glim server URL
-		url := os.Getenv("GLIM_URI")
-		if url == "" {
-			url = serverAddress
-		}
+		url := viper.GetString("server")
 
 		// Read credentials
 		token := ReadCredentials()
@@ -47,16 +47,14 @@ var newGroupCmd = &cobra.Command{
 		}
 
 		// Rest API authentication
-		client := resty.New()
-		client.SetAuthToken(token.AccessToken)
-		client.SetRootCertificate(tlscacert)
+		client := RestClient(token.AccessToken)
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONGroupBody{
-				Name:        groupName,
-				Description: groupDesc,
-				Members:     groupMembers,
+				Name:        viper.GetString("name"),
+				Description: viper.GetString("description"),
+				Members:     viper.GetString("groupMembers"),
 			}).
 			SetError(&APIError{}).
 			Post(endpoint)
@@ -76,10 +74,8 @@ var newGroupCmd = &cobra.Command{
 }
 
 func init() {
-	newGroupCmd.Flags().StringVarP(&groupName, "name", "n", "", "our group name")
-	newGroupCmd.Flags().StringVarP(&groupDesc, "description", "d", "", "our group description")
-	newGroupCmd.Flags().StringVarP(&groupMembers, "members", "m", "", "comma-separated list of usernames e.g: admin,tux")
-
-	// Mark required flags
-	cobra.MarkFlagRequired(newGroupCmd.Flags(), "name")
+	newGroupCmd.Flags().StringP("name", "n", "", "our group name")
+	newGroupCmd.Flags().StringP("description", "d", "", "our group description")
+	newGroupCmd.Flags().StringP("members", "m", "", "comma-separated list of usernames e.g: admin,tux")
+	newGroupCmd.MarkFlagRequired("name")
 }

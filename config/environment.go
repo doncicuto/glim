@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 // Package config implements utility routines for handling environment variables
-// like API_SECRET, ACCESS_TOKEN_EXPIRY_TIME_SECONDS, REFRESH_TOKEN_EXPIRY_TIME_SECONDS
+// like GLIM_API_SECRET, ACCESS_TOKEN_EXPIRY_TIME_SECONDS, REFRESH_TOKEN_EXPIRY_TIME_SECONDS
 // and MAX_DAYS_WITHOUT_RELOGIN and setting default values.
 package config
 
@@ -24,10 +24,10 @@ import (
 	"strconv"
 )
 
-// CheckAPISecret returns a boolean value representing if the API_SECRET environment
+// CheckAPISecret returns a boolean value representing if the GLIM_API_SECRET environment
 // variable has been set
 func CheckAPISecret() bool {
-	return os.Getenv("API_SECRET") != ""
+	return os.Getenv("GLIM_API_SECRET") != ""
 }
 
 // AccessTokenExpiry returns the number of seconds for access token expiration if the

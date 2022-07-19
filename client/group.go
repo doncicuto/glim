@@ -17,30 +17,23 @@ limitations under the License.
 package client
 
 import (
-	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // groupCmd represents the group command
 var groupCmd = &cobra.Command{
 	Use:   "group",
 	Short: "Manage Glim groups",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlags(cmd.Flags())
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-
-		if cmd.Flags().Changed("gid") {
-			if gid == "" {
-				fmt.Println("Error non-null gid required")
-				os.Exit(1)
-			}
-			id, err := strconv.Atoi(gid)
-			if err != nil {
-				fmt.Println("Error numeric gid required")
-				os.Exit(1)
-			}
-			getGroup(id)
+		gid := viper.GetUint("gid")
+		if gid != 0 {
+			getGroup(gid)
 			os.Exit(0)
 		}
 		getGroups()
@@ -55,5 +48,5 @@ func init() {
 	groupCmd.AddCommand(newGroupCmd)
 	groupCmd.AddCommand(updateGroupCmd)
 	groupCmd.AddCommand(deleteGroupCmd)
-	groupCmd.Flags().StringVarP(&gid, "gid", "i", "", "group id")
+	groupCmd.Flags().UintP("gid", "g", 0, "group id")
 }
