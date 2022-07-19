@@ -40,6 +40,7 @@ type User struct {
 	UUID         *string   `gorm:"size:36" json:"uuid"`
 	Locked       *bool     `gorm:"default:false" json:"locked"`
 	SSHPublicKey *string   `json:"ssh_public_key"`
+	JPEGPhoto    *string   `json:"jpeg_photo"`
 }
 
 // JSONUserBody - TODO comment
@@ -50,6 +51,7 @@ type JSONUserBody struct {
 	Email            string `json:"email"`
 	Password         string `json:"password"`
 	SSHPublicKey     string `json:"ssh_public_key"`
+	JPEGPhoto        string `json:"jpeg_photo"`
 	MemberOf         string `json:"members,omitempty"`
 	Manager          *bool  `json:"manager"`
 	Readonly         *bool  `json:"readonly"`
@@ -72,6 +74,7 @@ type UserInfo struct {
 	Surname      string      `json:"lastname"`
 	Email        string      `json:"email"`
 	SSHPublicKey string      `json:"ssh_public_key"`
+	JPEGPhoto    string      `json:"jpeg_photo"`
 	Manager      bool        `json:"manager"`
 	Readonly     bool        `json:"readonly"`
 	MemberOf     []GroupInfo `json:"memberOf,omitempty"`
@@ -106,6 +109,9 @@ func GetUserInfo(u User, showMemberOf bool) UserInfo {
 	}
 	if u.SSHPublicKey != nil {
 		i.SSHPublicKey = *u.SSHPublicKey
+	}
+	if u.JPEGPhoto != nil {
+		i.JPEGPhoto = *u.JPEGPhoto
 	}
 	if u.Manager != nil {
 		i.Manager = *u.Manager

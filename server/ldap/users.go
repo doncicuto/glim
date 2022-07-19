@@ -109,6 +109,19 @@ func userEntry(user models.User, attributes string) map[string][]string {
 		}
 	}
 
+	_, ok = attrs["jpegPhoto"]
+	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
+		if user.JPEGPhoto != nil {
+			values["jpegPhoto:"] = []string{*user.JPEGPhoto}
+		}
+	}
+
+	_, ok = attrs["jpegphoto"]
+	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
+		if user.JPEGPhoto != nil {
+			values["jpegphoto:"] = []string{*user.JPEGPhoto}
+		}
+	}
 	_, ok = attrs["memberOf"]
 	if attributes == "ALL" || ok {
 		groups := []string{}
@@ -380,6 +393,24 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 					db.Or("ssh_public_key = ?", element)
 				}
 			}
+		case strings.HasPrefix(filter, "jpegPhoto="):
+			element := strings.TrimPrefix(filter, "jpegPhoto=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("jpeg_photo LIKE ?", element)
+				} else {
+					db.Or("jpeg_photo LIKE ?", element)
+				}
+			} else {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("jpeg_photo = ?", element)
+				} else {
+					db.Or("jpeg_photo = ?", element)
+				}
+			}
 		}
+
 	}
 }

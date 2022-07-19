@@ -76,6 +76,17 @@ var updateUserCmd = &cobra.Command{
 			token = ReadCredentials()
 		}
 
+		jpegPhoto := ""
+		jpegPhotoPath := viper.GetString("jpeg-photo")
+		if jpegPhotoPath != "" {
+			photo, err := JPEGToBase64(jpegPhotoPath)
+			jpegPhoto = *photo
+			if err != nil {
+				fmt.Printf("could not convert JPEG photo to Base64 - %v\n", err)
+				os.Exit(1)
+			}
+		}
+
 		userBody := models.JSONUserBody{
 			Username:     viper.GetString("username"),
 			GivenName:    viper.GetString("firstname"),
@@ -83,6 +94,7 @@ var updateUserCmd = &cobra.Command{
 			Email:        viper.GetString("email"),
 			SSHPublicKey: viper.GetString("ssh-public-key"),
 			MemberOf:     viper.GetString("groups"),
+			JPEGPhoto:    jpegPhoto,
 		}
 
 		if viper.GetBool("manager") {
@@ -140,19 +152,20 @@ var updateUserCmd = &cobra.Command{
 }
 
 func init() {
-	updateUserCmd.Flags().StringP("username", "u", "", "Username")
-	updateUserCmd.Flags().StringP("firstname", "f", "", "First name")
-	updateUserCmd.Flags().StringP("lastname", "l", "", "Last name")
-	updateUserCmd.Flags().StringP("email", "e", "", "Email")
+	updateUserCmd.Flags().StringP("username", "u", "", "username")
+	updateUserCmd.Flags().StringP("firstname", "f", "", "first name")
+	updateUserCmd.Flags().StringP("lastname", "l", "", "last name")
+	updateUserCmd.Flags().StringP("email", "e", "", "email")
 	updateUserCmd.Flags().StringP("ssh-public-key", "k", "", "SSH Public Key")
-	updateUserCmd.Flags().StringP("groups", "g", "", "Comma-separated list of group names. ")
-	updateUserCmd.Flags().Bool("manager", false, "Glim manager account?")
-	updateUserCmd.Flags().Bool("readonly", false, "Glim readonly account?")
-	updateUserCmd.Flags().Bool("plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
-	updateUserCmd.Flags().Bool("replace", false, "Replace groups with those specified with -g. Groups are appended to those that the user is a member of by default")
-	updateUserCmd.Flags().Bool("remove", false, "Remove group membership with those specified with -g.")
-	updateUserCmd.Flags().Bool("lock", false, "Lock account (cannot log in)")
-	updateUserCmd.Flags().Bool("unlock", false, "Unlock account (can log in)")
+	updateUserCmd.Flags().StringP("jpeg-photo", "j", "", "path to JPEG file")
+	updateUserCmd.Flags().StringP("groups", "g", "", "comma-separated list of group names. ")
+	updateUserCmd.Flags().Bool("manager", false, "glim manager account?")
+	updateUserCmd.Flags().Bool("readonly", false, "glim readonly account?")
+	updateUserCmd.Flags().Bool("plainuser", false, "glim plain user account. User can read and modify its own user account information but not its group membership.")
+	updateUserCmd.Flags().Bool("replace", false, "replace groups with those specified with -g. Groups are appended to those that the user is a member of by default")
+	updateUserCmd.Flags().Bool("remove", false, "remove group membership with those specified with -g.")
+	updateUserCmd.Flags().Bool("lock", false, "lock account (cannot log in)")
+	updateUserCmd.Flags().Bool("unlock", false, "unlock account (can log in)")
 	updateUserCmd.Flags().UintP("uid", "i", 0, "user account id")
 	updateUserCmd.MarkFlagRequired("uid")
 }

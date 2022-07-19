@@ -17,7 +17,11 @@ limitations under the License.
 package client
 
 import (
+	"bufio"
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/viper"
@@ -42,4 +46,18 @@ func RestClient(token string) *resty.Client {
 	tlscacert := viper.GetString("tlscacert")
 	client.SetRootCertificate(tlscacert)
 	return client
+}
+
+func JPEGToBase64(path string) (*string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	reader := bufio.NewReader(f)
+	content, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	encoded := base64.StdEncoding.EncodeToString(content)
+	return &encoded, nil
 }

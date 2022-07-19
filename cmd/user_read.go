@@ -70,6 +70,7 @@ func getUser(id uint) {
 	fmt.Printf("%-15s %-8v\n", "Read-Only:", result.Readonly)
 	fmt.Printf("%-15s %-8v\n", "Locked:", result.Locked)
 	fmt.Printf("%-15s %s\n", "SSH Public Key:", result.SSHPublicKey)
+	fmt.Printf("%-15s %s\n", "JPEG Photo:", truncate(result.JPEGPhoto, 100))
 	fmt.Println("----")
 	if len(result.MemberOf) > 0 {
 		fmt.Println("Member of: ")
