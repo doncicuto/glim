@@ -50,6 +50,11 @@ func (h *Handler) Login(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
 	}
 
+	// Check if account is locked
+	if *dbUser.Locked {
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
+	}
+
 	// Check if passwords match
 	if err := models.VerifyPassword(*dbUser.Password, password); err != nil {
 		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}

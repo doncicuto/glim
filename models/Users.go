@@ -51,6 +51,7 @@ type JSONUserBody struct {
 	MemberOf         string `json:"members,omitempty"`
 	Manager          *bool  `json:"manager"`
 	Readonly         *bool  `json:"readonly"`
+	Locked           *bool  `json:"locked"`
 	ReplaceMembersOf bool   `json:"replace"`
 	RemoveMembersOf  bool   `json:"remove"`
 }
@@ -105,6 +106,9 @@ func GetUserInfo(u User, showMemberOf bool) UserInfo {
 	}
 	if u.Readonly != nil {
 		i.Readonly = *u.Readonly
+	}
+	if u.Locked != nil {
+		i.Locked = *u.Locked
 	}
 
 	if showMemberOf {

@@ -94,6 +94,14 @@ var updateUserCmd = &cobra.Command{
 			userBody.Readonly = &trueValue
 		}
 
+		if viper.GetBool("lock") {
+			userBody.Locked = &trueValue
+		}
+
+		if viper.GetBool("unlock") {
+			userBody.Locked = &falseValue
+		}
+
 		if viper.GetBool("plainuser") {
 			userBody.Manager = &falseValue
 			userBody.Readonly = &falseValue
@@ -141,6 +149,8 @@ func init() {
 	updateUserCmd.Flags().Bool("plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
 	updateUserCmd.Flags().Bool("replace", false, "Replace groups with those specified with -g. Groups are appended to those that the user is a member of by default")
 	updateUserCmd.Flags().Bool("remove", false, "Remove group membership with those specified with -g.")
+	updateUserCmd.Flags().Bool("lock", false, "Lock account (cannot log in)")
+	updateUserCmd.Flags().Bool("unlock", false, "Unlock account (can log in)")
 	updateUserCmd.Flags().UintP("uid", "i", 0, "user account id")
 	updateUserCmd.MarkFlagRequired("uid")
 }

@@ -98,6 +98,10 @@ func (h *Handler) SaveUser(c echo.Context) error {
 		u.Readonly = body.Readonly
 	}
 
+	if body.Locked != nil {
+		u.Locked = body.Locked
+	}
+
 	userUUID := uuid.New().String()
 	u.UUID = &userUUID
 

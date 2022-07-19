@@ -125,6 +125,7 @@ var newUserCmd = &cobra.Command{
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
 
+		locked := len(password) == 0 || viper.GetBool("lock") || !viper.GetBool("unlock")
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONUserBody{
@@ -136,6 +137,7 @@ var newUserCmd = &cobra.Command{
 				MemberOf:  viper.GetString("groups"),
 				Manager:   &manager,
 				Readonly:  &readonly,
+				Locked:    &locked,
 			}).
 			SetError(&APIError{}).
 			Post(endpoint)
@@ -165,5 +167,7 @@ func init() {
 	newUserCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
 	newUserCmd.Flags().Bool("manager", false, "Glim manager account?")
 	newUserCmd.Flags().Bool("readonly", false, "Glim readonly account?")
+	newUserCmd.Flags().Bool("lock", false, "Lock account (cannot log in)")
+	newUserCmd.Flags().Bool("unlock", false, "Unlock account (can log in)")
 	newUserCmd.MarkFlagRequired("username")
 }

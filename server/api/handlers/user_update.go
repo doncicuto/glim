@@ -138,6 +138,10 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		updatedUser["readonly"] = *body.Readonly
 	}
 
+	if body.Locked != nil {
+		updatedUser["locked"] = *body.Locked
+	}
+
 	if body.ReplaceMembersOf && body.RemoveMembersOf {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "replace and replace are mutually exclusive"}
 	}
