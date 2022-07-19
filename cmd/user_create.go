@@ -129,15 +129,16 @@ var newUserCmd = &cobra.Command{
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONUserBody{
-				Username:  viper.GetString("username"),
-				Password:  password,
-				GivenName: viper.GetString("firstname"),
-				Surname:   viper.GetString("surname"),
-				Email:     viper.GetString("email"),
-				MemberOf:  viper.GetString("groups"),
-				Manager:   &manager,
-				Readonly:  &readonly,
-				Locked:    &locked,
+				Username:     viper.GetString("username"),
+				Password:     password,
+				GivenName:    viper.GetString("firstname"),
+				Surname:      viper.GetString("surname"),
+				Email:        viper.GetString("email"),
+				SSHPublicKey: viper.GetString("ssh-public-key"),
+				MemberOf:     viper.GetString("groups"),
+				Manager:      &manager,
+				Readonly:     &readonly,
+				Locked:       &locked,
 			}).
 			SetError(&APIError{}).
 			Post(endpoint)
@@ -163,6 +164,7 @@ func init() {
 	newUserCmd.Flags().StringP("lastname", "l", "", "Last name")
 	newUserCmd.Flags().StringP("email", "e", "", "Email")
 	newUserCmd.Flags().StringP("password", "p", "", "Password")
+	newUserCmd.Flags().StringP("ssh-public-key", "k", "", "SSH Public Key")
 	newUserCmd.Flags().StringP("groups", "g", "", "Comma-separated list of groups that we want the new user account to be a member of")
 	newUserCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
 	newUserCmd.Flags().Bool("manager", false, "Glim manager account?")

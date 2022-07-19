@@ -90,6 +90,8 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	}
 	u.Email = &body.Email
 
+	u.SSHPublicKey = &body.SSHPublicKey
+
 	if body.Manager != nil {
 		u.Manager = body.Manager
 	}

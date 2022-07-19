@@ -130,6 +130,10 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		updatedUser["email"] = body.Email
 	}
 
+	if body.SSHPublicKey != "" {
+		updatedUser["ssh_public_key"] = body.SSHPublicKey
+	}
+
 	if body.Manager != nil {
 		updatedUser["manager"] = *body.Manager
 	}

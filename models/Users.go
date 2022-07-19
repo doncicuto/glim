@@ -24,21 +24,22 @@ import (
 
 //User - TODO comment
 type User struct {
-	ID        uint32    `gorm:"primary_key;auto_increment" json:"uid"`
-	Username  *string   `gorm:"size:64;not null;unique" json:"username"`
-	GivenName *string   `gorm:"size:150" json:"firstname"`
-	Surname   *string   `gorm:"size:150" json:"lastname"`
-	Email     *string   `gorm:"size:322" json:"email"`
-	Password  *string   `gorm:"size:60" json:"password"`
-	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	CreatedBy *string   `gorm:"size:500" json:"created_by"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	UpdatedBy *string   `gorm:"size:500" json:"updated_by"`
-	Manager   *bool     `gorm:"default:false" json:"manager"`
-	Readonly  *bool     `gorm:"default:true" json:"readonly"`
-	MemberOf  []*Group  `gorm:"many2many:group_members"`
-	UUID      *string   `gorm:"size:36" json:"uuid"`
-	Locked    *bool     `gorm:"default:false" json:"locked"`
+	ID           uint32    `gorm:"primary_key;auto_increment" json:"uid"`
+	Username     *string   `gorm:"size:64;not null;unique" json:"username"`
+	GivenName    *string   `gorm:"size:150" json:"firstname"`
+	Surname      *string   `gorm:"size:150" json:"lastname"`
+	Email        *string   `gorm:"size:322" json:"email"`
+	Password     *string   `gorm:"size:60" json:"password"`
+	CreatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	CreatedBy    *string   `gorm:"size:500" json:"created_by"`
+	UpdatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	UpdatedBy    *string   `gorm:"size:500" json:"updated_by"`
+	Manager      *bool     `gorm:"default:false" json:"manager"`
+	Readonly     *bool     `gorm:"default:true" json:"readonly"`
+	MemberOf     []*Group  `gorm:"many2many:group_members"`
+	UUID         *string   `gorm:"size:36" json:"uuid"`
+	Locked       *bool     `gorm:"default:false" json:"locked"`
+	SSHPublicKey *string   `json:"ssh_public_key"`
 }
 
 // JSONUserBody - TODO comment
@@ -48,6 +49,7 @@ type JSONUserBody struct {
 	Surname          string `json:"lastname"`
 	Email            string `json:"email"`
 	Password         string `json:"password"`
+	SSHPublicKey     string `json:"ssh_public_key"`
 	MemberOf         string `json:"members,omitempty"`
 	Manager          *bool  `json:"manager"`
 	Readonly         *bool  `json:"readonly"`
@@ -64,15 +66,16 @@ type JSONPasswdBody struct {
 
 //UserInfo - TODO comment
 type UserInfo struct {
-	ID        uint32      `json:"uid"`
-	Username  string      `json:"username"`
-	GivenName string      `json:"firstname"`
-	Surname   string      `json:"lastname"`
-	Email     string      `json:"email"`
-	Manager   bool        `json:"manager"`
-	Readonly  bool        `json:"readonly"`
-	MemberOf  []GroupInfo `json:"memberOf,omitempty"`
-	Locked    bool        `json:"locked"`
+	ID           uint32      `json:"uid"`
+	Username     string      `json:"username"`
+	GivenName    string      `json:"firstname"`
+	Surname      string      `json:"lastname"`
+	Email        string      `json:"email"`
+	SSHPublicKey string      `json:"ssh_public_key"`
+	Manager      bool        `json:"manager"`
+	Readonly     bool        `json:"readonly"`
+	MemberOf     []GroupInfo `json:"memberOf,omitempty"`
+	Locked       bool        `json:"locked"`
 }
 
 //Hash - TODO comment
@@ -100,6 +103,9 @@ func GetUserInfo(u User, showMemberOf bool) UserInfo {
 	}
 	if u.Email != nil {
 		i.Email = *u.Email
+	}
+	if u.SSHPublicKey != nil {
+		i.SSHPublicKey = *u.SSHPublicKey
 	}
 	if u.Manager != nil {
 		i.Manager = *u.Manager

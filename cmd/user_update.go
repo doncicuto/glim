@@ -77,11 +77,12 @@ var updateUserCmd = &cobra.Command{
 		}
 
 		userBody := models.JSONUserBody{
-			Username:  viper.GetString("username"),
-			GivenName: viper.GetString("firstname"),
-			Surname:   viper.GetString("lastname"),
-			Email:     viper.GetString("email"),
-			MemberOf:  viper.GetString("groups"),
+			Username:     viper.GetString("username"),
+			GivenName:    viper.GetString("firstname"),
+			Surname:      viper.GetString("lastname"),
+			Email:        viper.GetString("email"),
+			SSHPublicKey: viper.GetString("ssh-public-key"),
+			MemberOf:     viper.GetString("groups"),
 		}
 
 		if viper.GetBool("manager") {
@@ -143,6 +144,7 @@ func init() {
 	updateUserCmd.Flags().StringP("firstname", "f", "", "First name")
 	updateUserCmd.Flags().StringP("lastname", "l", "", "Last name")
 	updateUserCmd.Flags().StringP("email", "e", "", "Email")
+	updateUserCmd.Flags().StringP("ssh-public-key", "k", "", "SSH Public Key")
 	updateUserCmd.Flags().StringP("groups", "g", "", "Comma-separated list of group names. ")
 	updateUserCmd.Flags().Bool("manager", false, "Glim manager account?")
 	updateUserCmd.Flags().Bool("readonly", false, "Glim readonly account?")

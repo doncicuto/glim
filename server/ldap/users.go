@@ -66,7 +66,7 @@ func userEntry(user models.User, attributes string) map[string][]string {
 
 	_, ok = attrs["objectClass"]
 	if attributes == "ALL" || ok || operational {
-		values["objectClass"] = []string{"top", "person", "inetOrgPerson", "organizationalPerson", "ldapPublicKey"}
+		values["objectClass"] = []string{"top", "person", "inetOrgPerson", "organizationalPerson", "ldapPublicKey", "posixAccount"}
 	}
 
 	if attributes == "ALL" || attrs["uid"] != "" || attrs["inetOrgPerson"] != "" || operational {
@@ -99,6 +99,13 @@ func userEntry(user models.User, attributes string) map[string][]string {
 	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
 		if user.Email != nil {
 			values["mail"] = []string{*user.Email}
+		}
+	}
+
+	_, ok = attrs["SshPublicKey"]
+	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
+		if user.SSHPublicKey != nil {
+			values["SshPublicKey"] = []string{*user.SSHPublicKey}
 		}
 	}
 
@@ -356,7 +363,23 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 					db.Or("given_name = ?", element)
 				}
 			}
-
+		case strings.HasPrefix(filter, "SshPublicKey="):
+			element := strings.TrimPrefix(filter, "SshPublicKey=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("ssh_public_key LIKE ?", element)
+				} else {
+					db.Or("ssh_public_key LIKE ?", element)
+				}
+			} else {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("ssh_public_key = ?", element)
+				} else {
+					db.Or("ssh_public_key = ?", element)
+				}
+			}
 		}
 	}
 }
