@@ -37,26 +37,22 @@ var userPasswdCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		passwdBody := models.JSONPasswdBody{}
 
-		// Glim server URL
 		url := viper.GetString("server")
-
-		// Read credentials
 		uid := viper.GetUint("uid")
-		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/users/%d/passwd", url, uid)
+
 		// Check expiration
+		token := ReadCredentials()
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
 			token = ReadCredentials()
 		}
 
-		if !AmIManager(token) && uint(WhichIsMyTokenUID(token)) != uid {
-			fmt.Println("Only users with manager role can change other users passwords")
+		if uid == 0 {
+			uid = uint(WhichIsMyTokenUID(token))
 		}
 
-		password := viper.GetString("password")
-		if password != "" {
-			fmt.Println("WARNING! Using --password via the CLI is insecure.")
+		if !AmIManager(token) && uint(WhichIsMyTokenUID(token)) != uid {
+			fmt.Println("Only users with manager role can change other users passwords")
 		}
 
 		if uint(WhichIsMyTokenUID(token)) == uid {
@@ -68,8 +64,11 @@ var userPasswdCmd = &cobra.Command{
 			passwdBody.OldPassword = oldPassword
 		}
 
-		// Prompt for password if needed
+		password := viper.GetString("password")
+
 		if password != "" {
+			fmt.Println("WARNING! Using --password via the CLI is insecure.")
+		} else {
 			passwordStdin := viper.GetBool("passwd-stdin")
 			if !passwordStdin {
 				password = prompter.Password("New password")
@@ -89,7 +88,7 @@ var userPasswdCmd = &cobra.Command{
 
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
-
+		endpoint := fmt.Sprintf("%s/users/%d/passwd", url, uid)
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(passwdBody).
@@ -114,5 +113,4 @@ func init() {
 	userPasswdCmd.Flags().UintP("uid", "i", 0, "User account id")
 	userPasswdCmd.Flags().StringP("password", "p", "", "New user password")
 	userPasswdCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
-	userPasswdCmd.MarkFlagRequired("uid")
 }
