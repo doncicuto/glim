@@ -4,7 +4,6 @@ go 1.13
 
 require (
 	github.com/Songmu/prompter v0.5.1
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/badoux/checkmail v1.2.1
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -30,7 +29,6 @@ require (
 	github.com/subosito/gotenv v1.4.0 // indirect
 	github.com/swaggo/echo-swagger v1.3.3
 	github.com/swaggo/swag v1.8.4
-	github.com/urfave/cli/v2 v2.11.0 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 // indirect
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
