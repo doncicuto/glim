@@ -38,6 +38,7 @@ import (
 // @Tags         authentication
 // @Accept       json
 // @Produce      json
+// @Param        authentication  body auth.LoginBody  true  "Username and password"
 // @Success      200  {object}  auth.Response
 // @Failure			 400  {object} api.ErrorResponse
 // @Failure			 401  {object} api.ErrorResponse

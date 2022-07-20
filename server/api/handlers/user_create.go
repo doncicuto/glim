@@ -61,6 +61,7 @@ func (h *Handler) AddMembersOf(u *models.User, memberOf []string) error {
 // @Tags         users
 // @Accept       json
 // @Produce      json
+// @Param        user  body models.JSONUserBody  true  "User account body"
 // @Success      200  {object}  models.UserInfo
 // @Failure			 400  {object} api.ErrorResponse
 // @Failure			 401  {object} api.ErrorResponse

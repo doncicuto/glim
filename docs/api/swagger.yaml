@@ -5,6 +5,13 @@ definitions:
       message:
         type: string
     type: object
+  auth.LoginBody:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
   auth.Response:
     properties:
       access_token:
@@ -18,6 +25,13 @@ definitions:
       token_type:
         type: string
     type: object
+  auth.Tokens:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
   models.GroupInfo:
     properties:
       description:
@@ -29,6 +43,56 @@ definitions:
           $ref: '#/definitions/models.UserInfo'
         type: array
       name:
+        type: string
+    type: object
+  models.GroupMembers:
+    properties:
+      members:
+        type: string
+    type: object
+  models.JSONGroupBody:
+    properties:
+      description:
+        type: string
+      members:
+        type: string
+      name:
+        type: string
+      replace:
+        type: boolean
+    type: object
+  models.JSONPasswdBody:
+    properties:
+      old_password:
+        type: string
+      password:
+        type: string
+    type: object
+  models.JSONUserBody:
+    properties:
+      email:
+        type: string
+      firstname:
+        type: string
+      lastname:
+        type: string
+      locked:
+        type: boolean
+      manager:
+        type: boolean
+      members:
+        type: string
+      password:
+        type: string
+      readonly:
+        type: boolean
+      remove:
+        type: boolean
+      replace:
+        type: boolean
+      ssh_public_key:
+        type: string
+      username:
         type: string
     type: object
   models.UserInfo:
@@ -104,6 +168,13 @@ paths:
       consumes:
       - application/json
       description: Create a new group
+      parameters:
+      - description: Group body
+        in: body
+        name: group
+        required: true
+        schema:
+          $ref: '#/definitions/models.JSONGroupBody'
       produces:
       - application/json
       responses:
@@ -225,6 +296,12 @@ paths:
         name: id
         required: true
         type: integer
+      - description: Group body
+        in: body
+        name: group
+        required: true
+        schema:
+          $ref: '#/definitions/models.JSONGroupBody'
       produces:
       - application/json
       responses:
@@ -262,13 +339,18 @@ paths:
       consumes:
       - application/json
       description: Remove members from a group
+      parameters:
+      - description: Group members body
+        in: body
+        name: members
+        required: true
+        schema:
+          $ref: '#/definitions/models.GroupMembers'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.UserInfo'
+        "204":
+          description: No Content
         "400":
           description: Bad Request
           schema:
@@ -298,6 +380,13 @@ paths:
       consumes:
       - application/json
       description: Add members to a group
+      parameters:
+      - description: Group members body
+        in: body
+        name: members
+        required: true
+        schema:
+          $ref: '#/definitions/models.GroupMembers'
       produces:
       - application/json
       responses:
@@ -331,6 +420,13 @@ paths:
       consumes:
       - application/json
       description: Log in to the API and get JWT access and refresh tokens
+      parameters:
+      - description: Username and password
+        in: body
+        name: authentication
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginBody'
       produces:
       - application/json
       responses:
@@ -358,6 +454,13 @@ paths:
       consumes:
       - application/json
       description: Log out from the API
+      parameters:
+      - description: Access and Refresh tokens
+        in: body
+        name: tokens
+        required: true
+        schema:
+          $ref: '#/definitions/auth.Tokens'
       produces:
       - application/json
       responses:
@@ -382,6 +485,13 @@ paths:
       consumes:
       - application/json
       description: Get new JWT access and refresh tokens
+      parameters:
+      - description: Access and Refresh tokens
+        in: body
+        name: tokens
+        required: true
+        schema:
+          $ref: '#/definitions/auth.Tokens'
       produces:
       - application/json
       responses:
@@ -429,6 +539,13 @@ paths:
       consumes:
       - application/json
       description: Create a new user in our database
+      parameters:
+      - description: User account body
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.JSONUserBody'
       produces:
       - application/json
       responses:
@@ -550,6 +667,12 @@ paths:
         name: id
         required: true
         type: integer
+      - description: User account body
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.JSONUserBody'
       produces:
       - application/json
       responses:
@@ -583,6 +706,13 @@ paths:
       consumes:
       - application/json
       description: Change user account password
+      parameters:
+      - description: Password body
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/models.JSONPasswdBody'
       produces:
       - application/json
       responses:

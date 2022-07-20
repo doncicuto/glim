@@ -86,6 +86,17 @@ const docTemplate = `{
                     "groups"
                 ],
                 "summary": "Create a new group",
+                "parameters": [
+                    {
+                        "description": "Group body",
+                        "name": "group",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.JSONGroupBody"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -144,6 +155,17 @@ const docTemplate = `{
                     "groups"
                 ],
                 "summary": "Add members to a group",
+                "parameters": [
+                    {
+                        "description": "Group members body",
+                        "name": "members",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GroupMembers"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -194,12 +216,20 @@ const docTemplate = `{
                     "groups"
                 ],
                 "summary": "Remove members from a group",
-                "responses": {
-                    "200": {
-                        "description": "OK",
+                "parameters": [
+                    {
+                        "description": "Group members body",
+                        "name": "members",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UserInfo"
+                            "$ref": "#/definitions/models.GroupMembers"
                         }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -318,6 +348,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Group body",
+                        "name": "group",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.JSONGroupBody"
+                        }
                     }
                 ],
                 "responses": {
@@ -435,6 +474,17 @@ const docTemplate = `{
                     "authentication"
                 ],
                 "summary": "Log in to the API",
+                "parameters": [
+                    {
+                        "description": "Username and password",
+                        "name": "authentication",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginBody"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -476,6 +526,17 @@ const docTemplate = `{
                     "authentication"
                 ],
                 "summary": "Refresh authentication tokens",
+                "parameters": [
+                    {
+                        "description": "Access and Refresh tokens",
+                        "name": "tokens",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.Tokens"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -515,6 +576,17 @@ const docTemplate = `{
                     "authentication"
                 ],
                 "summary": "Delete authentication tokens",
+                "parameters": [
+                    {
+                        "description": "Access and Refresh tokens",
+                        "name": "tokens",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.Tokens"
+                        }
+                    }
+                ],
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -590,6 +662,17 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "Create a new user",
+                "parameters": [
+                    {
+                        "description": "User account body",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.JSONUserBody"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -648,6 +731,17 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "Change user account password",
+                "parameters": [
+                    {
+                        "description": "Password body",
+                        "name": "password",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.JSONPasswdBody"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -766,6 +860,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "User account body",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.JSONUserBody"
+                        }
                     }
                 ],
                 "responses": {
@@ -874,6 +977,17 @@ const docTemplate = `{
                 }
             }
         },
+        "auth.LoginBody": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "auth.Response": {
             "type": "object",
             "properties": {
@@ -894,6 +1008,17 @@ const docTemplate = `{
                 }
             }
         },
+        "auth.Tokens": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
         "models.GroupInfo": {
             "type": "object",
             "properties": {
@@ -910,6 +1035,83 @@ const docTemplate = `{
                     }
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GroupMembers": {
+            "type": "object",
+            "properties": {
+                "members": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.JSONGroupBody": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "members": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "replace": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.JSONPasswdBody": {
+            "type": "object",
+            "properties": {
+                "old_password": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.JSONUserBody": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "firstname": {
+                    "type": "string"
+                },
+                "lastname": {
+                    "type": "string"
+                },
+                "locked": {
+                    "type": "boolean"
+                },
+                "manager": {
+                    "type": "boolean"
+                },
+                "members": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "readonly": {
+                    "type": "boolean"
+                },
+                "remove": {
+                    "type": "boolean"
+                },
+                "replace": {
+                    "type": "boolean"
+                },
+                "ssh_public_key": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

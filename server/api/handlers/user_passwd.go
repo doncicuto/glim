@@ -34,6 +34,7 @@ import (
 // @Tags         users
 // @Accept       json
 // @Produce      json
+// @Param        password body models.JSONPasswdBody  true  "Password body"
 // @Success      200  {object}  models.UserInfo
 // @Failure			 400  {object} api.ErrorResponse
 // @Failure			 401  {object} api.ErrorResponse

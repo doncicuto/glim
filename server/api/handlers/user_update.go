@@ -64,6 +64,7 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "User Account ID"
+// @Param        user  body models.JSONUserBody  true  "User account body"
 // @Success      200  {object}  models.UserInfo
 // @Failure			 400  {object} api.ErrorResponse
 // @Failure			 401  {object} api.ErrorResponse

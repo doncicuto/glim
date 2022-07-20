@@ -37,6 +37,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Group ID"
+// @Param        group body models.JSONGroupBody  true  "Group body"
 // @Success      200  {object}  models.UserInfo
 // @Failure			 400  {object} api.ErrorResponse
 // @Failure			 401  {object} api.ErrorResponse

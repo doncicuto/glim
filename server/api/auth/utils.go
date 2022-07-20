@@ -29,3 +29,8 @@ type Response struct {
 	ExpiresOn int64   `json:"expires_on"`
 	Tokens
 }
+
+type LoginBody struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}

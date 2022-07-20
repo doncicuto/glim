@@ -33,6 +33,7 @@ import (
 // @Tags         groups
 // @Accept       json
 // @Produce      json
+// @Param        members body models.GroupMembers  true  "Group members body"
 // @Success      204
 // @Failure			 400  {object} api.ErrorResponse
 // @Failure			 401  {object} api.ErrorResponse
