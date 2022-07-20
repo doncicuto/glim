@@ -35,6 +35,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Router       /users/passwd [post]
+// @Security 		 Bearer
 func (h *Handler) Passwd(c echo.Context) error {
 	var dbUser models.User
 	var newUser = make(map[string]interface{})

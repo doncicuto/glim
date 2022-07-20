@@ -61,6 +61,7 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 // @Accept       json
 // @Produce      json
 // @Router       /groups/:id [post]
+// @Security 		 Bearer
 func (h *Handler) SaveGroup(c echo.Context) error {
 	g := new(models.Group)
 	createdBy := new(models.User)

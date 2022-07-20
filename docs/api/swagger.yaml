@@ -19,6 +19,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Find all groups
       tags:
       - groups
@@ -30,6 +32,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Delete a group
       tags:
       - groups
@@ -40,6 +44,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Find group by id
       tags:
       - groups
@@ -50,6 +56,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Create a new group
       tags:
       - groups
@@ -60,6 +68,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Update group
       tags:
       - groups
@@ -71,6 +81,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Remove members from a group
       tags:
       - groups
@@ -81,6 +93,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Add members to a group
       tags:
       - groups
@@ -124,6 +138,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Find all users
       tags:
       - users
@@ -134,6 +150,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Create a new user
       tags:
       - users
@@ -145,6 +163,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Delete user account
       tags:
       - users
@@ -155,6 +175,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Find user by id
       tags:
       - users
@@ -165,6 +187,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Update user account information
       tags:
       - users
@@ -176,7 +200,14 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Change user account password
       tags:
       - users
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

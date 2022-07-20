@@ -33,6 +33,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Router       /groups/members [post]
+// @Security 		 Bearer
 func (h *Handler) AddGroupMembers(c echo.Context) error {
 	// Get gid
 	gid := c.Param("gid")

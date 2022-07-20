@@ -34,6 +34,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Router       /groups/members [delete]
+// @Security 		 Bearer
 func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 	// Get gid
 	gid := c.Param("gid")

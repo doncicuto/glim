@@ -64,6 +64,7 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 // @Accept       json
 // @Produce      json
 // @Router       /users/:id [put]
+// @Security 		 Bearer
 func (h *Handler) UpdateUser(c echo.Context) error {
 	var updatedUser = make(map[string]interface{})
 

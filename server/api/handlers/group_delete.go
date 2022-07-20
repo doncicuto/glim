@@ -32,6 +32,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Router       /groups/:id [delete]
+// @Security 		 Bearer
 func (h *Handler) DeleteGroup(c echo.Context) error {
 	var g models.Group
 	gid := c.Param("gid")

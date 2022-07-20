@@ -37,6 +37,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Router       /groups/:id [put]
+// @Security 		 Bearer
 func (h *Handler) UpdateGroup(c echo.Context) error {
 	var modifiedBy = make(map[string]interface{})
 	g := new(models.Group)

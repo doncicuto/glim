@@ -26,6 +26,11 @@ const docTemplate = `{
     "paths": {
         "/groups": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Find all groups",
                 "consumes": [
                     "application/json"
@@ -42,6 +47,11 @@ const docTemplate = `{
         },
         "/groups/:id": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Find group by id",
                 "consumes": [
                     "application/json"
@@ -56,6 +66,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Update group",
                 "consumes": [
                     "application/json"
@@ -70,6 +85,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Create a new group",
                 "consumes": [
                     "application/json"
@@ -84,6 +104,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Delete a group",
                 "consumes": [
                     "application/json"
@@ -100,6 +125,11 @@ const docTemplate = `{
         },
         "/groups/members": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Add members to a group",
                 "consumes": [
                     "application/json"
@@ -114,6 +144,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Remove members from a group",
                 "consumes": [
                     "application/json"
@@ -176,6 +211,11 @@ const docTemplate = `{
         },
         "/users": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Find all users",
                 "consumes": [
                     "application/json"
@@ -190,6 +230,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Create a new user in our database",
                 "consumes": [
                     "application/json"
@@ -206,6 +251,11 @@ const docTemplate = `{
         },
         "/users/:id": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Find user by id",
                 "consumes": [
                     "application/json"
@@ -220,6 +270,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Update user account information",
                 "consumes": [
                     "application/json"
@@ -234,6 +289,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Delete user account",
                 "consumes": [
                     "application/json"
@@ -250,6 +310,11 @@ const docTemplate = `{
         },
         "/users/passwd": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Change user account password",
                 "consumes": [
                     "application/json"
@@ -263,6 +328,13 @@ const docTemplate = `{
                 "summary": "Change user account password",
                 "responses": {}
             }
+        }
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

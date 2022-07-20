@@ -33,6 +33,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Router       /users/:id [delete]
+// @Security 		 Bearer
 func (h *Handler) DeleteUser(c echo.Context) error {
 	var u models.User
 	// User id cannot be empty

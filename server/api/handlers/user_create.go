@@ -62,6 +62,7 @@ func (h *Handler) AddMembersOf(u *models.User, memberOf []string) error {
 // @Accept       json
 // @Produce      json
 // @Router       /users [post]
+// @Security 		 Bearer
 func (h *Handler) SaveUser(c echo.Context) error {
 	u := new(models.User)
 

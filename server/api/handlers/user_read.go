@@ -33,6 +33,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Router       /users [get]
+// @Security 		 Bearer
 func (h *Handler) FindAllUsers(c echo.Context) error {
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
@@ -76,6 +77,7 @@ func (h *Handler) FindAllUsers(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Router       /users/:id [get]
+// @Security 		 Bearer
 func (h *Handler) FindUserByID(c echo.Context) error {
 	var u models.User
 	var err error
