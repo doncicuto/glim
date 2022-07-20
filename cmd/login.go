@@ -104,7 +104,7 @@ var loginCmd = &cobra.Command{
 				Password: password,
 			}).
 			SetError(&APIError{}).
-			Post(fmt.Sprintf("%s/login", url))
+			Post(fmt.Sprintf("%s/v1/login", url))
 
 		if err != nil {
 			fmt.Printf("Error connecting with Glim: %v\n", err)

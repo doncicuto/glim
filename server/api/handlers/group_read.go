@@ -27,6 +27,12 @@ import (
 )
 
 // FindGroupByID - TODO comment
+// @Summary      Find group by id
+// @Description  Find group by id
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Router       /groups/:id [get]
 func (h *Handler) FindGroupByID(c echo.Context) error {
 	var g models.Group
 	var err error
@@ -46,6 +52,12 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 }
 
 // FindAllGroups - TODO comment
+// @Summary      Find all groups
+// @Description  Find all groups
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Router       /groups [get]
 func (h *Handler) FindAllGroups(c echo.Context) error {
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))

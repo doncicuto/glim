@@ -26,6 +26,12 @@ import (
 )
 
 //DeleteGroup - TODO comment
+// @Summary      Delete a group
+// @Description  Delete a group
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Router       /groups/:id [delete]
 func (h *Handler) DeleteGroup(c echo.Context) error {
 	var g models.Group
 	gid := c.Param("gid")

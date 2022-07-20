@@ -44,20 +44,16 @@ type Settings struct {
 }
 
 // Server - TODO command
-// @title Swagger Example API
+
+// @title Glim REST API
 // @version 1.0
-// @description This is a sample server Glim server.
-// @termsOfService http://swagger.io/terms/
-
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
-
+// @description Glim REST API for login/logout, user and group operations.
+// @contact.name Miguel Cabrerizo
+// @contact.url https://github.com/doncicuto/glim/issues
+// @contact.email support@sologitops.com
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host petstore.swagger.io
-// @BasePath /v2
+// @BasePath /v1
 func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	defer wg.Done()
 
@@ -86,11 +82,12 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	// Routes
 	// JWT tokens will be used for all endpoints but for token requests and swagger
 
-	e.POST("/login", h.Login)
-	e.POST("/login/refresh_token", h.Refresh)
-	e.DELETE("/login/refresh_token", h.Logout)
+	v1 := e.Group("v1")
+	v1.POST("/login", h.Login)
+	v1.POST("/login/refresh_token", h.Refresh)
+	v1.DELETE("/login/refresh_token", h.Logout)
 
-	u := e.Group("/users")
+	u := v1.Group("/users")
 	u.Use(middleware.JWT([]byte(os.Getenv("GLIM_API_SECRET"))))
 	u.GET("", h.FindAllUsers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	u.POST("", h.SaveUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
@@ -99,7 +96,7 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	u.DELETE("/:uid", h.DeleteUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	u.POST("/:uid/passwd", h.Passwd, glimMiddleware.IsBlacklisted(blacklist))
 
-	g := e.Group("/groups")
+	g := v1.Group("/groups")
 	g.Use(middleware.JWT([]byte(os.Getenv("GLIM_API_SECRET"))))
 	g.GET("", h.FindAllGroups, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	g.POST("", h.SaveGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)

@@ -102,7 +102,7 @@ func Refresh(rt string) {
 			Token: rt,
 		}).
 		SetError(&APIError{}).
-		Post(fmt.Sprintf("%s/login/refresh_token", url))
+		Post(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
 	if err != nil {
 		fmt.Printf("Error connecting with Glim: %v\n", err)

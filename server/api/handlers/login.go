@@ -33,6 +33,12 @@ import (
 )
 
 // Login - TODO comment
+// @Summary      Log in to the API
+// @Description  Log in to the API and get JWT access and refresh tokens
+// @Tags         authentication
+// @Accept       json
+// @Produce      json
+// @Router       /login [post]
 func (h *Handler) Login(c echo.Context) error {
 	var dbUser models.User
 

@@ -29,7 +29,7 @@ import (
 func getUser(id uint) {
 	// Glim server URL
 	url := viper.GetString("server")
-	endpoint := fmt.Sprintf("%s/users/%d", url, id)
+	endpoint := fmt.Sprintf("%s/v1/users/%d", url, id)
 	// Read credentials
 	token := ReadCredentials()
 
@@ -85,7 +85,7 @@ func getUsers() {
 
 	// Read credentials
 	token := ReadCredentials()
-	endpoint := fmt.Sprintf("%s/users", url)
+	endpoint := fmt.Sprintf("%s/v1/users", url)
 	// Check expiration
 	if NeedsRefresh(token) {
 		Refresh(token.RefreshToken)

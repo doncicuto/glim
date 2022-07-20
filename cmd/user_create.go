@@ -115,7 +115,7 @@ var newUserCmd = &cobra.Command{
 
 		// Read credentials
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/users", url)
+		endpoint := fmt.Sprintf("%s/v1/users", url)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)

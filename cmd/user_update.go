@@ -69,7 +69,7 @@ var updateUserCmd = &cobra.Command{
 		// Read credentials
 		uid := viper.GetUint("uid")
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/users/%d", url, uid)
+		endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)

@@ -28,6 +28,12 @@ import (
 )
 
 //RemoveGroupMembers - TODO comment
+// @Summary      Remove members from a group
+// @Description  Remove members from a group
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Router       /groups/members [delete]
 func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 	// Get gid
 	gid := c.Param("gid")

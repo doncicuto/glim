@@ -88,7 +88,7 @@ var userPasswdCmd = &cobra.Command{
 
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
-		endpoint := fmt.Sprintf("%s/users/%d/passwd", url, uid)
+		endpoint := fmt.Sprintf("%s/v1/users/%d/passwd", url, uid)
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(passwdBody).

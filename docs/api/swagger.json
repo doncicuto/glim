@@ -1,13 +1,12 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is a sample server Glim server.",
-        "title": "Swagger Example API",
-        "termsOfService": "http://swagger.io/terms/",
+        "description": "Glim REST API for login/logout, user and group operations.",
+        "title": "Glim REST API",
         "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
+            "name": "Miguel Cabrerizo",
+            "url": "https://github.com/doncicuto/glim/issues",
+            "email": "support@sologitops.com"
         },
         "license": {
             "name": "Apache 2.0",
@@ -15,29 +14,245 @@
         },
         "version": "1.0"
     },
-    "host": "petstore.swagger.io",
-    "basePath": "/v2",
+    "basePath": "/v1",
     "paths": {
-        "/accounts/{id}": {
+        "/groups": {
             "get": {
-                "description": "get string by ID",
+                "description": "Find all groups",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Show a account",
-                "operationId": "get-string-by-int",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Account ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
+                "tags": [
+                    "groups"
                 ],
+                "summary": "Find all groups",
+                "responses": {}
+            }
+        },
+        "/groups/:id": {
+            "get": {
+                "description": "Find group by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Find group by id",
+                "responses": {}
+            },
+            "put": {
+                "description": "Update group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Update group",
+                "responses": {}
+            },
+            "post": {
+                "description": "Create a new group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Create a new group",
+                "responses": {}
+            },
+            "delete": {
+                "description": "Delete a group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Delete a group",
+                "responses": {}
+            }
+        },
+        "/groups/members": {
+            "post": {
+                "description": "Add members to a group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Add members to a group",
+                "responses": {}
+            },
+            "delete": {
+                "description": "Remove members from a group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Remove members from a group",
+                "responses": {}
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Log in to the API and get JWT access and refresh tokens",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Log in to the API",
+                "responses": {}
+            }
+        },
+        "/login/refresh_token": {
+            "post": {
+                "description": "Get new JWT access and refresh tokens",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Refresh authentication tokens",
+                "responses": {}
+            },
+            "delete": {
+                "description": "Log out from the API",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Delete authentication tokens",
+                "responses": {}
+            }
+        },
+        "/users": {
+            "get": {
+                "description": "Find all users",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Find all users",
+                "responses": {}
+            },
+            "post": {
+                "description": "Create a new user in our database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create a new user",
+                "responses": {}
+            }
+        },
+        "/users/:id": {
+            "get": {
+                "description": "Find user by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Find user by id",
+                "responses": {}
+            },
+            "put": {
+                "description": "Update user account information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update user account information",
+                "responses": {}
+            },
+            "delete": {
+                "description": "Delete user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete user account",
+                "responses": {}
+            }
+        },
+        "/users/passwd": {
+            "post": {
+                "description": "Change user account password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Change user account password",
                 "responses": {}
             }
         }

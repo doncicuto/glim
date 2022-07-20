@@ -27,6 +27,12 @@ import (
 )
 
 //DeleteUser - TODO comment
+// @Summary      Delete user account
+// @Description  Delete user account
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Router       /users/:id [delete]
 func (h *Handler) DeleteUser(c echo.Context) error {
 	var u models.User
 	// User id cannot be empty

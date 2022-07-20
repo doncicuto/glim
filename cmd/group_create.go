@@ -39,7 +39,7 @@ var newGroupCmd = &cobra.Command{
 
 		// Read credentials
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/groups", url)
+		endpoint := fmt.Sprintf("%s/v1/groups", url)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)

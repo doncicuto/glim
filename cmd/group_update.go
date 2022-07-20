@@ -38,7 +38,7 @@ var updateGroupCmd = &cobra.Command{
 
 		// Read credentials
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/groups/%d", url, viper.GetUint("gid"))
+		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, viper.GetUint("gid"))
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)

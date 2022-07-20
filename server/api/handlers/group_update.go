@@ -31,6 +31,12 @@ import (
 )
 
 //UpdateGroup - TODO comment
+// @Summary      Update group
+// @Description  Update group
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Router       /groups/:id [put]
 func (h *Handler) UpdateGroup(c echo.Context) error {
 	var modifiedBy = make(map[string]interface{})
 	g := new(models.Group)

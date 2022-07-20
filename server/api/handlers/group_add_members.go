@@ -27,6 +27,12 @@ import (
 )
 
 //AddGroupMembers - TODO comment
+// @Summary      Add members to a group
+// @Description  Add members to a group
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Router       /groups/members [post]
 func (h *Handler) AddGroupMembers(c echo.Context) error {
 	// Get gid
 	gid := c.Param("gid")

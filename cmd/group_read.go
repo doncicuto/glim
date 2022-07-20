@@ -29,7 +29,7 @@ func getGroup(id uint) {
 	// Glim server URL
 	url := viper.GetString("server")
 
-	endpoint := fmt.Sprintf("%s/groups/%d", url, id)
+	endpoint := fmt.Sprintf("%s/v1/groups/%d", url, id)
 	// Read credentials
 	token := ReadCredentials()
 
@@ -78,7 +78,7 @@ func getGroups() {
 
 	// Read credentials
 	token := ReadCredentials()
-	endpoint := fmt.Sprintf("%s/groups", url)
+	endpoint := fmt.Sprintf("%s/v1/groups", url)
 	// Check expiration
 	if NeedsRefresh(token) {
 		Refresh(token.RefreshToken)

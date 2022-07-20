@@ -45,7 +45,7 @@ var deleteGroupCmd = &cobra.Command{
 		// Read credentials
 		gid := viper.GetUint("gid")
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/groups/%d", url, gid)
+		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)

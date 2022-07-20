@@ -33,6 +33,12 @@ import (
 )
 
 // Refresh API tokens
+// @Summary      Refresh authentication tokens
+// @Description  Get new JWT access and refresh tokens
+// @Tags         authentication
+// @Accept       json
+// @Produce      json
+// @Router       /login/refresh_token [post]
 func (h *Handler) Refresh(c echo.Context) error {
 
 	// Get refresh token from body

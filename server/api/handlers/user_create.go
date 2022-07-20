@@ -56,6 +56,12 @@ func (h *Handler) AddMembersOf(u *models.User, memberOf []string) error {
 }
 
 //SaveUser - TODO comment
+// @Summary      Create a new user
+// @Description  Create a new user in our database
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Router       /users [post]
 func (h *Handler) SaveUser(c echo.Context) error {
 	u := new(models.User)
 

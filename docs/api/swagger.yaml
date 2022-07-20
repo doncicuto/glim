@@ -1,32 +1,182 @@
-basePath: /v2
-host: petstore.swagger.io
+basePath: /v1
 info:
   contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: This is a sample server Glim server.
+    email: support@sologitops.com
+    name: Miguel Cabrerizo
+    url: https://github.com/doncicuto/glim/issues
+  description: Glim REST API for login/logout, user and group operations.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: Swagger Example API
+  title: Glim REST API
   version: "1.0"
 paths:
-  /accounts/{id}:
+  /groups:
     get:
       consumes:
       - application/json
-      description: get string by ID
-      operationId: get-string-by-int
-      parameters:
-      - description: Account ID
-        in: path
-        name: id
-        required: true
-        type: integer
+      description: Find all groups
       produces:
       - application/json
       responses: {}
-      summary: Show a account
+      summary: Find all groups
+      tags:
+      - groups
+  /groups/:id:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a group
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete a group
+      tags:
+      - groups
+    get:
+      consumes:
+      - application/json
+      description: Find group by id
+      produces:
+      - application/json
+      responses: {}
+      summary: Find group by id
+      tags:
+      - groups
+    post:
+      consumes:
+      - application/json
+      description: Create a new group
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new group
+      tags:
+      - groups
+    put:
+      consumes:
+      - application/json
+      description: Update group
+      produces:
+      - application/json
+      responses: {}
+      summary: Update group
+      tags:
+      - groups
+  /groups/members:
+    delete:
+      consumes:
+      - application/json
+      description: Remove members from a group
+      produces:
+      - application/json
+      responses: {}
+      summary: Remove members from a group
+      tags:
+      - groups
+    post:
+      consumes:
+      - application/json
+      description: Add members to a group
+      produces:
+      - application/json
+      responses: {}
+      summary: Add members to a group
+      tags:
+      - groups
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Log in to the API and get JWT access and refresh tokens
+      produces:
+      - application/json
+      responses: {}
+      summary: Log in to the API
+      tags:
+      - authentication
+  /login/refresh_token:
+    delete:
+      consumes:
+      - application/json
+      description: Log out from the API
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete authentication tokens
+      tags:
+      - authentication
+    post:
+      consumes:
+      - application/json
+      description: Get new JWT access and refresh tokens
+      produces:
+      - application/json
+      responses: {}
+      summary: Refresh authentication tokens
+      tags:
+      - authentication
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Find all users
+      produces:
+      - application/json
+      responses: {}
+      summary: Find all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user in our database
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new user
+      tags:
+      - users
+  /users/:id:
+    delete:
+      consumes:
+      - application/json
+      description: Delete user account
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete user account
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Find user by id
+      produces:
+      - application/json
+      responses: {}
+      summary: Find user by id
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update user account information
+      produces:
+      - application/json
+      responses: {}
+      summary: Update user account information
+      tags:
+      - users
+  /users/passwd:
+    post:
+      consumes:
+      - application/json
+      description: Change user account password
+      produces:
+      - application/json
+      responses: {}
+      summary: Change user account password
+      tags:
+      - users
 swagger: "2.0"

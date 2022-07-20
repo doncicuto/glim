@@ -52,7 +52,7 @@ var logoutCmd = &cobra.Command{
 			SetHeader("Content-Type", "application/json").
 			SetBody(fmt.Sprintf(`{"refresh_token":"%s"}`, token.RefreshToken)).
 			SetError(&APIError{}).
-			Delete(fmt.Sprintf("%s/login/refresh_token", url))
+			Delete(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
 		if err != nil {
 			fmt.Printf("Error connecting with Glim: %v\n", err)

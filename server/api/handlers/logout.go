@@ -27,6 +27,12 @@ import (
 )
 
 // Logout - TODO comment
+// @Summary      Delete authentication tokens
+// @Description  Log out from the API
+// @Tags         authentication
+// @Accept       json
+// @Produce      json
+// @Router       /login/refresh_token [delete]
 func (h *Handler) Logout(c echo.Context) error {
 
 	// Get refresh token from body

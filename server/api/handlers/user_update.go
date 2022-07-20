@@ -58,6 +58,12 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 }
 
 //UpdateUser - TODO comment
+// @Summary      Update user account information
+// @Description  Update user account information
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Router       /users/:id [put]
 func (h *Handler) UpdateUser(c echo.Context) error {
 	var updatedUser = make(map[string]interface{})
 

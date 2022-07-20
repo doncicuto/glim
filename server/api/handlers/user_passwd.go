@@ -29,6 +29,12 @@ import (
 )
 
 //Passwd - TODO comment
+// @Summary      Change user account password
+// @Description  Change user account password
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Router       /users/passwd [post]
 func (h *Handler) Passwd(c echo.Context) error {
 	var dbUser models.User
 	var newUser = make(map[string]interface{})

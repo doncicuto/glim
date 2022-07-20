@@ -27,6 +27,12 @@ import (
 )
 
 //FindAllUsers - TODO comment
+// @Summary      Find all users
+// @Description  Find all users
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Router       /users [get]
 func (h *Handler) FindAllUsers(c echo.Context) error {
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
@@ -64,6 +70,12 @@ func (h *Handler) FindAllUsers(c echo.Context) error {
 }
 
 //FindUserByID - TODO comment
+// @Summary      Find user by id
+// @Description  Find user by id
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Router       /users/:id [get]
 func (h *Handler) FindUserByID(c echo.Context) error {
 	var u models.User
 	var err error

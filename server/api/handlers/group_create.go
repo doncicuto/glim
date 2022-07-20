@@ -55,6 +55,12 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 }
 
 // SaveGroup - TODO comment
+// @Summary      Create a new group
+// @Description  Create a new group
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Router       /groups/:id [post]
 func (h *Handler) SaveGroup(c echo.Context) error {
 	g := new(models.Group)
 	createdBy := new(models.User)
