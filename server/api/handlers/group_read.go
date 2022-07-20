@@ -32,7 +32,13 @@ import (
 // @Tags         groups
 // @Accept       json
 // @Produce      json
-// @Router       /groups/:id [get]
+// @Param        id   path      int  true  "Group ID"
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   404  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
+// @Router       /groups/{id} [get]
 // @Security 		 Bearer
 func (h *Handler) FindGroupByID(c echo.Context) error {
 	var g models.Group
@@ -44,7 +50,7 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	showMembers := true
@@ -58,6 +64,10 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 // @Tags         groups
 // @Accept       json
 // @Produce      json
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
 // @Router       /groups [get]
 // @Security 		 Bearer
 func (h *Handler) FindAllGroups(c echo.Context) error {
@@ -80,7 +90,7 @@ func (h *Handler) FindAllGroups(c echo.Context) error {
 		Offset((page - 1) * limit).
 		Limit(limit).
 		Find(&groups).Error; err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	if len(groups) == 0 {

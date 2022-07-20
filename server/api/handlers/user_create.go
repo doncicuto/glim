@@ -61,6 +61,12 @@ func (h *Handler) AddMembersOf(u *models.User, memberOf []string) error {
 // @Tags         users
 // @Accept       json
 // @Produce      json
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   404  {object} api.ErrorResponse
+// @Failure 	   406  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
 // @Router       /users [post]
 // @Security 		 Bearer
 func (h *Handler) SaveUser(c echo.Context) error {
@@ -81,7 +87,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	body := models.JSONUserBody{}
 	// Bind
 	if err := c.Bind(&body); err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Validate
@@ -126,7 +132,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	// Hash password
 	hashedPassword, err := models.Hash(body.Password)
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 	password := string(hashedPassword)
 	u.Password = &password
@@ -134,13 +140,13 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	// Add new user
 	err = h.DB.Model(models.User{}).Create(&u).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Get new user
 	err = h.DB.Where("username = ?", body.Username).First(&u).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Add group members
@@ -148,7 +154,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 		members := strings.Split(body.MemberOf, ",")
 		err = h.AddMembersOf(u, members)
 		if err != nil {
-			return err
+			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
 	}
 

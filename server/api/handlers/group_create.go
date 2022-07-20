@@ -60,7 +60,13 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 // @Tags         groups
 // @Accept       json
 // @Produce      json
-// @Router       /groups/:id [post]
+// @Success      200  {object}  models.GroupInfo
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   404  {object} api.ErrorResponse
+// @Failure 	   406  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
+// @Router       /groups [post]
 // @Security 		 Bearer
 func (h *Handler) SaveGroup(c echo.Context) error {
 	g := new(models.Group)
@@ -80,7 +86,7 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 
 	// Get request body
 	if err := c.Bind(&body); err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Validate body
@@ -109,7 +115,7 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 	// Create group
 	err = h.DB.Create(&g).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Add members to group
@@ -117,7 +123,7 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 		members := strings.Split(body.Members, ",")
 		err = h.AddMembers(g, members)
 		if err != nil {
-			return err
+			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
 	}
 

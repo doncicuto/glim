@@ -36,7 +36,14 @@ import (
 // @Tags         groups
 // @Accept       json
 // @Produce      json
-// @Router       /groups/:id [put]
+// @Param        id   path      int  true  "Group ID"
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   404  {object} api.ErrorResponse
+// @Failure 	   406  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
+// @Router       /groups/{id} [put]
 // @Security 		 Bearer
 func (h *Handler) UpdateGroup(c echo.Context) error {
 	var modifiedBy = make(map[string]interface{})
@@ -68,7 +75,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 	}
 	// Get request body
 	if err := c.Bind(&body); err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Find group
@@ -77,7 +84,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Validate other fields
@@ -103,7 +110,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 
 	// Update group
 	if err := h.DB.Model(&models.Group{}).Where("id = ?", gid).Updates(modifiedBy).Error; err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Get updated group
@@ -112,7 +119,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Update group members
@@ -123,20 +130,20 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 			// We are going to replace all group members, so let's clear the associations first
 			err := h.DB.Model(&g).Association("Members").Clear()
 			if err != nil {
-				return err
+				return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 			}
 		}
 
 		err := h.AddMembers(g, members)
 		if err != nil {
-			return err
+			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
 	}
 
 	// Get updated group
 	g = new(models.Group)
 	if err := h.DB.Preload("Members").Model(&models.Group{}).Where("id = ?", gid).First(&g).Error; err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Return group

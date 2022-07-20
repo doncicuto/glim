@@ -32,6 +32,10 @@ import (
 // @Tags         authentication
 // @Accept       json
 // @Produce      json
+// @Success      204
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
 // @Router       /login/refresh_token [delete]
 func (h *Handler) Logout(c echo.Context) error {
 

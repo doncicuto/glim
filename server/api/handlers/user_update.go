@@ -63,7 +63,13 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Router       /users/:id [put]
+// @Param        id   path      int  true  "User Account ID"
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   404  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
+// @Router       /users/{id} [put]
 // @Security 		 Bearer
 func (h *Handler) UpdateUser(c echo.Context) error {
 	var updatedUser = make(map[string]interface{})
@@ -96,7 +102,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	// Bind
 	body := new(models.JSONUserBody)
 	if err := c.Bind(body); err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Find user
@@ -168,13 +174,13 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Get updated user
 	err = h.DB.Where("id = ?", uid).First(&u).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Update group members
@@ -185,19 +191,19 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 			// We are going to replace all user memberof, so let's clear the associations first
 			err = h.DB.Model(&u).Association("MemberOf").Clear()
 			if err != nil {
-				return err
+				return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 			}
 		}
 
 		if body.RemoveMembersOf {
 			err = h.RemoveMembersOf(u, members)
 			if err != nil {
-				return err
+				return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 			}
 		} else {
 			err = h.AddMembersOf(u, members)
 			if err != nil {
-				return err
+				return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 			}
 		}
 	}
@@ -205,7 +211,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	// Get updated user
 	err = h.DB.Where("id = ?", uid).First(&u).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Return user

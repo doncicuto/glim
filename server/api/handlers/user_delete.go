@@ -32,7 +32,14 @@ import (
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Router       /users/:id [delete]
+// @Param        id   path      int  true  "User Account ID"
+// @Success      204
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   404  {object} api.ErrorResponse
+// @Failure 	   406  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
+// @Router       /users/{id} [delete]
 // @Security 		 Bearer
 func (h *Handler) DeleteUser(c echo.Context) error {
 	var u models.User

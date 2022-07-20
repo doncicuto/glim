@@ -33,6 +33,12 @@ import (
 // @Tags         groups
 // @Accept       json
 // @Produce      json
+// @Success      204
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   404  {object} api.ErrorResponse
+// @Failure 	   406  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
 // @Router       /groups/members [delete]
 // @Security 		 Bearer
 func (h *Handler) RemoveGroupMembers(c echo.Context) error {
@@ -47,7 +53,7 @@ func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 	// Bind
 	m := new(models.GroupMembers)
 	if err := c.Bind(m); err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 	members := strings.Split(m.Members, ",")
 
@@ -59,7 +65,7 @@ func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Update group
@@ -72,7 +78,7 @@ func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("user %s not found", member)}
 			}
-			return err
+			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
 
 		// Delete association

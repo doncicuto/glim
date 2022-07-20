@@ -38,6 +38,10 @@ import (
 // @Tags         authentication
 // @Accept       json
 // @Produce      json
+// @Success      200  {object}  auth.Response
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
 // @Router       /login [post]
 func (h *Handler) Login(c echo.Context) error {
 	var dbUser models.User

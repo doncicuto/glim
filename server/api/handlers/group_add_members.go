@@ -32,6 +32,11 @@ import (
 // @Tags         groups
 // @Accept       json
 // @Produce      json
+// @Success      200  {object}  models.GroupInfo
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   404  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
 // @Router       /groups/members [post]
 // @Security 		 Bearer
 func (h *Handler) AddGroupMembers(c echo.Context) error {
@@ -46,7 +51,7 @@ func (h *Handler) AddGroupMembers(c echo.Context) error {
 	// Bind
 	m := new(models.GroupMembers)
 	if err := c.Bind(m); err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Find group
@@ -57,7 +62,7 @@ func (h *Handler) AddGroupMembers(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Update group members
@@ -65,7 +70,7 @@ func (h *Handler) AddGroupMembers(c echo.Context) error {
 		members := strings.Split(m.Members, ",")
 		err = h.AddMembers(g, members)
 		if err != nil {
-			return err
+			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
 	}
 
@@ -73,7 +78,7 @@ func (h *Handler) AddGroupMembers(c echo.Context) error {
 	g = new(models.Group)
 	err = h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&g).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Return group
