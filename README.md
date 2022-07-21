@@ -1,8 +1,6 @@
 
 # Glim
 
-**WORK IN PROGRESS!!**
-
 Glim is a simple identity access management system that speaks some LDAP and is written in Go. Glim stands for Golang LDAP Identity Management 😄
 
 ## Why Glim
@@ -111,6 +109,7 @@ Failing to provide a valid CA pem file you'll receive the following error messag
 ```(bash)
 Could not find required CA pem file to validate authority
 ```
+
 ## Environment variables
 
 Glim can use the following environment variables:
@@ -138,25 +137,25 @@ Glim uses JWT tokens to authenticate users so you'll have to request a token fro
 
 1. Go to the login endpoint and click on it
 
-![swagger_auth_bearer_login1.png](./docs/images/swagger_auth_bearer_login1.png)
+   ![swagger_auth_bearer_login1.png](./docs/images/swagger_auth_bearer_login1.png)
 
 2. Click the "Try it out button". Replace "string" with your username and password to log in and click on "Execute".
 
-![swagger_auth_bearer_login2.png](./docs/images/swagger_auth_bearer_login2.png)
+   ![swagger_auth_bearer_login2.png](./docs/images/swagger_auth_bearer_login2.png)
 
 3. If your credentials are fine and Glim's working as expected you'll see the access token that you can use in your next requests
 
-![swagger_auth_bearer_login3.png](./docs/images/swagger_auth_bearer_login3.png)
+   ![swagger_auth_bearer_login3.png](./docs/images/swagger_auth_bearer_login3.png)
 
 4. Now you can copy that token and use it to authenticate your requests. In Swagger you can click on the padlock and a form will be offered to enter that token. Finally click on Authorize to set the authentication token.
 
-> ⚠️ WARNING: You'll have to put "Bearer " (that's Bearer followed by space) before the token. This is needed as Swagger 2.0 can't use JWT directly. Unfortunately the [swag](https://github.com/swaggo/swag) library used by Glim doesn't support OpenAPI 3.0, so this workaround must be used.
+   > ⚠️ WARNING: You'll have to put "Bearer " (that's Bearer followed by space) before the token. This is needed as Swagger 2.0 can't use JWT directly. Unfortunately the [swag](https://github.com/swaggo/swag) library used by Glim doesn't support OpenAPI 3.0, so this workaround must be used.
 
-![swagger_auth_bearer_1.png](./docs/images/swagger_auth_bearer_1.png)
+   ![swagger_auth_bearer_1.png](./docs/images/swagger_auth_bearer_1.png)
 
 5. Once you've entered the token, click on the "Close" button. Now you'll see that the padlock icon shows a closed state and your token will be sent with your requests.
 
-![swagger_auth_bearer_2.png](./docs/images/swagger_auth_bearer_2.png)
+   ![swagger_auth_bearer_2.png](./docs/images/swagger_auth_bearer_2.png)
 
 ## Installation scenarios
 
@@ -194,15 +193,15 @@ See this [page](./docs/examples/openldap.md) for examples that I used to check G
 
 1. Can I add or delete users or groups using LDIF files?
 
-> No. You can use Glim's CLI to manage your users and groups easier.
+   > No. You can use Glim's CLI to manage your users and groups easier.
 
 2. Can I use phpLDAPadmin, Apache Directory Studio or other LDAP GUI tool?
 
-> Not currently. Glim cannot answer Root DSE requests or add/delete LDAP operations. Open a discussion if you find this feature useful so it can be added to the roadmap.
+   > Not currently. Glim cannot answer Root DSE requests or add/delete LDAP operations. Open a discussion if you find this feature useful so it can be added to the roadmap.
 
 3. Does Glim have a web user interface?
 
-> Not for now, but it's in the roadmap. A simple web management tool will be added thanks to Glim's REST API.
+   > Not for now, but it's in the roadmap. A simple web management tool will be added thanks to Glim's REST API.
 
 ## Limitations / Caveats
 
