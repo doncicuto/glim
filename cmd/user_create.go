@@ -57,6 +57,12 @@ var newUserCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		plainuser := viper.GetBool("plainuser")
+		if plainuser {
+			manager = false
+			readonly = false
+		}
+
 		// Prompt for password if needed
 		password := viper.GetString("password")
 		passwordStdin := viper.GetBool("password-stdin")
@@ -159,17 +165,18 @@ var newUserCmd = &cobra.Command{
 
 func init() {
 	// newUserCmd.Flags().UintP("uid", "i", 0, "User account id")
-	newUserCmd.Flags().StringP("username", "u", "", "Username")
-	newUserCmd.Flags().StringP("firstname", "f", "", "First name")
-	newUserCmd.Flags().StringP("lastname", "l", "", "Last name")
-	newUserCmd.Flags().StringP("email", "e", "", "Email")
-	newUserCmd.Flags().StringP("password", "p", "", "Password")
+	newUserCmd.Flags().StringP("username", "u", "", "username")
+	newUserCmd.Flags().StringP("firstname", "f", "", "first name")
+	newUserCmd.Flags().StringP("lastname", "l", "", "last name")
+	newUserCmd.Flags().StringP("email", "e", "", "email")
+	newUserCmd.Flags().StringP("password", "p", "", "password")
 	newUserCmd.Flags().StringP("ssh-public-key", "k", "", "SSH Public Key")
-	newUserCmd.Flags().StringP("groups", "g", "", "Comma-separated list of groups that we want the new user account to be a member of")
-	newUserCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
+	newUserCmd.Flags().StringP("groups", "g", "", "comma-separated list of groups that we want the new user account to be a member of")
+	newUserCmd.Flags().Bool("password-stdin", false, "take the password from stdin")
 	newUserCmd.Flags().Bool("manager", false, "Glim manager account?")
 	newUserCmd.Flags().Bool("readonly", false, "Glim readonly account?")
-	newUserCmd.Flags().Bool("lock", false, "Lock account (cannot log in)")
-	newUserCmd.Flags().Bool("unlock", false, "Unlock account (can log in)")
+	newUserCmd.Flags().Bool("plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
+	newUserCmd.Flags().Bool("lock", false, "lock account (cannot log in)")
+	newUserCmd.Flags().Bool("unlock", false, "unlock account (can log in)")
 	newUserCmd.MarkFlagRequired("username")
 }
