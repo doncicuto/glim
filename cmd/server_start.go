@@ -83,7 +83,8 @@ var serverStartCmd = &cobra.Command{
 
 		// Database
 		dbName := viper.GetString("db-name")
-		database, err := db.Initialize(dbName)
+		sqlLog := viper.GetBool("sql")
+		database, err := db.Initialize(dbName, sqlLog)
 		if err != nil {
 			fmt.Printf("%s [Glim] ⇨ could not connect to database. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
@@ -174,8 +175,8 @@ func init() {
 	serverStartCmd.Flags().String("tlskey", defaultCertKeyFilePath, "TLS server private key path (required)")
 	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
-	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "Directory path for BadgerDB KV store")
-	serverStartCmd.Flags().String("db-name", "new.db", "Name of the file containing Glim's database")
-
+	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
+	serverStartCmd.Flags().String("db-name", "new.db", "name of the file containing Glim's database")
+	serverStartCmd.Flags().Bool("sql", false, "enable SQL queries logging")
 	viper.BindPFlags(serverStartCmd.Flags())
 }

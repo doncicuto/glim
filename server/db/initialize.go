@@ -108,10 +108,17 @@ func createReadonly(db *gorm.DB) error {
 }
 
 //Initialize - TODO common
-func Initialize(dbName string) (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
-	// If we want to log Gorm queries
-	// db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
+func Initialize(dbName string, sqlLog bool) (*gorm.DB, error) {
+	var db *gorm.DB
+	var err error
+
+	// Enable sql logging
+	if sqlLog {
+		db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
+	} else {
+		db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{})
+	}
+
 	if err != nil {
 		return nil, err
 	}
