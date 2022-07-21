@@ -169,7 +169,9 @@ paths:
       - application/json
       description: Create a new group
       parameters:
-      - description: Group body
+      - description: Group body. Name is required. The members property expect a comma-separated
+          list of usernames e.g 'bob,sally'. The replace property is not used in this
+          command.
         in: body
         name: group
         required: true
@@ -296,7 +298,10 @@ paths:
         name: id
         required: true
         type: integer
-      - description: Group body
+      - description: Group body. All properties are optional. The members property
+          expect a comma-separated list of usernames e.g 'bob,sally'. The replace
+          property if true will replace all members by those selected by the members
+          property, if replace is false the member will be added to current members.
         in: body
         name: group
         required: true
@@ -334,13 +339,19 @@ paths:
       summary: Update group
       tags:
       - groups
-  /groups/members:
+  /groups/{id}/members:
     delete:
       consumes:
       - application/json
       description: Remove members from a group
       parameters:
-      - description: Group members body
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Group members body. The members property expect a comma-separated
+          list of usernames e.g 'bob,sally' to be removed from the group
         in: body
         name: members
         required: true
@@ -381,7 +392,13 @@ paths:
       - application/json
       description: Add members to a group
       parameters:
-      - description: Group members body
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Group members body. The members property expect a comma-separated
+          list of usernames e.g 'bob,sally' to be added to the group
         in: body
         name: members
         required: true
@@ -455,7 +472,7 @@ paths:
       - application/json
       description: Log out from the API
       parameters:
-      - description: Access and Refresh tokens
+      - description: Access and Refresh JWT tokens
         in: body
         name: tokens
         required: true
@@ -486,7 +503,7 @@ paths:
       - application/json
       description: Get new JWT access and refresh tokens
       parameters:
-      - description: Access and Refresh tokens
+      - description: Access and Refresh JWT tokens
         in: body
         name: tokens
         required: true
@@ -540,7 +557,14 @@ paths:
       - application/json
       description: Create a new user in our database
       parameters:
-      - description: User account body
+      - description: User account body. Username is required. The members property
+          expect a comma-separated list of group names e.g 'admin,devel' that you
+          want the user be member of. Password property is optional, if set it will
+          be the password for that user, if no password is sent the user account will
+          be locked (user can not log in). Manager property if true will assign the
+          Manager role. Readonly property if true will set this user for read-only
+          usage (queries). Locked property if true will disable log in for that user.
+          Remove and replace properties are not currently used.
         in: body
         name: user
         required: true

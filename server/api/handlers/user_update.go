@@ -64,7 +64,7 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "User Account ID"
-// @Param        user  body models.JSONUserBody  true  "User account body"
+// @Param        user  body models.JSONUserBody  true  "User account body. Username is required. The members property expect a comma-separated list of group names e.g 'admin,devel'. Password property is optional, if set it will be the password for that user, if no password is sent the user account will be locked (user can not log in). Manager property if true will assign the Manager role. Readonly property if true will set this user for read-only usage (queries). Locked property if true will disable log in for that user. Remove property if true will remove group membership from those specified in the members property. Remove property if true will replace group membership from those specified in the members property."
 // @Success      200  {object}  models.UserInfo
 // @Failure			 400  {object} api.ErrorResponse
 // @Failure			 401  {object} api.ErrorResponse

@@ -38,7 +38,7 @@ import (
 // @Tags         authentication
 // @Accept       json
 // @Produce      json
-// @Param        tokens  body auth.Tokens  true  "Access and Refresh tokens"
+// @Param        tokens  body auth.Tokens  true  "Access and Refresh JWT tokens"
 // @Success      200  {object}  auth.Response
 // @Failure			 400  {object} api.ErrorResponse
 // @Failure			 401  {object} api.ErrorResponse

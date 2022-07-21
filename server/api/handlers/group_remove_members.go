@@ -33,14 +33,15 @@ import (
 // @Tags         groups
 // @Accept       json
 // @Produce      json
-// @Param        members body models.GroupMembers  true  "Group members body"
+// @Param        id   path      int  true  "Group ID"
+// @Param        members body models.GroupMembers  true  "Group members body. The members property expect a comma-separated list of usernames e.g 'bob,sally' to be removed from the group"
 // @Success      204
 // @Failure			 400  {object} api.ErrorResponse
 // @Failure			 401  {object} api.ErrorResponse
 // @Failure 	   404  {object} api.ErrorResponse
 // @Failure 	   406  {object} api.ErrorResponse
 // @Failure 	   500  {object} api.ErrorResponse
-// @Router       /groups/members [delete]
+// @Router       /groups/{id}/members [delete]
 // @Security 		 Bearer
 func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 	// Get gid

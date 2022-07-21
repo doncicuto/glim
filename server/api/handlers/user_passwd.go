@@ -34,6 +34,7 @@ import (
 // @Tags         users
 // @Accept       json
 // @Produce      json
+// @Param        id   path      int  true  "User Account ID"
 // @Param        password body models.JSONPasswdBody  true  "Password body"
 // @Success      200  {object}  models.UserInfo
 // @Failure			 400  {object} api.ErrorResponse

@@ -37,7 +37,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Group ID"
-// @Param        group body models.JSONGroupBody  true  "Group body"
+// @Param        group body models.JSONGroupBody  true  "Group body. All properties are optional. The members property expect a comma-separated list of usernames e.g 'bob,sally'. The replace property if true will replace all members by those selected by the members property, if replace is false the member will be added to current members."
 // @Success      200  {object}  models.UserInfo
 // @Failure			 400  {object} api.ErrorResponse
 // @Failure			 401  {object} api.ErrorResponse
