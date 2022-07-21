@@ -81,7 +81,7 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 	if !ok {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
-	if err := h.DB.Model(&models.User{}).Where("id = ?", uid).First(&createdBy).Error; err != nil {
+	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(uid)).First(&createdBy).Error; err != nil {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
 	}
 

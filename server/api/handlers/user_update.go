@@ -85,7 +85,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	if !ok {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
-	if err := h.DB.Model(&models.User{}).Where("id = ?", int(tokenUID)).First(&modifiedBy).Error; err != nil {
+	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(tokenUID)).First(&modifiedBy).Error; err != nil {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
 	}
 

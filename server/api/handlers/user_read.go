@@ -91,7 +91,12 @@ func (h *Handler) FindUserByID(c echo.Context) error {
 	var err error
 	uid := c.Param("uid")
 
-	err = h.DB.Preload("MemberOf").Model(&models.User{}).Where("id = ?", uid).Take(&u).Error
+	id, err := strconv.Atoi(uid)
+	if err != nil {
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "uid param should be a valid integer"}
+	}
+
+	err = h.DB.Preload("MemberOf").Model(&models.User{}).Where("id = ?", id).Take(&u).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}

@@ -54,7 +54,7 @@ var newGroupCmd = &cobra.Command{
 			SetBody(models.JSONGroupBody{
 				Name:        viper.GetString("name"),
 				Description: viper.GetString("description"),
-				Members:     viper.GetString("groupMembers"),
+				Members:     viper.GetString("members"),
 			}).
 			SetError(&APIError{}).
 			Post(endpoint)

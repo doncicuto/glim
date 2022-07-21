@@ -140,7 +140,7 @@ var newUserCmd = &cobra.Command{
 				Username:     viper.GetString("username"),
 				Password:     password,
 				GivenName:    viper.GetString("firstname"),
-				Surname:      viper.GetString("surname"),
+				Surname:      viper.GetString("lastname"),
 				Email:        viper.GetString("email"),
 				SSHPublicKey: viper.GetString("ssh-public-key"),
 				MemberOf:     viper.GetString("groups"),

@@ -81,7 +81,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	if !ok {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
-	if err := h.DB.Model(&models.User{}).Where("id = ?", tokenUID).First(&createdBy).Error; err != nil {
+	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(tokenUID)).First(&createdBy).Error; err != nil {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
 	}
 
@@ -96,6 +96,8 @@ func (h *Handler) SaveUser(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required username"}
 	}
 	u.Username = &body.Username
+	u.GivenName = &body.GivenName
+	u.Surname = &body.Surname
 
 	if body.Email != "" {
 		if err := checkmail.ValidateFormat(body.Email); err != nil {

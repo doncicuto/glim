@@ -48,14 +48,13 @@ func (h *Handler) DeleteUser(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required user uid"}
 	}
 
-	// Get idparam
-	uid, err := strconv.ParseUint(c.Param("uid"), 10, 32)
+	id, err := strconv.Atoi(c.Param("uid"))
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert uid into uint"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "uid param should be a valid integer"}
 	}
 
 	// Remove user
-	err = h.DB.Model(&models.User{}).Where("id = ?", uid).Take(&u).Delete(&u).Error
+	err = h.DB.Model(&models.User{}).Where("id = ?", id).Take(&u).Delete(&u).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
