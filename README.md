@@ -40,21 +40,35 @@ Click on the links above for sample configurations for all these applications. M
 ## How does it work
 
 ```(bash)
-$ glim server start --tlscert "/tmp/server.pem" --tlskey "/tmp/server.key"
+$ glim server start
 
 $ glim login -u cedric.daniels
 Password: 
 Login Succeeded
 
-$ glim group create -n homicides -d "Homicides" -m jimmy.mcnulty,kima.greggs
+$ glim user
+
+UID    USERNAME        FULLNAME             EMAIL                GROUPS               MANAGER  READONLY LOCKED  
+1      admin           LDAP administrator                        none                 true     false    false   
+2      search                                                    none                 false    true     false   
+3      cedric.daniels  Cedric Daniels       cedric.daniels@ba... none                 true     false    false   
+4      kima.greggs     Kima Greggs          kima.greggs@balti... none                 false    false    false   
+5      jimmy.mcnulty   Jimmy McNulty        jimmy.mcnulty@bal... none                 false    false    false
+
+$ glim group create -n homicides -d "Homicides" -m jimmy.mcnulty,kima.greggs,cedric.daniels
 Group created
+
+$ glim group
+
+GID    GROUP                DESCRIPTION                         MEMBERS                                           
+1      homicides            Homicides Department                cedric.daniels, kima.greggs, jimmy.mcnulty
 
 $ glim user create -u lester.freamon -e lester.freamon@baltimorepolice.org
 Password:
 Confirm password:
 User created
 
-$ glim user remove -u jimmy.mcnulty
+$ glim user rm -u jimmy.mcnulty
 User account deleted
 
 $ glim logout

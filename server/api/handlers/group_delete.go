@@ -49,7 +49,7 @@ func (h *Handler) DeleteGroup(c echo.Context) error {
 	}
 
 	// Get idparam
-	gid, err := strconv.ParseUint(c.Param("uid"), 10, 32)
+	gid, err := strconv.ParseUint(c.Param("gid"), 10, 32)
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert gid into uint"}
 	}
