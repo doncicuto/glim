@@ -42,14 +42,16 @@ Click on the links above for sample configurations for all these applications. M
 ```(bash)
 $ glim server start --tlscert "/tmp/server.pem" --tlskey "/tmp/server.key"
 
-$ glim login -u cedric.daniels -p glim.doncicuto.com
+$ glim login -u cedric.daniels
 Password: 
 Login Succeeded
 
 $ glim group create -n homicides -d "Homicides" -m jimmy.mcnulty,kima.greggs
 Group created
 
-$ glim user create -u lester.freamon -e lester.freamon@baltimorepolice.org -p
+$ glim user create -u lester.freamon -e lester.freamon@baltimorepolice.org
+Password:
+Confirm password:
 User created
 
 $ glim user remove -u jimmy.mcnulty
@@ -95,7 +97,6 @@ Failing to provide a valid CA pem file you'll receive the following error messag
 ```(bash)
 Could not find required CA pem file to validate authority
 ```
-
 ## Environment variables
 
 Glim can use the following environment variables:
@@ -110,6 +111,38 @@ Glim can use the following environment variables:
 - GLIM_LDAP_ADDR (OPTIONAL): listen address for our LDAP server. Default value: 127.0.0.1:1636
 - GLIM_SERVER: Glim Rest API URI (OPTIONAL):  format `https://<ip|hostname>:port]`. Default value: `https://127.0.0.1:1323`
 - GLIM_BADGERDB_STORE (OPTIONAL): Directory path for BadgerDB KV store. Default value: /tmp/kv)
+
+## REST API
+
+Glim comes with a REST API that you can use right away using Swagger as the API documentation is accesible visiting `https://yourserver:1323/swagger/index.html`. Note: you may have to add your CA.pem file so your browser doesn't complain about security.
+
+Here's the web page offering API documentation.
+
+![swagger_auth_bearer_0.png](./docs/images/swagger_auth_bearer_0.png)
+
+Glim uses JWT tokens to authenticate users so you'll have to request a token from the API using the /v1/login endpoint. Using Glim's Swagger server you can do it following these steps:
+
+1. Go to the login endpoint and click on it
+
+![swagger_auth_bearer_login1.png](./docs/images/swagger_auth_bearer_login1.png)
+
+2. Click the "Try it out button". Replace "string" with your username and password to log in and click on "Execute".
+
+![swagger_auth_bearer_login2.png](./docs/images/swagger_auth_bearer_login2.png)
+
+3. If your credentials are fine and Glim's working as expected you'll see the access token that you can use in your next requests
+
+![swagger_auth_bearer_login3.png](./docs/images/swagger_auth_bearer_login3.png)
+
+4. Now you can copy that token and use it to authenticate your requests. In Swagger you can click on the padlock and a form will be offered to enter that token. Finally click on Authorize to set the authentication token.
+
+> ⚠️ WARNING: You'll have to put "Bearer " (that's Bearer followed by space) before the token. This is needed as Swagger 2.0 can't use JWT directly. Unfortunately the [swag](https://github.com/swaggo/swag) library used by Glim doesn't support OpenAPI 3.0, so this workaround must be used.
+
+![swagger_auth_bearer_1.png](./docs/images/swagger_auth_bearer_1.png)
+
+5. Once you've entered the token, click on the "Close" button. Now you'll see that the padlock icon shows a closed state and your token will be sent with your requests.
+
+![swagger_auth_bearer_2.png](./docs/images/swagger_auth_bearer_2.png)
 
 ## Installation scenarios
 
@@ -143,10 +176,24 @@ This is a sample of a Glim server log showing REST and LDAP interaction
 
 See this [page](./docs/examples/openldap.md) for examples that I used to check Glim's ability to speak LDAP.
 
+## FAQ
+
+1. Can I add or delete users or groups using LDIF files?
+
+> No. You can use Glim's CLI to manage your users and groups easier.
+
+2. Can I use phpLDAPadmin, Apache Directory Studio or other LDAP GUI tool?
+
+> Not currently. Glim cannot answer Root DSE requests or add/delete LDAP operations. Open a discussion if you find this feature useful so it can be added to the roadmap.
+
+3. Does Glim have a web user interface?
+
+> Not for now, but it's in the roadmap. A simple web management tool will be added thanks to Glim's REST API.
+
 ## Limitations / Caveats
 
 1. You can start and stop your Glim server using `glim server [start|stop]` but if you are running Glim on a Windows machine, the stop command will fail and you will have to stop it using Ctrl+C, this is due a limitation with signal handling in Windows. In a future version this behavior could be changed if I find a workaround for prospective Windows users.
 
-2. Glim cannot reply to Root DSE requests, so you cannot use LDAP tools like Apache Directory Studio or phpLDAPadmin to browse your directory.
+2. Glim cannot reply to Root DSE requests, so you cannot use LDAP tools like Apache Directory Studio or phpLDAPadmin to browse or manage your directory.
 
 3. Alias dereferencing in search requests is not supported.
