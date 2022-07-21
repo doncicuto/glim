@@ -35,7 +35,7 @@ type User struct {
 	UpdatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	UpdatedBy    *string   `gorm:"size:500" json:"updated_by"`
 	Manager      *bool     `gorm:"default:false" json:"manager"`
-	Readonly     *bool     `gorm:"default:true" json:"readonly"`
+	Readonly     *bool     `gorm:"default:false" json:"readonly"`
 	MemberOf     []*Group  `gorm:"many2many:group_members"`
 	UUID         *string   `gorm:"size:36" json:"uuid"`
 	Locked       *bool     `gorm:"default:false" json:"locked"`
