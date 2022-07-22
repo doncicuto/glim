@@ -87,9 +87,15 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	// JWT tokens will be used for all endpoints but for token requests and swagger
 
 	v1 := e.Group("v1")
-	v1.POST("/login", h.Login)
-	v1.POST("/login/refresh_token", h.Refresh)
-	v1.DELETE("/login/refresh_token", h.Logout)
+	v1.POST("/login", func(c echo.Context) error {
+		return h.Login(c, settings.APISecret)
+	})
+	v1.POST("/login/refresh_token", func(c echo.Context) error {
+		return h.Refresh(c, settings.APISecret)
+	})
+	v1.DELETE("/login/refresh_token", func(c echo.Context) error {
+		return h.Logout(c, settings.APISecret)
+	})
 
 	u := v1.Group("/users")
 	u.Use(middleware.JWT([]byte(settings.APISecret)))

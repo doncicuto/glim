@@ -19,7 +19,6 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/doncicuto/glim/config"
@@ -44,7 +43,7 @@ import (
 // @Failure			 401  {object} api.ErrorResponse
 // @Failure 	   500  {object} api.ErrorResponse
 // @Router       /login/refresh_token [post]
-func (h *Handler) Refresh(c echo.Context) error {
+func (h *Handler) Refresh(c echo.Context, apiSecret string) error {
 
 	// Get refresh token from body
 	tokens := new(auth.Tokens)
@@ -55,7 +54,7 @@ func (h *Handler) Refresh(c echo.Context) error {
 	// Get refresh token claims
 	claims := make(jwt.MapClaims)
 	token, err := jwt.ParseWithClaims(tokens.RefreshToken, claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("GLIM_API_SECRET")), nil
+		return []byte(apiSecret), nil
 	})
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token, you may have to log in again"}
@@ -156,7 +155,7 @@ func (h *Handler) Refresh(c echo.Context) error {
 	ac["readonly"] = dbUser.Readonly
 	t := jwt.New(jwt.SigningMethodHS256)
 	t.Claims = ac
-	at, err := t.SignedString([]byte(os.Getenv("GLIM_API_SECRET")))
+	at, err := t.SignedString([]byte(apiSecret))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}
@@ -179,7 +178,7 @@ func (h *Handler) Refresh(c echo.Context) error {
 	rc["ajti"] = ajti
 	t = jwt.New(jwt.SigningMethodHS256)
 	t.Claims = rc
-	rt, err := t.SignedString([]byte(os.Getenv("GLIM_API_SECRET")))
+	rt, err := t.SignedString([]byte(apiSecret))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}

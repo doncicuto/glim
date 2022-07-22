@@ -18,7 +18,6 @@ package handlers
 
 import (
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/doncicuto/glim/server/api/auth"
@@ -38,7 +37,7 @@ import (
 // @Failure			 401  {object} api.ErrorResponse
 // @Failure 	   500  {object} api.ErrorResponse
 // @Router       /login/refresh_token [delete]
-func (h *Handler) Logout(c echo.Context) error {
+func (h *Handler) Logout(c echo.Context, apiSecret string) error {
 
 	// Get refresh token from body
 	tokens := new(auth.Tokens)
@@ -49,7 +48,7 @@ func (h *Handler) Logout(c echo.Context) error {
 	// Get refresh token claims
 	claims := make(jwt.MapClaims)
 	token, err := jwt.ParseWithClaims(tokens.RefreshToken, claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("GLIM_API_SECRET")), nil
+		return []byte(apiSecret), nil
 	})
 
 	// Extract access token jti

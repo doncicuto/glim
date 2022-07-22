@@ -19,7 +19,6 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/doncicuto/glim/config"
@@ -44,7 +43,7 @@ import (
 // @Failure			 401  {object} api.ErrorResponse
 // @Failure 	   500  {object} api.ErrorResponse
 // @Router       /login [post]
-func (h *Handler) Login(c echo.Context) error {
+func (h *Handler) Login(c echo.Context, apiSecret string) error {
 	var dbUser models.User
 
 	// Parse username and password from body
@@ -93,7 +92,7 @@ func (h *Handler) Login(c echo.Context) error {
 	ac["readonly"] = dbUser.Readonly
 	t := jwt.New(jwt.SigningMethodHS256)
 	t.Claims = ac
-	at, err := t.SignedString([]byte(os.Getenv("GLIM_API_SECRET")))
+	at, err := t.SignedString([]byte(apiSecret))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}
@@ -117,7 +116,7 @@ func (h *Handler) Login(c echo.Context) error {
 
 	t = jwt.New(jwt.SigningMethodHS256)
 	t.Claims = rc
-	rt, err := t.SignedString([]byte(os.Getenv("GLIM_API_SECRET")))
+	rt, err := t.SignedString([]byte(apiSecret))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}

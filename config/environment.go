@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 // Package config implements utility routines for handling environment variables
-// like GLIM_API_SECRET, ACCESS_TOKEN_EXPIRY_TIME_SECONDS, REFRESH_TOKEN_EXPIRY_TIME_SECONDS
+// like ACCESS_TOKEN_EXPIRY_TIME_SECONDS, REFRESH_TOKEN_EXPIRY_TIME_SECONDS
 // and MAX_DAYS_WITHOUT_RELOGIN and setting default values.
 package config
 

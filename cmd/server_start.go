@@ -54,7 +54,7 @@ var serverStartCmd = &cobra.Command{
 		// Check if API secret is present in env variable
 		apiSecret := viper.GetString("api-secret")
 		if apiSecret == "" {
-			fmt.Printf("%s [Glim] ⇨ could not find required GLIM_API_SECRET environment variable. Exiting now...\n", time.Now().Format(time.RFC3339))
+			fmt.Printf("%s [Glim] ⇨ could not find required api secret. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
 		}
 
