@@ -118,7 +118,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	// Validate other fields
 	if body.Username != "" {
-		err := h.DB.Model(&models.User{}).Where("name = ? AND id <> ?", body.Username, uid).First(&models.User{}).Error
+		err := h.DB.Model(&models.User{}).Where("username = ? AND id <> ?", body.Username, uid).First(&models.User{}).Error
 		if err != nil {
 			// Does username exist?
 			if errors.Is(err, gorm.ErrRecordNotFound) {

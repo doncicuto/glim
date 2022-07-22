@@ -108,3 +108,35 @@ func (h *Handler) FindUserByID(c echo.Context) error {
 	i := models.GetUserInfo(u, showMemberOf)
 	return c.JSON(http.StatusOK, i)
 }
+
+//FindUserByID - TODO comment
+// @Summary      Find user by username
+// @Description  Find user by username
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        username   path      string  true  "username"
+// @Success      200  {object}  models.UserID
+// @Failure			 400  {object} api.ErrorResponse
+// @Failure			 401  {object} api.ErrorResponse
+// @Failure 	   404  {object} api.ErrorResponse
+// @Failure 	   500  {object} api.ErrorResponse
+// @Router       /users/{username}/uid [get]
+// @Security 		 Bearer
+func (h *Handler) FindUIDFromUsername(c echo.Context) error {
+	var u models.User
+	var response models.UserID
+	var err error
+	username := c.Param("username")
+
+	err = h.DB.Model(&models.User{}).Where("username = ?", username).Take(&u).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
+		}
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	response.ID = u.ID
+	return c.JSON(http.StatusOK, response)
+}

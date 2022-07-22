@@ -95,6 +95,7 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	u.GET("", h.FindAllUsers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	u.POST("", h.SaveUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	u.GET("/:uid", h.FindUserByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
+	u.GET("/:username/uid", h.FindUIDFromUsername, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	u.PUT("/:uid", h.UpdateUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	u.DELETE("/:uid", h.DeleteUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	u.POST("/:uid/passwd", h.Passwd, glimMiddleware.IsBlacklisted(blacklist))
