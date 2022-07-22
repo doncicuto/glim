@@ -26,6 +26,7 @@ import (
 	"github.com/Songmu/prompter"
 	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -148,7 +149,7 @@ var newUserCmd = &cobra.Command{
 				Readonly:     &readonly,
 				Locked:       &locked,
 			}).
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Post(endpoint)
 
 		if err != nil {
@@ -157,7 +158,7 @@ var newUserCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 

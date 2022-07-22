@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/Songmu/prompter"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -99,11 +100,11 @@ var loginCmd = &cobra.Command{
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
-			SetBody(Credentials{
+			SetBody(types.Credentials{
 				Username: username,
 				Password: password,
 			}).
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Post(fmt.Sprintf("%s/v1/login", url))
 
 		if err != nil {
@@ -112,7 +113,7 @@ var loginCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 

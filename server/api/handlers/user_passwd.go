@@ -37,10 +37,10 @@ import (
 // @Param        id   path      int  true  "User Account ID"
 // @Param        password body models.JSONPasswdBody  true  "Password body"
 // @Success      200  {object}  models.UserInfo
-// @Failure			 400  {object} api.ErrorResponse
-// @Failure			 401  {object} api.ErrorResponse
-// @Failure 	   403  {object} api.ErrorResponse
-// @Failure 	   406  {object} api.ErrorResponse
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   403  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
 // @Router       /users/passwd [post]
 // @Security 		 Bearer
 func (h *Handler) Passwd(c echo.Context) error {

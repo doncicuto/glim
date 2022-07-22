@@ -39,11 +39,11 @@ import (
 // @Param        id   path      int  true  "Group ID"
 // @Param        group body models.JSONGroupBody  true  "Group body. All properties are optional. The members property expect a comma-separated list of usernames e.g 'bob,sally'. The replace property if true will replace all members by those selected by the members property, if replace is false the member will be added to current members."
 // @Success      200  {object}  models.UserInfo
-// @Failure			 400  {object} api.ErrorResponse
-// @Failure			 401  {object} api.ErrorResponse
-// @Failure 	   404  {object} api.ErrorResponse
-// @Failure 	   406  {object} api.ErrorResponse
-// @Failure 	   500  {object} api.ErrorResponse
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
 // @Router       /groups/{id} [put]
 // @Security 		 Bearer
 func (h *Handler) UpdateGroup(c echo.Context) error {

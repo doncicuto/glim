@@ -112,18 +112,39 @@ Could not find required CA pem file to validate authority
 
 ## Environment variables
 
-Glim can use the following environment variables:
+Glim can use the following environment variables. The same variables can be set using command flags or using a configuration file.
 
-- GLIM_API_SECRET (**REQUIRED**): A secret string to be used with JWT tokens
-- ACCESS_TOKEN_EXPIRY_TIME_SECONDS (OPTIONAL): Number of seconds for access token expiration (default: 3600)
-- REFRESH_TOKEN_EXPIRY_TIME_SECONDS (OPTIONAL): Number of seconds for refresh token expiration (default: 3 days).
-- MAX_DAYS_WITHOUT_RELOGIN (OPTIONAL): Number of days that we can use refresh tokens without log in again (default: 7 days).
-- GLIM_DB_NAME: A name for the SQLite database that will store our users and groups
-- GLIM_LDAP_DOMAIN (OPTIONAL): our ldap domain. Default value: example.org
-- GLIM_REST_ADDR (OPTIONAL): listen address for our REST API server. Default value: 127.0.0.1:1323
-- GLIM_LDAP_ADDR (OPTIONAL): listen address for our LDAP server. Default value: 127.0.0.1:1636
-- GLIM_SERVER: Glim Rest API URI (OPTIONAL):  format `https://<ip|hostname>:port]`. Default value: `https://127.0.0.1:1323`
-- GLIM_BADGERDB_STORE (OPTIONAL): Directory path for BadgerDB KV store. Default value: /tmp/kv)
+| Variable | Required | Description | Default value if not set |
+|----------|----------|-------------|--------------------------|
+| GLIM_API_SECRET | Yes | A secret string to be used with JWT tokens | - |
+| GLIM_ACCESS_TOKEN_EXPIRY_TIME | No | Number of seconds for access token expiration |  3600 seconds |
+| GLIM_REFRESH_TOKEN_EXPIRY_TIME | No | Number of seconds for refresh token expiration | 3 days |
+| GLIM_MAX_DAYS_RELOGIN | No | Number of days that we can use refresh tokens without log in again | 7 days |
+| GLIM_DB_NAME | No | SQLite database file name that stores our users and groups | glim.db |
+| GLIM_LDAP_DOMAIN | No | Our ldap domain | example.org |
+| GLIM_REST_ADDR | No | Listen address for our REST API server | :1323 |
+| GLIM_LDAP_ADDR | No | Listen address for our LDAP server | :1636 |
+| GLIM_SERVER | No | Glim Rest API address for Glim commands | `https://127.0.0.1:1323` |
+| GLIM_BADGERDB_STORE | No | Directory path for BadgerDB Key Value store | /tmp/kv |
+
+
+## Configuration file
+
+Glim can use a configuration file in YAML format. You can add the configurations options line by line. Just use the name of the command flags and the value you want to use. For example:
+
+```(yaml)
+---
+# Client flags
+server: "https://192.168.1.136:1323"
+tlscacert: "/home/mcabrerizo/glim/ca.pem"
+username: "admin"
+
+# Server flags
+tlscert: /home/mcabrerizo/glim/server.pem
+tlskey: /home/mcabrerizo/glim/server.key
+rest-addr: "192.168.1.136:1323"
+ldap-addr: "192.168.1.136:1636"
+```
 
 ## REST API
 

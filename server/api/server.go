@@ -25,24 +25,15 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
-	"gorm.io/gorm"
 
 	echoSwagger "github.com/swaggo/echo-swagger"
 
 	handler "github.com/doncicuto/glim/server/api/handlers"
 	glimMiddleware "github.com/doncicuto/glim/server/api/middleware"
-	"github.com/doncicuto/glim/server/kv"
+	"github.com/doncicuto/glim/types"
 )
 
 //Settings - TODO comment
-type Settings struct {
-	DB        *gorm.DB
-	KV        kv.Store
-	TLSCert   string
-	TLSKey    string
-	Address   string
-	APISecret string
-}
 
 // Server - TODO command
 
@@ -58,7 +49,7 @@ type Settings struct {
 // @securityDefinitions.apikey Bearer
 // @in header
 // @name Authorization
-func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
+func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings types.APISettings) {
 	defer wg.Done()
 
 	// New Echo framework server
@@ -88,13 +79,13 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 
 	v1 := e.Group("v1")
 	v1.POST("/login", func(c echo.Context) error {
-		return h.Login(c, settings.APISecret)
+		return h.Login(c, settings)
 	})
 	v1.POST("/login/refresh_token", func(c echo.Context) error {
-		return h.Refresh(c, settings.APISecret)
+		return h.Refresh(c, settings)
 	})
 	v1.DELETE("/login/refresh_token", func(c echo.Context) error {
-		return h.Logout(c, settings.APISecret)
+		return h.Logout(c, settings)
 	})
 
 	u := v1.Group("/users")

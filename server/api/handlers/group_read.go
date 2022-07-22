@@ -34,10 +34,10 @@ import (
 // @Produce      json
 // @Param        id   path      int  true  "Group ID"
 // @Success      200  {object}  models.UserInfo
-// @Failure			 400  {object} api.ErrorResponse
-// @Failure			 401  {object} api.ErrorResponse
-// @Failure 	   404  {object} api.ErrorResponse
-// @Failure 	   500  {object} api.ErrorResponse
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
 // @Router       /groups/{id} [get]
 // @Security 		 Bearer
 func (h *Handler) FindGroupByID(c echo.Context) error {
@@ -65,9 +65,9 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  models.UserInfo
-// @Failure			 400  {object} api.ErrorResponse
-// @Failure			 401  {object} api.ErrorResponse
-// @Failure 	   500  {object} api.ErrorResponse
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
 // @Router       /groups [get]
 // @Security 		 Bearer
 func (h *Handler) FindAllGroups(c echo.Context) error {

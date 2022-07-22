@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -38,7 +39,7 @@ func getUIDFromUsername(username string, url string) uint {
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetResult(models.UserID{}).
-		SetError(&APIError{}).
+		SetError(&types.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
@@ -47,7 +48,7 @@ func getUIDFromUsername(username string, url string) uint {
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 		os.Exit(1)
 	}
 
@@ -74,7 +75,7 @@ func getUser(id uint) {
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetResult(models.UserInfo{}).
-		SetError(&APIError{}).
+		SetError(&types.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
@@ -83,7 +84,7 @@ func getUser(id uint) {
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 		os.Exit(1)
 	}
 
@@ -127,7 +128,7 @@ func getUsers() {
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetResult([]models.UserInfo{}).
-		SetError(&APIError{}).
+		SetError(&types.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
@@ -136,7 +137,7 @@ func getUsers() {
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 		os.Exit(1)
 	}
 

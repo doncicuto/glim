@@ -22,6 +22,7 @@ import (
 
 	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -132,7 +133,7 @@ var updateUserCmd = &cobra.Command{
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(userBody).
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Put(endpoint)
 
 		if err != nil {
@@ -141,7 +142,7 @@ var updateUserCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 

@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/doncicuto/glim/server/kv/badgerdb"
+	"github.com/doncicuto/glim/types"
 
 	"github.com/doncicuto/glim/server/api"
 	"github.com/doncicuto/glim/server/db"
@@ -110,13 +111,16 @@ var serverStartCmd = &cobra.Command{
 		restAddress := viper.GetString("rest-addr")
 
 		// Preparing API server settings
-		apiSettings := api.Settings{
-			DB:        database,
-			KV:        blacklist,
-			TLSCert:   tlscert,
-			TLSKey:    tlskey,
-			Address:   restAddress,
-			APISecret: apiSecret,
+		apiSettings := types.APISettings{
+			DB:                 database,
+			KV:                 blacklist,
+			TLSCert:            tlscert,
+			TLSKey:             tlskey,
+			Address:            restAddress,
+			APISecret:          apiSecret,
+			AccessTokenExpiry:  viper.GetUint("access-token-expiry-time"),
+			RefreshTokenExpiry: viper.GetUint("refresh-token-expiry-time"),
+			MaxDaysWoRelogin:   viper.GetInt("max-days-relogin"),
 		}
 
 		ldapAddress := viper.GetString("ldap-addr")
@@ -178,8 +182,11 @@ func init() {
 	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
-	serverStartCmd.Flags().String("db-name", "new.db", "name of the file containing Glim's database")
+	serverStartCmd.Flags().String("db-name", "glim.db", "name of the file containing Glim's database")
 	serverStartCmd.Flags().String("api-secret", "", "API secret string to be used with JWT tokens")
+	serverStartCmd.Flags().Uint("access-token-expiry-time", 3600, "access token refresh expiry time in seconds")
+	serverStartCmd.Flags().Uint("refresh-token-expiry-time", 259200, "refresh token refresh expiry time in seconds")
+	serverStartCmd.Flags().Int("max-days-relogin", 7, "number of days that we can use refresh tokens without log in again")
 	serverStartCmd.Flags().String("ldap-domain", "example.org", "LDAP domain")
 	serverStartCmd.Flags().Bool("sql", false, "enable SQL queries logging")
 	viper.BindPFlags(serverStartCmd.Flags())

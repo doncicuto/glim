@@ -63,11 +63,11 @@ func (h *Handler) AddMembersOf(u *models.User, memberOf []string) error {
 // @Produce      json
 // @Param        user  body models.JSONUserBody  true  "User account body. Username is required. The members property expect a comma-separated list of group names e.g 'admin,devel' that you want the user be member of. Password property is optional, if set it will be the password for that user, if no password is sent the user account will be locked (user can not log in). Manager property if true will assign the Manager role. Readonly property if true will set this user for read-only usage (queries). Locked property if true will disable log in for that user. Remove and replace properties are not currently used."
 // @Success      200  {object}  models.UserInfo
-// @Failure			 400  {object} api.ErrorResponse
-// @Failure			 401  {object} api.ErrorResponse
-// @Failure 	   404  {object} api.ErrorResponse
-// @Failure 	   406  {object} api.ErrorResponse
-// @Failure 	   500  {object} api.ErrorResponse
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
 // @Router       /users [post]
 // @Security 		 Bearer
 func (h *Handler) SaveUser(c echo.Context) error {

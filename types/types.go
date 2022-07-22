@@ -14,7 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package auth
+package types
+
+import (
+	"github.com/doncicuto/glim/server/kv"
+	"gorm.io/gorm"
+)
 
 // Tokens - TODO comment
 type Tokens struct {
@@ -33,4 +38,34 @@ type Response struct {
 type LoginBody struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type APISettings struct {
+	DB                 *gorm.DB
+	KV                 kv.Store
+	TLSCert            string
+	TLSKey             string
+	Address            string
+	APISecret          string
+	AccessTokenExpiry  uint
+	RefreshTokenExpiry uint
+	MaxDaysWoRelogin   int
+}
+
+type Credentials struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// RefreshToken - TODO comment
+type RefreshToken struct {
+	Token string `json:"refresh_token"`
+}
+
+type APIError struct {
+	Message string `json:"message"`
+}
+
+type ErrorResponse struct {
+	Message string `json:"message"`
 }

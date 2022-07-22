@@ -23,7 +23,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/doncicuto/glim/server/api/auth"
+	"github.com/doncicuto/glim/types"
 	"github.com/golang-jwt/jwt"
 	"github.com/spf13/viper"
 )
@@ -48,8 +48,8 @@ func AuthTokenPath() (*string, error) {
 }
 
 // ReadCredentials - TODO comment
-func ReadCredentials() *auth.Response {
-	var token auth.Response
+func ReadCredentials() *types.Response {
+	var token types.Response
 
 	tokenFile, err := AuthTokenPath()
 	if err != nil {
@@ -98,10 +98,10 @@ func Refresh(rt string) {
 	// Query refresh token
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(RefreshToken{
+		SetBody(types.RefreshToken{
 			Token: rt,
 		}).
-		SetError(&APIError{}).
+		SetError(&types.APIError{}).
 		Post(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
 	if err != nil {
@@ -110,7 +110,7 @@ func Refresh(rt string) {
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 		os.Exit(1)
 	}
 
@@ -135,7 +135,7 @@ func Refresh(rt string) {
 }
 
 // NeedsRefresh - TODO comment
-func NeedsRefresh(token *auth.Response) bool {
+func NeedsRefresh(token *types.Response) bool {
 	// Check expiration
 	now := time.Now()
 	expiration := time.Unix(token.ExpiresOn, 0)
@@ -143,7 +143,7 @@ func NeedsRefresh(token *auth.Response) bool {
 }
 
 // AmIManager - TODO comment
-func AmIManager(token *auth.Response) bool {
+func AmIManager(token *types.Response) bool {
 	claims := make(jwt.MapClaims)
 	jwt.ParseWithClaims(token.AccessToken, claims, nil)
 
@@ -158,7 +158,7 @@ func AmIManager(token *auth.Response) bool {
 }
 
 // WhichIsMyTokenUID - TODO comment
-func WhichIsMyTokenUID(token *auth.Response) float64 {
+func WhichIsMyTokenUID(token *types.Response) float64 {
 	claims := make(jwt.MapClaims)
 	jwt.ParseWithClaims(token.AccessToken, claims, nil)
 

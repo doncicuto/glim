@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/doncicuto/glim/server/api/auth"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -31,7 +31,7 @@ var logoutCmd = &cobra.Command{
 	Short: "Log out from a Glim server",
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(_ *cobra.Command, _ []string) {
-		var token *auth.Response
+		var token *types.Response
 
 		// Read token from file
 		token = ReadCredentials()
@@ -51,7 +51,7 @@ var logoutCmd = &cobra.Command{
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(fmt.Sprintf(`{"refresh_token":"%s"}`, token.RefreshToken)).
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Delete(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
 		if err != nil {
@@ -60,7 +60,7 @@ var logoutCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 

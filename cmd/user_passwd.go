@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 
 	"github.com/Songmu/prompter"
 	"github.com/spf13/cobra"
@@ -97,7 +98,7 @@ var userPasswdCmd = &cobra.Command{
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(passwdBody).
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Post(endpoint)
 
 		if err != nil {
@@ -106,7 +107,7 @@ var userPasswdCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 

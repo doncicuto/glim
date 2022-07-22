@@ -66,10 +66,10 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 // @Param        id   path      int  true  "User Account ID"
 // @Param        user  body models.JSONUserBody  true  "User account body. Username is required. The members property expect a comma-separated list of group names e.g 'admin,devel'. Password property is optional, if set it will be the password for that user, if no password is sent the user account will be locked (user can not log in). Manager property if true will assign the Manager role. Readonly property if true will set this user for read-only usage (queries). Locked property if true will disable log in for that user. Remove property if true will remove group membership from those specified in the members property. Remove property if true will replace group membership from those specified in the members property."
 // @Success      200  {object}  models.UserInfo
-// @Failure			 400  {object} api.ErrorResponse
-// @Failure			 401  {object} api.ErrorResponse
-// @Failure 	   404  {object} api.ErrorResponse
-// @Failure 	   500  {object} api.ErrorResponse
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
 // @Router       /users/{id} [put]
 // @Security 		 Bearer
 func (h *Handler) UpdateUser(c echo.Context) error {

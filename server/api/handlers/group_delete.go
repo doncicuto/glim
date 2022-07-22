@@ -34,11 +34,11 @@ import (
 // @Produce      json
 // @Param        id   path      int  true  "Group ID"
 // @Success      204
-// @Failure			 400  {object} api.ErrorResponse
-// @Failure			 401  {object} api.ErrorResponse
-// @Failure 	   404  {object} api.ErrorResponse
-// @Failure 	   406  {object} api.ErrorResponse
-// @Failure 	   500  {object} api.ErrorResponse
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
 // @Router       /groups/{id} [delete]
 // @Security 		 Bearer
 func (h *Handler) DeleteGroup(c echo.Context) error {

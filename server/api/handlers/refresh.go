@@ -21,11 +21,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/doncicuto/glim/config"
+	"github.com/doncicuto/glim/types"
 	"github.com/jinzhu/gorm"
 
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/server/api/auth"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -37,16 +36,16 @@ import (
 // @Tags         authentication
 // @Accept       json
 // @Produce      json
-// @Param        tokens  body auth.Tokens  true  "Access and Refresh JWT tokens"
-// @Success      200  {object}  auth.Response
-// @Failure			 400  {object} api.ErrorResponse
-// @Failure			 401  {object} api.ErrorResponse
-// @Failure 	   500  {object} api.ErrorResponse
+// @Param        tokens  body types.Tokens  true  "Access and Refresh JWT tokens"
+// @Success      200  {object}  types.Response
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
 // @Router       /login/refresh_token [post]
-func (h *Handler) Refresh(c echo.Context, apiSecret string) error {
+func (h *Handler) Refresh(c echo.Context, settings types.APISettings) error {
 
 	// Get refresh token from body
-	tokens := new(auth.Tokens)
+	tokens := new(types.Tokens)
 	if err := c.Bind(tokens); err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token, you may have to log in again"}
 	}
@@ -54,7 +53,7 @@ func (h *Handler) Refresh(c echo.Context, apiSecret string) error {
 	// Get refresh token claims
 	claims := make(jwt.MapClaims)
 	token, err := jwt.ParseWithClaims(tokens.RefreshToken, claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(apiSecret), nil
+		return []byte(settings.APISecret), nil
 	})
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token, you may have to log in again"}
@@ -90,7 +89,7 @@ func (h *Handler) Refresh(c echo.Context, apiSecret string) error {
 	}
 
 	// Check if use of refresh tokens limit has been exceeded
-	maxDays := config.MaxDaysWoRelogin()
+	maxDays := settings.MaxDaysWoRelogin
 	refreshLimit := time.Unix(int64(iat), 0).AddDate(0, 0, maxDays).Unix()
 	if refreshLimit < time.Now().Unix() {
 		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "refresh token usage without log in exceeded"}
@@ -130,7 +129,7 @@ func (h *Handler) Refresh(c echo.Context, apiSecret string) error {
 	// Prepare refresh response
 
 	// Access token expiry time
-	expiry := config.AccessTokenExpiry()
+	expiry := settings.AccessTokenExpiry
 	atExpiresIn := time.Second * time.Duration(expiry)
 	atExpiresOn := time.Now().Add(atExpiresIn).Unix()
 
@@ -155,7 +154,7 @@ func (h *Handler) Refresh(c echo.Context, apiSecret string) error {
 	ac["readonly"] = dbUser.Readonly
 	t := jwt.New(jwt.SigningMethodHS256)
 	t.Claims = ac
-	at, err := t.SignedString([]byte(apiSecret))
+	at, err := t.SignedString([]byte(settings.APISecret))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}
@@ -167,7 +166,7 @@ func (h *Handler) Refresh(c echo.Context, apiSecret string) error {
 	}
 
 	// Refresh token expiry times
-	expiry = config.RefreshTokenExpiry()
+	expiry = settings.RefreshTokenExpiry
 	rtExpiresIn := time.Second * time.Duration(expiry)
 
 	// Create response token
@@ -178,7 +177,7 @@ func (h *Handler) Refresh(c echo.Context, apiSecret string) error {
 	rc["ajti"] = ajti
 	t = jwt.New(jwt.SigningMethodHS256)
 	t.Claims = rc
-	rt, err := t.SignedString([]byte(apiSecret))
+	rt, err := t.SignedString([]byte(settings.APISecret))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}
@@ -190,7 +189,7 @@ func (h *Handler) Refresh(c echo.Context, apiSecret string) error {
 	}
 
 	// Create response with access and refresh tokens
-	response := auth.Response{}
+	response := types.Response{}
 	response.AccessToken = at
 	response.RefreshToken = rt
 	response.TokenType = "Bearer"

@@ -62,11 +62,11 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 // @Produce      json
 // @Param        group body models.JSONGroupBody  true  "Group body. Name is required. The members property expect a comma-separated list of usernames e.g 'bob,sally'. The replace property is not used in this command."
 // @Success      200  {object}  models.GroupInfo
-// @Failure			 400  {object} api.ErrorResponse
-// @Failure			 401  {object} api.ErrorResponse
-// @Failure 	   404  {object} api.ErrorResponse
-// @Failure 	   406  {object} api.ErrorResponse
-// @Failure 	   500  {object} api.ErrorResponse
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
 // @Router       /groups [post]
 // @Security 		 Bearer
 func (h *Handler) SaveGroup(c echo.Context) error {

@@ -35,10 +35,10 @@ import (
 // @Param        id   path      int  true  "Group ID"
 // @Param        members body models.GroupMembers  true  "Group members body. The members property expect a comma-separated list of usernames e.g 'bob,sally' to be added to the group"
 // @Success      200  {object}  models.GroupInfo
-// @Failure			 400  {object} api.ErrorResponse
-// @Failure			 401  {object} api.ErrorResponse
-// @Failure 	   404  {object} api.ErrorResponse
-// @Failure 	   500  {object} api.ErrorResponse
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
 // @Router       /groups/{id}/members [post]
 // @Security 		 Bearer
 func (h *Handler) AddGroupMembers(c echo.Context) error {

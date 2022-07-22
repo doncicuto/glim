@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/Songmu/prompter"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -57,7 +58,7 @@ var deleteGroupCmd = &cobra.Command{
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Delete(endpoint)
 
 		if err != nil {
@@ -66,7 +67,7 @@ var deleteGroupCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 
