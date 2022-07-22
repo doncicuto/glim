@@ -119,7 +119,7 @@ Glim can use the following environment variables:
 - REFRESH_TOKEN_EXPIRY_TIME_SECONDS (OPTIONAL): Number of seconds for refresh token expiration (default: 3 days).
 - MAX_DAYS_WITHOUT_RELOGIN (OPTIONAL): Number of days that we can use refresh tokens without log in again (default: 7 days).
 - GLIM_DB_NAME: A name for the SQLite database that will store our users and groups
-- LDAP_DOMAIN (OPTIONAL): our ldap domain. Default value: example.org
+- GLIM_LDAP_DOMAIN (OPTIONAL): our ldap domain. Default value: example.org
 - GLIM_REST_ADDR (OPTIONAL): listen address for our REST API server. Default value: 127.0.0.1:1323
 - GLIM_LDAP_ADDR (OPTIONAL): listen address for our LDAP server. Default value: 127.0.0.1:1636
 - GLIM_SERVER: Glim Rest API URI (OPTIONAL):  format `https://<ip|hostname>:port]`. Default value: `https://127.0.0.1:1323`

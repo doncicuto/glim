@@ -27,7 +27,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/doncicuto/glim/config"
 	"github.com/doncicuto/glim/server/kv/badgerdb"
 
 	"github.com/doncicuto/glim/server/api"
@@ -53,8 +52,8 @@ var serverStartCmd = &cobra.Command{
 		}
 
 		// Check if API secret is present in env variable
-		ok := config.CheckAPISecret()
-		if !ok {
+		apiSecret := viper.GetString("api-secret")
+		if apiSecret == "" {
 			fmt.Printf("%s [Glim] ⇨ could not find required GLIM_API_SECRET environment variable. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
 		}
@@ -112,14 +111,16 @@ var serverStartCmd = &cobra.Command{
 
 		// Preparing API server settings
 		apiSettings := api.Settings{
-			DB:      database,
-			KV:      blacklist,
-			TLSCert: tlscert,
-			TLSKey:  tlskey,
-			Address: restAddress,
+			DB:        database,
+			KV:        blacklist,
+			TLSCert:   tlscert,
+			TLSKey:    tlskey,
+			Address:   restAddress,
+			APISecret: apiSecret,
 		}
 
 		ldapAddress := viper.GetString("ldap-addr")
+		domain := viper.GetString("ldap-domain")
 
 		// Preparing LDAP server settings
 		ldapSettings := ldap.Settings{
@@ -127,6 +128,7 @@ var serverStartCmd = &cobra.Command{
 			TLSCert: tlscert,
 			TLSKey:  tlskey,
 			Address: ldapAddress,
+			Domain:  ldap.GetDomain(domain),
 		}
 
 		// get current PID and store it in glim.pid at our tmp directory
@@ -177,6 +179,8 @@ func init() {
 	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
 	serverStartCmd.Flags().String("db-name", "new.db", "name of the file containing Glim's database")
+	serverStartCmd.Flags().String("api-secret", "", "API secret string to be used with JWT tokens")
+	serverStartCmd.Flags().String("ldap-domain", "example.org", "LDAP domain")
 	serverStartCmd.Flags().Bool("sql", false, "enable SQL queries logging")
 	viper.BindPFlags(serverStartCmd.Flags())
 }

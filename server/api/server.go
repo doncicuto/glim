@@ -36,11 +36,12 @@ import (
 
 //Settings - TODO comment
 type Settings struct {
-	DB      *gorm.DB
-	KV      kv.Store
-	TLSCert string
-	TLSKey  string
-	Address string
+	DB        *gorm.DB
+	KV        kv.Store
+	TLSCert   string
+	TLSKey    string
+	Address   string
+	APISecret string
 }
 
 // Server - TODO command
@@ -91,7 +92,7 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	v1.DELETE("/login/refresh_token", h.Logout)
 
 	u := v1.Group("/users")
-	u.Use(middleware.JWT([]byte(os.Getenv("GLIM_API_SECRET"))))
+	u.Use(middleware.JWT([]byte(settings.APISecret)))
 	u.GET("", h.FindAllUsers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	u.POST("", h.SaveUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	u.GET("/:uid", h.FindUserByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
@@ -101,7 +102,7 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	u.POST("/:uid/passwd", h.Passwd, glimMiddleware.IsBlacklisted(blacklist))
 
 	g := v1.Group("/groups")
-	g.Use(middleware.JWT([]byte(os.Getenv("GLIM_API_SECRET"))))
+	g.Use(middleware.JWT([]byte(settings.APISecret)))
 	g.GET("", h.FindAllGroups, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	g.POST("", h.SaveGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	g.GET("/:gid", h.FindGroupByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)

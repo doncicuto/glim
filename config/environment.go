@@ -24,12 +24,6 @@ import (
 	"strconv"
 )
 
-// CheckAPISecret returns a boolean value representing if the GLIM_API_SECRET environment
-// variable has been set
-func CheckAPISecret() bool {
-	return os.Getenv("GLIM_API_SECRET") != ""
-}
-
 // AccessTokenExpiry returns the number of seconds for access token expiration if the
 // ACCESS_TOKEN_EXPIRY_TIME_SECONDS environment variable has been set. If the environment
 // variable hasn't been found, the function returns 3600 seconds.
