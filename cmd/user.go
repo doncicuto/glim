@@ -40,13 +40,7 @@ var userCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		uid := viper.GetUint("uid")
-		if uid != 0 {
-			getUser(uid)
-			os.Exit(0)
-		}
-		getUsers()
-		os.Exit(0)
+		GetUserInfo()
 	},
 }
 
@@ -58,4 +52,5 @@ func init() {
 	userCmd.AddCommand(deleteUserCmd)
 	userCmd.AddCommand(userPasswdCmd)
 	userCmd.Flags().UintP("uid", "i", 0, "user account id")
+	userCmd.Flags().StringP("username", "u", "", "username")
 }

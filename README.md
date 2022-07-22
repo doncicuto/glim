@@ -127,7 +127,6 @@ Glim can use the following environment variables. The same variables can be set 
 | GLIM_SERVER | No | Glim Rest API address for Glim commands | `https://127.0.0.1:1323` |
 | GLIM_BADGERDB_STORE | No | Directory path for BadgerDB Key Value store | /tmp/kv |
 
-
 ## Configuration file
 
 Glim can use a configuration file in YAML format. You can add the configurations options line by line. Just use the name of the command flags and the value you want to use. For example:

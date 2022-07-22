@@ -179,6 +179,22 @@ func getUsers() {
 	}
 }
 
+func GetUserInfo() {
+	uid := viper.GetUint("uid")
+	username := viper.GetString("username")
+	if uid != 0 {
+		getUser(uid)
+		os.Exit(0)
+	}
+	if username != "" {
+		url := viper.GetString("server")
+		uid = getUIDFromUsername(username, url)
+		getUser(uid)
+		os.Exit(0)
+	}
+	getUsers()
+}
+
 // ListUserCmd - TODO comment
 var listUserCmd = &cobra.Command{
 	Use:   "ls",
@@ -193,16 +209,11 @@ var listUserCmd = &cobra.Command{
 			fmt.Println("Could not find required CA pem file to validate authority")
 			os.Exit(1)
 		}
-
-		uid := viper.GetUint("uid")
-		if uid != 0 {
-			getUser(uid)
-			os.Exit(0)
-		}
-		getUsers()
+		GetUserInfo()
 	},
 }
 
 func init() {
 	listUserCmd.Flags().UintP("uid", "i", 0, "user account id")
+	listUserCmd.Flags().StringP("username", "u", "", "username")
 }
