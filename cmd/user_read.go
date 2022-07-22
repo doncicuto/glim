@@ -26,6 +26,35 @@ import (
 	"github.com/spf13/viper"
 )
 
+func getUIDFromUsername(username string, url string) uint {
+	token := ReadCredentials()
+	if NeedsRefresh(token) {
+		Refresh(token.RefreshToken)
+		token = ReadCredentials()
+	}
+
+	client := RestClient(token.AccessToken)
+	endpoint := fmt.Sprintf("%s/v1/users/%s/uid", url, username)
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetResult(models.UserID{}).
+		SetError(&APIError{}).
+		Get(endpoint)
+
+	if err != nil {
+		fmt.Printf("Error connecting with Glim: %v\n", err)
+		os.Exit(1)
+	}
+
+	if resp.IsError() {
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+		os.Exit(1)
+	}
+
+	result := resp.Result().(*models.UserID)
+	return uint(result.ID)
+}
+
 func getUser(id uint) {
 	// Glim server URL
 	url := viper.GetString("server")

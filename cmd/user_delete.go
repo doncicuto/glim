@@ -41,12 +41,17 @@ var deleteUserCmd = &cobra.Command{
 
 		url := viper.GetString("server")
 		uid := viper.GetUint("uid")
+		username := viper.GetString("username")
 
 		// Read credentials and check if token needs refresh
 		token := ReadCredentials()
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
 			token = ReadCredentials()
+		}
+
+		if uid == 0 && username != "" {
+			uid = getUIDFromUsername(username, url)
 		}
 
 		// Rest API authentication
@@ -73,5 +78,5 @@ var deleteUserCmd = &cobra.Command{
 
 func init() {
 	deleteUserCmd.Flags().UintP("uid", "i", 0, "user account id")
-	deleteUserCmd.MarkPersistentFlagRequired("uid")
+	deleteUserCmd.Flags().StringP("username", "u", "", "username")
 }

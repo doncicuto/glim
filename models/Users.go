@@ -78,6 +78,10 @@ type UserInfo struct {
 	Locked       bool        `json:"locked"`
 }
 
+type UserID struct {
+	ID uint32 `json:"uid"`
+}
+
 //Hash - TODO comment
 func Hash(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
