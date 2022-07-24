@@ -84,7 +84,9 @@ var serverStartCmd = &cobra.Command{
 		// Database
 		dbName := viper.GetString("db-name")
 		sqlLog := viper.GetBool("sql")
-		database, err := db.Initialize(dbName, sqlLog)
+		initialAdminPasswd := viper.GetString("initial-admin-passwd")
+		initialSearchPasswd := viper.GetString("initial-search-passwd")
+		database, err := db.Initialize(dbName, sqlLog, initialAdminPasswd, initialSearchPasswd)
 		if err != nil {
 			fmt.Printf("%s [Glim] ⇨ could not connect to database. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
@@ -188,6 +190,8 @@ func init() {
 	serverStartCmd.Flags().Uint("refresh-token-expiry-time", 259200, "refresh token refresh expiry time in seconds")
 	serverStartCmd.Flags().Int("max-days-relogin", 7, "number of days that we can use refresh tokens without log in again")
 	serverStartCmd.Flags().String("ldap-domain", "example.org", "LDAP domain")
+	serverStartCmd.Flags().String("initial-admin-passwd", "", "Initial password for the admin account")
+	serverStartCmd.Flags().String("initial-search-passwd", "", "Initial password for the search account")
 	serverStartCmd.Flags().Bool("sql", false, "enable SQL queries logging")
 	viper.BindPFlags(serverStartCmd.Flags())
 }

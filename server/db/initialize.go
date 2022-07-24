@@ -28,12 +28,20 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func createManager(db *gorm.DB) error {
-	randomPass, err := password.Generate(64, 10, 0, false, true)
-	if err != nil {
-		return err
+func createManager(db *gorm.DB, initialPassword string) error {
+	var chosenPassword string
+	var err error
+
+	if initialPassword == "" {
+		chosenPassword, err = password.Generate(64, 10, 0, false, true)
+		if err != nil {
+			return err
+		}
+	} else {
+		chosenPassword = initialPassword
 	}
-	hash, err := models.Hash(randomPass)
+
+	hash, err := models.Hash(chosenPassword)
 	if err != nil {
 		return err
 	}
@@ -60,7 +68,7 @@ func createManager(db *gorm.DB) error {
 	fmt.Println("------------------------------------- WARNING -------------------------------------")
 	fmt.Println("A new user with manager permissions has been created:")
 	fmt.Println("- Username: admin") // TODO - Allow username with env
-	fmt.Printf("- Password %s\n", randomPass)
+	fmt.Printf("- Password %s\n", chosenPassword)
 	fmt.Println("Please store or write down this password to manage Glim.")
 	fmt.Println("You can delete this user once you assign manager permissions to another user")
 	fmt.Println("-----------------------------------------------------------------------------------")
@@ -68,12 +76,20 @@ func createManager(db *gorm.DB) error {
 	return nil
 }
 
-func createReadonly(db *gorm.DB) error {
-	randomPass, err := password.Generate(64, 10, 0, false, true)
-	if err != nil {
-		return err
+func createReadonly(db *gorm.DB, initialPassword string) error {
+	var chosenPassword string
+	var err error
+
+	if initialPassword == "" {
+		chosenPassword, err = password.Generate(64, 10, 0, false, true)
+		if err != nil {
+			return err
+		}
+	} else {
+		chosenPassword = initialPassword
 	}
-	hash, err := models.Hash(randomPass)
+
+	hash, err := models.Hash(chosenPassword)
 	if err != nil {
 		return err
 	}
@@ -100,7 +116,7 @@ func createReadonly(db *gorm.DB) error {
 	fmt.Println("------------------------------------- WARNING -------------------------------------")
 	fmt.Println("A new user with read-only permissions has been created:")
 	fmt.Println("- Username: search") // TODO - Allow username with env
-	fmt.Printf("- Password %s\n", randomPass)
+	fmt.Printf("- Password %s\n", chosenPassword)
 	fmt.Println("Please store or write down this password to perform search queries in Glim.")
 	fmt.Println("-----------------------------------------------------------------------------------")
 
@@ -108,7 +124,7 @@ func createReadonly(db *gorm.DB) error {
 }
 
 //Initialize - TODO common
-func Initialize(dbName string, sqlLog bool) (*gorm.DB, error) {
+func Initialize(dbName string, sqlLog bool, initialAdminPasswd string, initialSearchPasswd string) (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
 
@@ -131,7 +147,7 @@ func Initialize(dbName string, sqlLog bool) (*gorm.DB, error) {
 	var manager models.User
 	err = db.Where("manager = ?", true).Take(&manager).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		if err := createManager(db); err != nil {
+		if err := createManager(db, initialAdminPasswd); err != nil {
 			return nil, err
 		}
 	}
@@ -139,7 +155,7 @@ func Initialize(dbName string, sqlLog bool) (*gorm.DB, error) {
 	var search models.User
 	err = db.Where("readonly = ?", true).Take(&search).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		if err := createReadonly(db); err != nil {
+		if err := createReadonly(db, initialSearchPasswd); err != nil {
 			return nil, err
 		}
 	}
