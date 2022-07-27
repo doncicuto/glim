@@ -23,10 +23,12 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 
+	"github.com/doncicuto/glim/certs"
 	"github.com/doncicuto/glim/server/kv/badgerdb"
 	"github.com/doncicuto/glim/types"
 
@@ -51,26 +53,66 @@ var serverStartCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Check if certificate file path has been specified
 		tlscert := viper.GetString("tlscert")
-		if tlscert == "" {
-			fmt.Printf("%s [Glim] ⇨ Certificate file path cannot be empty. Exiting now...\n", time.Now().Format(time.RFC3339))
-			os.Exit(1)
-		}
-		if _, err := os.Stat(tlscert); os.IsNotExist(err) {
-			fmt.Printf("%s [Glim] ⇨ Certificate file %s cannot be found. Exiting now...\n", time.Now().Format(time.RFC3339), tlscert)
-			os.Exit(1)
-		}
-
-		// Check if private key file path has been specified
 		tlskey := viper.GetString("tlskey")
-		if tlskey == "" {
-			fmt.Printf("%s [Glim] ⇨ Private key file path cannot be empty. Exiting now...\n", time.Now().Format(time.RFC3339))
-			os.Exit(1)
-		}
-		if _, err := os.Stat(tlskey); os.IsNotExist(err) {
-			fmt.Printf("%s [Glim] ⇨ Private key file %s cannot be found. Exiting now...\n", time.Now().Format(time.RFC3339), tlskey)
-			os.Exit(1)
+
+		_, errCert := os.Stat(tlscert)
+		_, errKey := os.Stat(tlskey)
+
+		if os.IsNotExist(errCert) && os.IsNotExist(errKey) {
+			var config = certs.Config{}
+
+			fmt.Println("Oh, I can't find your certificates and private keys, don't worry I'll create some for you.")
+
+			// organization cannot be empty
+			organization := viper.GetString("organization")
+			if organization == "" {
+				fmt.Println("Organization name cannot be empty")
+				os.Exit(1)
+			}
+			config.Organization = organization
+
+			// address list cannot be empty
+			hosts := strings.Split(viper.GetString("hosts"), ",")
+			if len(hosts) == 0 {
+				fmt.Println("Please specify a comma-separated list of hosts and/or IP addresses to be added to certificates")
+				os.Exit(1)
+			}
+			config.Hosts = hosts
+
+			path := viper.GetString("path")
+			err := os.MkdirAll(path, 0755)
+			if err != nil {
+				fmt.Println("Could not create selected directory for certificates path")
+				os.Exit(1)
+			}
+			config.OutputPath = path
+
+			// years should be greater than 0
+			years := viper.GetInt("years")
+			if years < 1 {
+				fmt.Println("Certificate should be valid for at least 1 year")
+				os.Exit(1)
+			}
+			config.Years = years
+
+			// create our certificates signed by our fake CA
+			err = certs.Generate(&config)
+			if err != nil {
+				fmt.Printf("Could not generate our certificates. Error: %v\n", err)
+			}
+		} else {
+			// Check if certificate file path exists
+			if _, err := os.Stat(tlscert); os.IsNotExist(err) {
+				fmt.Printf("%s [Glim] ⇨ Certificate file %s cannot be found. Exiting now...\n", time.Now().Format(time.RFC3339), tlscert)
+				os.Exit(1)
+			}
+
+			// Check if private key file path exists
+			if _, err := os.Stat(tlskey); os.IsNotExist(err) {
+				fmt.Printf("%s [Glim] ⇨ Private key file %s cannot be found. Exiting now...\n", time.Now().Format(time.RFC3339), tlskey)
+				os.Exit(1)
+			}
 		}
 
 		// Database
@@ -167,12 +209,18 @@ var serverStartCmd = &cobra.Command{
 }
 
 func init() {
-	homeDir, _ := os.UserHomeDir()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+		os.Exit(1)
+	}
+	path := fmt.Sprintf("%s/.glim", homeDir)
+
 	defaultCertPEMFilePath := filepath.Join(homeDir, ".glim", "server.pem")
 	defaultCertKeyFilePath := filepath.Join(homeDir, ".glim", "server.key")
 
-	serverStartCmd.Flags().String("tlscert", defaultCertPEMFilePath, "TLS server certificate path (required)")
-	serverStartCmd.Flags().String("tlskey", defaultCertKeyFilePath, "TLS server private key path (required)")
+	serverStartCmd.Flags().String("tlscert", defaultCertPEMFilePath, "TLS server certificate path")
+	serverStartCmd.Flags().String("tlskey", defaultCertKeyFilePath, "TLS server private key path")
 	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
@@ -182,8 +230,12 @@ func init() {
 	serverStartCmd.Flags().Uint("refresh-token-expiry-time", 259200, "refresh token refresh expiry time in seconds")
 	serverStartCmd.Flags().Int("max-days-relogin", 7, "number of days that we can use refresh tokens without log in again")
 	serverStartCmd.Flags().String("ldap-domain", "example.org", "LDAP domain")
-	serverStartCmd.Flags().String("initial-admin-passwd", "", "Initial password for the admin account")
-	serverStartCmd.Flags().String("initial-search-passwd", "", "Initial password for the search account")
+	serverStartCmd.Flags().String("initial-admin-passwd", "", "initial password for the admin account")
+	serverStartCmd.Flags().String("initial-search-passwd", "", "initial password for the search account")
 	serverStartCmd.Flags().Bool("sql", false, "enable SQL queries logging")
+	serverStartCmd.Flags().String("organization", "Glim Fake Organization, Inc", "organization name for Glim's auto-generated certificates")
+	serverStartCmd.Flags().String("hosts", "127.0.0.1, localhost", "comma-separated list of hosts and IP addresses to be added to Glim's auto-generated certificate")
+	serverStartCmd.Flags().String("path", path, "filesystem path where Glim's auto-generated certificates and private keys files will be created")
+	serverStartCmd.Flags().Int("years", 1, "number of years that we want Glim's auto-generated to be valid.")
 	viper.BindPFlags(serverStartCmd.Flags())
 }

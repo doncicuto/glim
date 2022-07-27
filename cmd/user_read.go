@@ -203,12 +203,6 @@ var listUserCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
-		tlscacert := viper.GetString("tlscacert")
-		_, err := os.Stat(tlscacert)
-		if os.IsNotExist(err) {
-			fmt.Println("Could not find required CA pem file to validate authority")
-			os.Exit(1)
-		}
 		GetUserInfo()
 	},
 }

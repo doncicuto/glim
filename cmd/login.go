@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/Songmu/prompter"
@@ -138,8 +139,16 @@ var loginCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(loginCmd)
 
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
+	rootCmd.AddCommand(loginCmd)
+	loginCmd.Flags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	loginCmd.Flags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 	loginCmd.Flags().StringP("username", "u", "", "Username")
 	loginCmd.Flags().StringP("password", "p", "", "Password")
 	loginCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")

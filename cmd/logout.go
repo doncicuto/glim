@@ -19,6 +19,7 @@ package client
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
@@ -72,5 +73,13 @@ var logoutCmd = &cobra.Command{
 }
 
 func init() {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
 	rootCmd.AddCommand(logoutCmd)
+	logoutCmd.Flags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	logoutCmd.Flags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 }

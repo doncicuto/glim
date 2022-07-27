@@ -78,33 +78,11 @@ $ glim server stop
 
 Glim server will listen on 1323 TCP port (REST API) and on 1636 TCP (LDAPS) port and only TLS communications will be allowed in order to secure credentials and data exchange.
 
-While I understand that you don't want to use certificates for testing, I feel that it is a good practice to use certificates from the beginning. Glim can create a fake CA and generate client and server certificates and matching private keys for testing purposes. Run the following command to create self-signed certificates for localhost and "My organization":
+While I understand that you don't want to use certificates for testing, I feel that it is a good practice to use certificates from the beginning. Glim can create a fake CA and generate client and server certificates and matching private keys for testing purposes.
 
-```(bash)
-$ glim certs -o "My organization" -a "localhost,127.0.0.1"
+If you start the Glim server without specifying your CA and server certificates, Glim will create a fake CA and generate certificates for your operations that will be by default at $HOME/.glim.
 
-Creating a CA certificate file and private key file...
-⇨ Certificate file: root.pem
-⇨ Private key file: root.key
-
-Creating a server certificate file and private key file...
-⇨ Certificate file: server.pem
-⇨ Private key file: server.key
-
-Creating a client certificate file and private key file...
-⇨ Certificate file: client.pem
-⇨ Private key file: client.key
-
-Finished! All your certificates and keys should be at /tmp
-```
-
-When using the CLI a REST API will be consumed using TLS. You should use the --tlscacert flag to specify the path to your Root CA pem file or store it as ca.pem in the .glim directory at your user HOME directory. For example:
-
-```(bash)
-go run main.go user --tlscacert /tmp/root.pem
-```
-
-Failing to provide a valid CA pem file you'll receive the following error message:
+When using the CLI a REST API will be consumed using TLS. You should use the --tlscacert flag to specify the path to your Root CA pem file or store it as ca.pem in the .glim directory at your user HOME directory. Failing to provide a valid CA pem file you'll receive the following error message:
 
 ```(bash)
 Could not find required CA pem file to validate authority
@@ -137,7 +115,6 @@ Glim can use a configuration file in YAML format. You can add the configurations
 ---
 # Client flags
 server: "https://192.168.1.136:1323"
-tlscacert: "/home/mcabrerizo/glim/ca.pem"
 username: "admin"
 
 # Server flags
