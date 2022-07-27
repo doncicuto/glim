@@ -218,13 +218,14 @@ func init() {
 
 	defaultCertPEMFilePath := filepath.Join(homeDir, ".glim", "server.pem")
 	defaultCertKeyFilePath := filepath.Join(homeDir, ".glim", "server.key")
+	defaultDbPath := filepath.Join(homeDir, ".glim", "glim.db")
 
 	serverStartCmd.Flags().String("tlscert", defaultCertPEMFilePath, "TLS server certificate path")
 	serverStartCmd.Flags().String("tlskey", defaultCertKeyFilePath, "TLS server private key path")
 	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
-	serverStartCmd.Flags().String("db-name", "glim.db", "name of the file containing Glim's database")
+	serverStartCmd.Flags().String("db", defaultDbPath, "path of the file containing Glim's database")
 	serverStartCmd.Flags().String("api-secret", "", "API secret string to be used with JWT tokens")
 	serverStartCmd.Flags().Uint("access-token-expiry-time", 3600, "access token refresh expiry time in seconds")
 	serverStartCmd.Flags().Uint("refresh-token-expiry-time", 259200, "refresh token refresh expiry time in seconds")
