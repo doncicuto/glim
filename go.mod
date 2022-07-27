@@ -17,7 +17,6 @@ require (
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/jinzhu/gorm v1.9.16
-	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/labstack/gommon v0.3.1
 	github.com/mattn/go-sqlite3 v1.14.13 // indirect

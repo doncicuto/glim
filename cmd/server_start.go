@@ -33,7 +33,6 @@ import (
 	"github.com/doncicuto/glim/server/api"
 	"github.com/doncicuto/glim/server/db"
 	"github.com/doncicuto/glim/server/ldap"
-	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -45,13 +44,6 @@ var serverStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start a Glim server",
 	Run: func(_ *cobra.Command, _ []string) {
-		// Get environment variables
-		err := godotenv.Load()
-		if err != nil {
-			fmt.Printf("%s [Glim] ⇨ error getting env, not comming through %v. Exiting now...\n", time.Now().Format(time.RFC3339), err)
-			os.Exit(1)
-		}
-
 		// Check if API secret is present in env variable
 		apiSecret := viper.GetString("api-secret")
 		if apiSecret == "" {
