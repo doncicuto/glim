@@ -38,7 +38,7 @@ Click on the links above for sample configurations for all these applications. M
 ## How does it work
 
 ```(bash)
-$ glim server start
+$ GLIM_API_SECRET="mysecret" glim server start
 
 $ glim login -u cedric.daniels
 Password: 
@@ -68,6 +68,10 @@ User created
 
 $ glim user rm -u jimmy.mcnulty
 User account deleted
+
+$ LDAPTLS_CACERT=/home/cedric/.glim/ca.pem ldapwhoami -x -D "cn=admin,dc=example,dc=org" -W -H ldaps://127.0.0.1:1636
+Enter LDAP Password:
+dn:cn=admin,dc=example,dc=org 
 
 $ glim logout
 
