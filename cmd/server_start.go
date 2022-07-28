@@ -116,7 +116,7 @@ var serverStartCmd = &cobra.Command{
 		}
 
 		// Database
-		dbName := viper.GetString("db-name")
+		dbName := viper.GetString("db")
 		sqlLog := viper.GetBool("sql")
 		initialAdminPasswd := viper.GetString("initial-admin-passwd")
 		initialSearchPasswd := viper.GetString("initial-search-passwd")
