@@ -130,7 +130,7 @@ ldap-addr: "192.168.1.136:1636"
 
 ## REST API
 
-Glim comes with a REST API that you can use right away using Swagger as the API documentation is accesible visiting `https://yourserver:1323/swagger/index.html`. Note: you may have to add your CA.pem file so your browser doesn't complain about security.
+Glim comes with a REST API,that you can use right away using Swagger. The API documentation is accesible visiting `https://yourserver:1323/swagger/index.html`. Note: you may have to add your CA.pem file to your trusted certificates so your browser doesn't complain about security.
 
 Here's the web page offering API documentation.
 
