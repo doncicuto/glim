@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 
 	"github.com/Songmu/prompter"
 	"github.com/spf13/cobra"
@@ -39,6 +40,7 @@ var userPasswdCmd = &cobra.Command{
 
 		url := viper.GetString("server")
 		uid := viper.GetUint("uid")
+		username := viper.GetString("username")
 
 		// Check expiration
 		token := ReadCredentials()
@@ -48,7 +50,11 @@ var userPasswdCmd = &cobra.Command{
 		}
 
 		if uid == 0 {
-			uid = uint(WhichIsMyTokenUID(token))
+			if username != "" {
+				uid = getUIDFromUsername(username, url)
+			} else {
+				uid = uint(WhichIsMyTokenUID(token))
+			}
 		}
 
 		if !AmIManager(token) && uint(WhichIsMyTokenUID(token)) != uid {
@@ -88,11 +94,11 @@ var userPasswdCmd = &cobra.Command{
 
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
-		endpoint := fmt.Sprintf("%s/users/%d/passwd", url, uid)
+		endpoint := fmt.Sprintf("%s/v1/users/%d/passwd", url, uid)
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(passwdBody).
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Post(endpoint)
 
 		if err != nil {
@@ -101,7 +107,7 @@ var userPasswdCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 
@@ -111,6 +117,7 @@ var userPasswdCmd = &cobra.Command{
 
 func init() {
 	userPasswdCmd.Flags().UintP("uid", "i", 0, "User account id")
+	userPasswdCmd.Flags().StringP("username", "u", "", "username")
 	userPasswdCmd.Flags().StringP("password", "p", "", "New user password")
 	userPasswdCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
 }

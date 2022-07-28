@@ -25,40 +25,31 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
-	"gorm.io/gorm"
 
 	echoSwagger "github.com/swaggo/echo-swagger"
 
 	handler "github.com/doncicuto/glim/server/api/handlers"
 	glimMiddleware "github.com/doncicuto/glim/server/api/middleware"
-	"github.com/doncicuto/glim/server/kv"
+	"github.com/doncicuto/glim/types"
 )
 
 //Settings - TODO comment
-type Settings struct {
-	DB      *gorm.DB
-	KV      kv.Store
-	TLSCert string
-	TLSKey  string
-	Address string
-}
 
 // Server - TODO command
-// @title Swagger Example API
+
+// @title Glim REST API
 // @version 1.0
-// @description This is a sample server Glim server.
-// @termsOfService http://swagger.io/terms/
-
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
-
+// @description Glim REST API for login/logout, user and group operations. Users and groups require a Bearer Token (JWT) that you can retrieve using login. Please use the project's README for full information about how you can use this token with Swagger.
+// @contact.name Miguel Cabrerizo
+// @contact.url https://github.com/doncicuto/glim/issues
+// @contact.email support@sologitops.com
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host petstore.swagger.io
-// @BasePath /v2
-func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
+// @BasePath /v1
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings types.APISettings) {
 	defer wg.Done()
 
 	// New Echo framework server
@@ -86,21 +77,29 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 	// Routes
 	// JWT tokens will be used for all endpoints but for token requests and swagger
 
-	e.POST("/login", h.Login)
-	e.POST("/login/refresh_token", h.Refresh)
-	e.DELETE("/login/refresh_token", h.Logout)
+	v1 := e.Group("v1")
+	v1.POST("/login", func(c echo.Context) error {
+		return h.Login(c, settings)
+	})
+	v1.POST("/login/refresh_token", func(c echo.Context) error {
+		return h.Refresh(c, settings)
+	})
+	v1.DELETE("/login/refresh_token", func(c echo.Context) error {
+		return h.Logout(c, settings)
+	})
 
-	u := e.Group("/users")
-	u.Use(middleware.JWT([]byte(os.Getenv("GLIM_API_SECRET"))))
+	u := v1.Group("/users")
+	u.Use(middleware.JWT([]byte(settings.APISecret)))
 	u.GET("", h.FindAllUsers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	u.POST("", h.SaveUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	u.GET("/:uid", h.FindUserByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
+	u.GET("/:username/uid", h.FindUIDFromUsername, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	u.PUT("/:uid", h.UpdateUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	u.DELETE("/:uid", h.DeleteUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	u.POST("/:uid/passwd", h.Passwd, glimMiddleware.IsBlacklisted(blacklist))
 
-	g := e.Group("/groups")
-	g.Use(middleware.JWT([]byte(os.Getenv("GLIM_API_SECRET"))))
+	g := v1.Group("/groups")
+	g.Use(middleware.JWT([]byte(settings.APISecret)))
 	g.GET("", h.FindAllGroups, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader)
 	g.POST("", h.SaveGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
 	g.GET("/:gid", h.FindGroupByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)

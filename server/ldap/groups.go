@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func groupEntry(group models.Group, attributes string) map[string][]string {
+func groupEntry(group models.Group, attributes string, domain string) map[string][]string {
 	attrs := make(map[string]string)
 	for _, a := range strings.Split(attributes, " ") {
 		attrs[a] = a
@@ -35,9 +35,9 @@ func groupEntry(group models.Group, attributes string) map[string][]string {
 		creator := *group.CreatedBy
 		createdBy := ""
 		if creator == "admin" {
-			createdBy = fmt.Sprintf("cn=admin,%s", Domain())
+			createdBy = fmt.Sprintf("cn=admin,%s", domain)
 		} else {
-			createdBy = fmt.Sprintf("uid=%s,ou=Users,%s", creator, Domain())
+			createdBy = fmt.Sprintf("uid=%s,ou=Users,%s", creator, domain)
 		}
 		values["creatorsName"] = []string{createdBy}
 	}
@@ -52,9 +52,9 @@ func groupEntry(group models.Group, attributes string) map[string][]string {
 		modifier := *group.UpdatedBy
 		updatedBy := ""
 		if modifier == "admin" {
-			updatedBy = fmt.Sprintf("cn=admin,%s", Domain())
+			updatedBy = fmt.Sprintf("cn=admin,%s", domain)
 		} else {
-			updatedBy = fmt.Sprintf("uid=%s,ou=Users,%s", modifier, Domain())
+			updatedBy = fmt.Sprintf("uid=%s,ou=Users,%s", modifier, domain)
 		}
 		values["modifiersName"] = []string{updatedBy}
 	}
@@ -75,7 +75,7 @@ func groupEntry(group models.Group, attributes string) map[string][]string {
 
 	_, ok = attrs["entryDN"]
 	if ok || operational {
-		values["entryDN"] = []string{fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, Domain())}
+		values["entryDN"] = []string{fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, domain)}
 	}
 
 	_, ok = attrs["subschemaSubentry"]
@@ -92,7 +92,7 @@ func groupEntry(group models.Group, attributes string) map[string][]string {
 	if attributes == "ALL" || ok || attrs["groupOfNames"] != "" || operational {
 		members := []string{}
 		for _, member := range group.Members {
-			members = append(members, fmt.Sprintf("uid=%s,ou=Users,%s", *member.Username, Domain()))
+			members = append(members, fmt.Sprintf("uid=%s,ou=Users,%s", *member.Username, domain))
 		}
 		values["member"] = members
 	}
@@ -100,12 +100,12 @@ func groupEntry(group models.Group, attributes string) map[string][]string {
 	return values
 }
 
-func getGroups(db *gorm.DB, filter string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
+func getGroups(db *gorm.DB, filter string, attributes string, id int64, domain string) ([]*ber.Packet, *ServerError) {
 	var r []*ber.Packet
 	groups := []models.Group{}
 
 	db = db.Preload("Members").Model(&models.Group{})
-	analyzeGroupsCriteria(db, filter, false, "", 0)
+	analyzeGroupsCriteria(db, filter, false, "", 0, domain)
 	err := db.Find(&groups).Error
 	if err != nil {
 		return nil, &ServerError{
@@ -121,8 +121,8 @@ func getGroups(db *gorm.DB, filter string, attributes string, id int64) ([]*ber.
 			for _, group := range groups {
 				for _, member := range group.Members {
 					if *member.Username == matches[1] {
-						dn := fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, Domain())
-						values := groupEntry(group, attributes)
+						dn := fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, domain)
+						values := groupEntry(group, attributes, domain)
 						e := encodeSearchResultEntry(id, values, dn)
 						r = append(r, e)
 					}
@@ -131,8 +131,8 @@ func getGroups(db *gorm.DB, filter string, attributes string, id int64) ([]*ber.
 		}
 	} else {
 		for _, group := range groups {
-			dn := fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, Domain())
-			values := groupEntry(group, attributes)
+			dn := fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, domain)
+			values := groupEntry(group, attributes, domain)
 			e := encodeSearchResultEntry(id, values, dn)
 			r = append(r, e)
 		}
@@ -141,7 +141,7 @@ func getGroups(db *gorm.DB, filter string, attributes string, id int64) ([]*ber.
 	return r, nil
 }
 
-func analyzeGroupsCriteria(db *gorm.DB, filter string, boolean bool, booleanOperator string, index int) {
+func analyzeGroupsCriteria(db *gorm.DB, filter string, boolean bool, booleanOperator string, index int, domain string) {
 	re := regexp.MustCompile(`\(\|(.*)\)|\(\&(.*)\)|\(\!(.*)\)|\(([a-zA-Z=*]*)\)`)
 	submatchall := re.FindAllString(filter, -1)
 
@@ -149,7 +149,7 @@ func analyzeGroupsCriteria(db *gorm.DB, filter string, boolean bool, booleanOper
 		for index, element := range submatchall {
 			element = strings.TrimPrefix(element, "(")
 			element = strings.TrimSuffix(element, ")")
-			analyzeGroupsCriteria(db, element, false, booleanOperator, index)
+			analyzeGroupsCriteria(db, element, false, booleanOperator, index, domain)
 		}
 
 	} else {
@@ -157,19 +157,19 @@ func analyzeGroupsCriteria(db *gorm.DB, filter string, boolean bool, booleanOper
 		case strings.HasPrefix(filter, "(") && strings.HasSuffix(filter, ")"):
 			element := strings.TrimPrefix(filter, "(")
 			element = strings.TrimSuffix(element, ")")
-			analyzeGroupsCriteria(db, element, false, "", 0)
+			analyzeGroupsCriteria(db, element, false, "", 0, domain)
 		case strings.HasPrefix(filter, "&"):
 			element := strings.TrimPrefix(filter, "&")
-			analyzeGroupsCriteria(db, element, true, "and", 0)
+			analyzeGroupsCriteria(db, element, true, "and", 0, domain)
 		case strings.HasPrefix(filter, "|"):
 			element := strings.TrimPrefix(filter, "|")
-			analyzeGroupsCriteria(db, element, true, "or", 0)
+			analyzeGroupsCriteria(db, element, true, "or", 0, domain)
 		case strings.HasPrefix(filter, "!"):
 			element := strings.TrimPrefix(filter, "!")
-			analyzeGroupsCriteria(db, element, true, "not", 0)
-		case strings.HasPrefix(filter, "entryDN=cn=") && strings.HasSuffix(filter, fmt.Sprintf(",ou=Groups,%s", Domain())):
+			analyzeGroupsCriteria(db, element, true, "not", 0, domain)
+		case strings.HasPrefix(filter, "entryDN=cn=") && strings.HasSuffix(filter, fmt.Sprintf(",ou=Groups,%s", domain)):
 			element := strings.TrimPrefix(filter, "entryDN=cn=")
-			element = strings.TrimSuffix(element, fmt.Sprintf(",ou=Groups,%s", Domain()))
+			element = strings.TrimSuffix(element, fmt.Sprintf(",ou=Groups,%s", domain))
 			if index == 0 {
 				db.Where("name = ?", element)
 			} else {

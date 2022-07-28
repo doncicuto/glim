@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func userEntry(user models.User, attributes string) map[string][]string {
+func userEntry(user models.User, attributes string, domain string) map[string][]string {
 	attrs := make(map[string]string)
 	for _, a := range strings.Split(attributes, " ") {
 		attrs[a] = a
@@ -35,9 +35,9 @@ func userEntry(user models.User, attributes string) map[string][]string {
 		creator := *user.CreatedBy
 		createdBy := ""
 		if creator == "admin" {
-			createdBy = fmt.Sprintf("cn=admin,%s", Domain())
+			createdBy = fmt.Sprintf("cn=admin,%s", domain)
 		} else {
-			createdBy = fmt.Sprintf("uid=%s,ou=Users,%s", creator, Domain())
+			createdBy = fmt.Sprintf("uid=%s,ou=Users,%s", creator, domain)
 		}
 		values["creatorsName"] = []string{createdBy}
 	}
@@ -52,9 +52,9 @@ func userEntry(user models.User, attributes string) map[string][]string {
 		modifier := *user.UpdatedBy
 		updatedBy := ""
 		if modifier == "admin" {
-			updatedBy = fmt.Sprintf("cn=admin,%s", Domain())
+			updatedBy = fmt.Sprintf("cn=admin,%s", domain)
 		} else {
-			updatedBy = fmt.Sprintf("uid=%s,ou=Users,%s", modifier, Domain())
+			updatedBy = fmt.Sprintf("uid=%s,ou=Users,%s", modifier, domain)
 		}
 		values["modifiersName"] = []string{updatedBy}
 	}
@@ -149,7 +149,7 @@ func userEntry(user models.User, attributes string) map[string][]string {
 	_, ok = attrs["entryDN"]
 	if ok || operational {
 		if user.Username != nil {
-			values["entryDN"] = []string{fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())}
+			values["entryDN"] = []string{fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, domain)}
 		}
 	}
 
@@ -166,93 +166,7 @@ func userEntry(user models.User, attributes string) map[string][]string {
 	return values
 }
 
-// func getManager(db *gorm.DB, id int64) (*ber.Packet, *ServerError) {
-// 	// Find group
-// 	u := new(models.User)
-// 	err := db.Model(&models.User{}).Where("username = ?", "admin").First(&u).Error
-// 	if err != nil {
-// 		// Does user exist?
-
-// 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-// 			return nil, &ServerError{
-// 				Msg:  "could not retrieve users from database",
-// 				Code: Other,
-// 			}
-// 		}
-// 		return nil, nil
-// 	}
-
-// 	values := map[string][]string{
-// 		"objectClass": {"simpleSecurityObject", "organizationalRole"},
-// 		"cn":          {*u.Username},
-// 		"description": {strings.Join([]string{*u.GivenName, *u.Surname}, " ")},
-// 	}
-
-// 	e := encodeSearchResultEntry(id, values, fmt.Sprintf("cn=admin,%s", Domain()))
-// 	return e, nil
-// }
-
-// func getUsers(db *gorm.DB, username string, groupName string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
-
-// 	var r []*ber.Packet
-// 	users := []models.User{}
-
-// 	if username != "" {
-// 		if username != "admin" {
-// 			if err := db.
-// 				Preload("MemberOf").
-// 				Model(&models.User{}).
-// 				Where("username = ? ", username).
-// 				Find(&users).Error; err != nil {
-// 				return nil, &ServerError{
-// 					Msg:  "could not retrieve users from database",
-// 					Code: Other,
-// 				}
-// 			}
-// 		} else {
-// 			return nil, &ServerError{
-// 				Msg:  "could not retrieve users from database",
-// 				Code: Other,
-// 			}
-// 		}
-// 	} else {
-// 		if err := db.
-// 			Preload("MemberOf").
-// 			Model(&models.User{}).
-// 			Find(&users).Error; err != nil {
-// 			return nil, &ServerError{
-// 				Msg:  "could not retrieve users from database",
-// 				Code: Other,
-// 			}
-// 		}
-// 	}
-
-// 	if groupName != "" {
-// 		for _, user := range users {
-// 			for _, member := range user.MemberOf {
-// 				if *member.Name == groupName {
-// 					dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
-// 					values := userEntry(user, attributes)
-// 					e := encodeSearchResultEntry(id, values, dn)
-// 					r = append(r, e)
-// 				}
-// 			}
-// 		}
-// 	} else {
-// 		for _, user := range users {
-// 			if *user.Username != "admin" {
-// 				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
-// 				values := userEntry(user, attributes)
-// 				e := encodeSearchResultEntry(id, values, dn)
-// 				r = append(r, e)
-// 			}
-// 		}
-// 	}
-
-// 	return r, nil
-// }
-
-func getUsers(db *gorm.DB, filter string, originalFilter string, attributes string, id int64) ([]*ber.Packet, *ServerError) {
+func getUsers(db *gorm.DB, filter string, originalFilter string, attributes string, id int64, domain string) ([]*ber.Packet, *ServerError) {
 	var r []*ber.Packet
 	users := []models.User{}
 
@@ -266,7 +180,7 @@ func getUsers(db *gorm.DB, filter string, originalFilter string, attributes stri
 		}
 	}
 
-	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z0-9-]+),ou=Groups,%s", Domain()))
+	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z0-9-]+),ou=Groups,%s", domain))
 
 	for _, user := range users {
 		if *user.Username != "admin" && !*user.Readonly {
@@ -275,8 +189,8 @@ func getUsers(db *gorm.DB, filter string, originalFilter string, attributes stri
 				if matches != nil {
 					for _, group := range user.MemberOf {
 						if *group.Name == matches[1] {
-							dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
-							values := userEntry(user, attributes)
+							dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, domain)
+							values := userEntry(user, attributes, domain)
 							e := encodeSearchResultEntry(id, values, dn)
 							r = append(r, e)
 							break
@@ -285,8 +199,8 @@ func getUsers(db *gorm.DB, filter string, originalFilter string, attributes stri
 				}
 
 			} else {
-				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, Domain())
-				values := userEntry(user, attributes)
+				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, domain)
+				values := userEntry(user, attributes, domain)
 				e := encodeSearchResultEntry(id, values, dn)
 				r = append(r, e)
 			}

@@ -2,10 +2,10 @@
 
 This page shows how you can configure Gitea to authenticate users with Glim using BindDN. [Gitea documentation](https://docs.gitea.io/en-us/authentication/) explains in detail what is needed to use LDAP but here we offer a full example with our suggestions.
 
-First we'll create a Glim account with read-only privilege so it can be used for looking up users. We'll use this account and the password we set in the Bind DN input and Bind Password fields.
+First we'll create a Glim account with read-only privileges so it can be used for looking up users. We'll use this account and the password we set in the Bind DN input and Bind Password fields.
 
 ```(bash)
-$ glim user --tlscacert ~/glim/ca.pem --server https://ldap.sologitops.com:1323 create -u search -f Search -l User -e test@sologitops.com --readonly
+$ glim user create -u search -f Search -l User -e test@sologitops.com --readonly
 Password: 
 Confirm password: 
 User created
@@ -14,7 +14,7 @@ User created
 Also we'll create a Glim group for those users that we want them to be administrators in Gitea. For example mcabrerizo we'll be one of those administrators:
 
 ```(bash)
-$ glim group --tlscacert ~/glim/ca.pem --server https://ldap.sologitops.com:1323 create -d "Gitea Admins" -n gitea-admins -m mcabrerizo
+$ glim group create -d "Gitea Admins" -n gitea-admins -m mcabrerizo
 Group created
 ```
 

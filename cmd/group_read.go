@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,7 +30,7 @@ func getGroup(id uint) {
 	// Glim server URL
 	url := viper.GetString("server")
 
-	endpoint := fmt.Sprintf("%s/groups/%d", url, id)
+	endpoint := fmt.Sprintf("%s/v1/groups/%d", url, id)
 	// Read credentials
 	token := ReadCredentials()
 
@@ -45,7 +46,7 @@ func getGroup(id uint) {
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetResult(models.Group{}).
-		SetError(&APIError{}).
+		SetError(&types.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
@@ -54,7 +55,7 @@ func getGroup(id uint) {
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 		os.Exit(1)
 	}
 
@@ -78,7 +79,7 @@ func getGroups() {
 
 	// Read credentials
 	token := ReadCredentials()
-	endpoint := fmt.Sprintf("%s/groups", url)
+	endpoint := fmt.Sprintf("%s/v1/groups", url)
 	// Check expiration
 	if NeedsRefresh(token) {
 		Refresh(token.RefreshToken)
@@ -91,7 +92,7 @@ func getGroups() {
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetResult([]models.Group{}).
-		SetError(&APIError{}).
+		SetError(&types.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
@@ -100,7 +101,7 @@ func getGroups() {
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 		os.Exit(1)
 	}
 

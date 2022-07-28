@@ -22,14 +22,44 @@ import (
 	"strings"
 
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+func getUIDFromUsername(username string, url string) uint {
+	token := ReadCredentials()
+	if NeedsRefresh(token) {
+		Refresh(token.RefreshToken)
+		token = ReadCredentials()
+	}
+
+	client := RestClient(token.AccessToken)
+	endpoint := fmt.Sprintf("%s/v1/users/%s/uid", url, username)
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetResult(models.UserID{}).
+		SetError(&types.APIError{}).
+		Get(endpoint)
+
+	if err != nil {
+		fmt.Printf("Error connecting with Glim: %v\n", err)
+		os.Exit(1)
+	}
+
+	if resp.IsError() {
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		os.Exit(1)
+	}
+
+	result := resp.Result().(*models.UserID)
+	return uint(result.ID)
+}
+
 func getUser(id uint) {
 	// Glim server URL
 	url := viper.GetString("server")
-	endpoint := fmt.Sprintf("%s/users/%d", url, id)
+	endpoint := fmt.Sprintf("%s/v1/users/%d", url, id)
 	// Read credentials
 	token := ReadCredentials()
 
@@ -45,7 +75,7 @@ func getUser(id uint) {
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetResult(models.UserInfo{}).
-		SetError(&APIError{}).
+		SetError(&types.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
@@ -54,7 +84,7 @@ func getUser(id uint) {
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 		os.Exit(1)
 	}
 
@@ -86,7 +116,7 @@ func getUsers() {
 
 	// Read credentials
 	token := ReadCredentials()
-	endpoint := fmt.Sprintf("%s/users", url)
+	endpoint := fmt.Sprintf("%s/v1/users", url)
 	// Check expiration
 	if NeedsRefresh(token) {
 		Refresh(token.RefreshToken)
@@ -99,7 +129,7 @@ func getUsers() {
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetResult([]models.UserInfo{}).
-		SetError(&APIError{}).
+		SetError(&types.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
@@ -108,7 +138,7 @@ func getUsers() {
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 		os.Exit(1)
 	}
 
@@ -150,6 +180,22 @@ func getUsers() {
 	}
 }
 
+func GetUserInfo() {
+	uid := viper.GetUint("uid")
+	username := viper.GetString("username")
+	if uid != 0 {
+		getUser(uid)
+		os.Exit(0)
+	}
+	if username != "" {
+		url := viper.GetString("server")
+		uid = getUIDFromUsername(username, url)
+		getUser(uid)
+		os.Exit(0)
+	}
+	getUsers()
+}
+
 // ListUserCmd - TODO comment
 var listUserCmd = &cobra.Command{
 	Use:   "ls",
@@ -158,22 +204,11 @@ var listUserCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
-		tlscacert := viper.GetString("tlscacert")
-		_, err := os.Stat(tlscacert)
-		if os.IsNotExist(err) {
-			fmt.Println("Could not find required CA pem file to validate authority")
-			os.Exit(1)
-		}
-
-		uid := viper.GetUint("uid")
-		if uid != 0 {
-			getUser(uid)
-			os.Exit(0)
-		}
-		getUsers()
+		GetUserInfo()
 	},
 }
 
 func init() {
 	listUserCmd.Flags().UintP("uid", "i", 0, "user account id")
+	listUserCmd.Flags().StringP("username", "u", "", "username")
 }

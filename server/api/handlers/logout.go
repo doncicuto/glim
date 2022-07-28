@@ -18,19 +18,29 @@ package handlers
 
 import (
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/doncicuto/glim/server/api/auth"
+	"github.com/doncicuto/glim/types"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
 // Logout - TODO comment
-func (h *Handler) Logout(c echo.Context) error {
+// @Summary      Delete authentication tokens
+// @Description  Log out from the API
+// @Tags         authentication
+// @Accept       json
+// @Produce      json
+// @Param        tokens  body types.Tokens  true  "Access and Refresh JWT tokens"
+// @Success      204
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /login/refresh_token [delete]
+func (h *Handler) Logout(c echo.Context, settings types.APISettings) error {
 
 	// Get refresh token from body
-	tokens := new(auth.Tokens)
+	tokens := new(types.Tokens)
 	if err := c.Bind(tokens); err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token"}
 	}
@@ -38,7 +48,7 @@ func (h *Handler) Logout(c echo.Context) error {
 	// Get refresh token claims
 	claims := make(jwt.MapClaims)
 	token, err := jwt.ParseWithClaims(tokens.RefreshToken, claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("GLIM_API_SECRET")), nil
+		return []byte(settings.APISecret), nil
 	})
 
 	// Extract access token jti

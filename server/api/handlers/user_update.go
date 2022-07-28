@@ -58,6 +58,20 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 }
 
 //UpdateUser - TODO comment
+// @Summary      Update user account information
+// @Description  Update user account information
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User Account ID"
+// @Param        user  body models.JSONUserBody  true  "User account body. Username is required. The members property expect a comma-separated list of group names e.g 'admin,devel'. Password property is optional, if set it will be the password for that user, if no password is sent the user account will be locked (user can not log in). Manager property if true will assign the Manager role. Readonly property if true will set this user for read-only usage (queries). Locked property if true will disable log in for that user. Remove property if true will remove group membership from those specified in the members property. Remove property if true will replace group membership from those specified in the members property."
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /users/{id} [put]
+// @Security 		 Bearer
 func (h *Handler) UpdateUser(c echo.Context) error {
 	var updatedUser = make(map[string]interface{})
 
@@ -71,7 +85,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	if !ok {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
-	if err := h.DB.Model(&models.User{}).Where("id = ?", int(tokenUID)).First(&modifiedBy).Error; err != nil {
+	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(tokenUID)).First(&modifiedBy).Error; err != nil {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
 	}
 
@@ -89,7 +103,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	// Bind
 	body := new(models.JSONUserBody)
 	if err := c.Bind(body); err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Find user
@@ -104,7 +118,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	// Validate other fields
 	if body.Username != "" {
-		err := h.DB.Model(&models.User{}).Where("name = ? AND id <> ?", body.Username, uid).First(&models.User{}).Error
+		err := h.DB.Model(&models.User{}).Where("username = ? AND id <> ?", body.Username, uid).First(&models.User{}).Error
 		if err != nil {
 			// Does username exist?
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -165,13 +179,13 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Get updated user
 	err = h.DB.Where("id = ?", uid).First(&u).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Update group members
@@ -182,19 +196,19 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 			// We are going to replace all user memberof, so let's clear the associations first
 			err = h.DB.Model(&u).Association("MemberOf").Clear()
 			if err != nil {
-				return err
+				return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 			}
 		}
 
 		if body.RemoveMembersOf {
 			err = h.RemoveMembersOf(u, members)
 			if err != nil {
-				return err
+				return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 			}
 		} else {
 			err = h.AddMembersOf(u, members)
 			if err != nil {
-				return err
+				return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 			}
 		}
 	}
@@ -202,7 +216,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	// Get updated user
 	err = h.DB.Where("id = ?", uid).First(&u).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Return user

@@ -31,6 +31,21 @@ import (
 )
 
 //UpdateGroup - TODO comment
+// @Summary      Update group
+// @Description  Update group
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Group ID"
+// @Param        group body models.JSONGroupBody  true  "Group body. All properties are optional. The members property expect a comma-separated list of usernames e.g 'bob,sally'. The replace property if true will replace all members by those selected by the members property, if replace is false the member will be added to current members."
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /groups/{id} [put]
+// @Security 		 Bearer
 func (h *Handler) UpdateGroup(c echo.Context) error {
 	var modifiedBy = make(map[string]interface{})
 	g := new(models.Group)
@@ -44,7 +59,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 	if !ok {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
-	if err := h.DB.Model(&models.User{}).Where("id = ?", uid).First(&u).Error; err != nil {
+	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(uid)).First(&u).Error; err != nil {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
 	}
 
@@ -61,7 +76,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 	}
 	// Get request body
 	if err := c.Bind(&body); err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Find group
@@ -70,7 +85,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Validate other fields
@@ -96,7 +111,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 
 	// Update group
 	if err := h.DB.Model(&models.Group{}).Where("id = ?", gid).Updates(modifiedBy).Error; err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Get updated group
@@ -105,7 +120,7 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Update group members
@@ -116,20 +131,20 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 			// We are going to replace all group members, so let's clear the associations first
 			err := h.DB.Model(&g).Association("Members").Clear()
 			if err != nil {
-				return err
+				return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 			}
 		}
 
 		err := h.AddMembers(g, members)
 		if err != nil {
-			return err
+			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
 	}
 
 	// Get updated group
 	g = new(models.Group)
 	if err := h.DB.Preload("Members").Model(&models.Group{}).Where("id = ?", gid).First(&g).Error; err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Return group

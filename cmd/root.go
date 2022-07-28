@@ -19,7 +19,6 @@ package client
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -45,18 +44,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	homeDir, _ := os.UserHomeDir()
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
 	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/.glim.yaml)")
-	rootCmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	rootCmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
-
 	viper.BindPFlags(rootCmd.PersistentFlags())
 }
 

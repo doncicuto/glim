@@ -28,6 +28,21 @@ import (
 )
 
 //RemoveGroupMembers - TODO comment
+// @Summary      Remove members from a group
+// @Description  Remove members from a group
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Group ID"
+// @Param        members body models.GroupMembers  true  "Group members body. The members property expect a comma-separated list of usernames e.g 'bob,sally' to be removed from the group"
+// @Success      204
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /groups/{id}/members [delete]
+// @Security 		 Bearer
 func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 	// Get gid
 	gid := c.Param("gid")
@@ -40,7 +55,7 @@ func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 	// Bind
 	m := new(models.GroupMembers)
 	if err := c.Bind(m); err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 	members := strings.Split(m.Members, ",")
 
@@ -52,7 +67,7 @@ func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Update group
@@ -65,7 +80,7 @@ func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("user %s not found", member)}
 			}
-			return err
+			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
 
 		// Delete association

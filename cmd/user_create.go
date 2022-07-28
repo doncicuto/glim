@@ -26,6 +26,7 @@ import (
 	"github.com/Songmu/prompter"
 	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -57,32 +58,38 @@ var newUserCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		plainuser := viper.GetBool("plainuser")
+		if plainuser {
+			manager = false
+			readonly = false
+		}
+
 		// Prompt for password if needed
 		password := viper.GetString("password")
 		passwordStdin := viper.GetBool("password-stdin")
-		if password != "" {
-			if !passwordStdin {
-				password = prompter.Password("Password")
-				if password == "" {
-					fmt.Println("Error password required")
-					os.Exit(1)
-				}
-				confirmPassword := prompter.Password("Confirm password")
-				if password != confirmPassword {
-					fmt.Println("Error passwords don't match")
-					os.Exit(1)
-				}
+		locked := viper.GetBool("lock")
+
+		if password == "" && !passwordStdin && !locked {
+			password = prompter.Password("Password")
+			if password == "" {
+				fmt.Println("Error password required")
+				os.Exit(1)
+			}
+			confirmPassword := prompter.Password("Confirm password")
+			if password != confirmPassword {
+				fmt.Println("Error passwords don't match")
+				os.Exit(1)
 			}
 		} else {
-			fmt.Println("WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
-		}
+			switch {
+			case password != "" && !passwordStdin:
+				fmt.Println("WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
 
-		// Check if password has been sent in stdin
-		if passwordStdin {
-			if password != "" {
+			case password != "" && passwordStdin:
 				fmt.Println("--password and --password-stdin are mutually exclusive")
 				os.Exit(1)
-			} else {
+
+			case passwordStdin:
 				// Reference: https://flaviocopes.com/go-shell-pipes/
 				info, err := os.Stdin.Stat()
 				if err != nil {
@@ -107,6 +114,9 @@ var newUserCmd = &cobra.Command{
 				}
 
 				password = strings.TrimSuffix(string(output), "\n")
+				if password == "" {
+					locked = true
+				}
 			}
 		}
 
@@ -115,7 +125,7 @@ var newUserCmd = &cobra.Command{
 
 		// Read credentials
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/users", url)
+		endpoint := fmt.Sprintf("%s/v1/users", url)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
@@ -125,14 +135,13 @@ var newUserCmd = &cobra.Command{
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
 
-		locked := len(password) == 0 || viper.GetBool("lock") || !viper.GetBool("unlock")
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONUserBody{
 				Username:     viper.GetString("username"),
 				Password:     password,
 				GivenName:    viper.GetString("firstname"),
-				Surname:      viper.GetString("surname"),
+				Surname:      viper.GetString("lastname"),
 				Email:        viper.GetString("email"),
 				SSHPublicKey: viper.GetString("ssh-public-key"),
 				MemberOf:     viper.GetString("groups"),
@@ -140,7 +149,7 @@ var newUserCmd = &cobra.Command{
 				Readonly:     &readonly,
 				Locked:       &locked,
 			}).
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Post(endpoint)
 
 		if err != nil {
@@ -149,7 +158,7 @@ var newUserCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 
@@ -168,9 +177,10 @@ func init() {
 	newUserCmd.Flags().StringP("jpeg-photo", "j", "", "path to JPEG file")
 	newUserCmd.Flags().StringP("groups", "g", "", "comma-separated list of groups that we want the new user account to be a member of")
 	newUserCmd.Flags().Bool("password-stdin", false, "take the password from stdin")
-	newUserCmd.Flags().Bool("manager", false, "glim manager account?")
-	newUserCmd.Flags().Bool("readonly", false, "glim readonly account?")
-	newUserCmd.Flags().Bool("lock", false, "lock account (cannot log in)")
+	newUserCmd.Flags().Bool("manager", false, "Glim manager account?")
+	newUserCmd.Flags().Bool("readonly", false, "Glim readonly account?")
+	newUserCmd.Flags().Bool("plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
+	newUserCmd.Flags().Bool("lock", false, "lock account (no password will be set, user cannot log in)")
 	newUserCmd.Flags().Bool("unlock", false, "unlock account (can log in)")
 	newUserCmd.MarkFlagRequired("username")
 }

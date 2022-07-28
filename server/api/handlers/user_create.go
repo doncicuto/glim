@@ -56,6 +56,20 @@ func (h *Handler) AddMembersOf(u *models.User, memberOf []string) error {
 }
 
 //SaveUser - TODO comment
+// @Summary      Create a new user
+// @Description  Create a new user in our database
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user  body models.JSONUserBody  true  "User account body. Username is required. The members property expect a comma-separated list of group names e.g 'admin,devel' that you want the user be member of. Password property is optional, if set it will be the password for that user, if no password is sent the user account will be locked (user can not log in). Manager property if true will assign the Manager role. Readonly property if true will set this user for read-only usage (queries). Locked property if true will disable log in for that user. Remove and replace properties are not currently used."
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /users [post]
+// @Security 		 Bearer
 func (h *Handler) SaveUser(c echo.Context) error {
 	u := new(models.User)
 
@@ -67,14 +81,14 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	if !ok {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
-	if err := h.DB.Model(&models.User{}).Where("id = ?", tokenUID).First(&createdBy).Error; err != nil {
+	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(tokenUID)).First(&createdBy).Error; err != nil {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
 	}
 
 	body := models.JSONUserBody{}
 	// Bind
 	if err := c.Bind(&body); err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Validate
@@ -82,6 +96,8 @@ func (h *Handler) SaveUser(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required username"}
 	}
 	u.Username = &body.Username
+	u.GivenName = &body.GivenName
+	u.Surname = &body.Surname
 
 	if body.Email != "" {
 		if err := checkmail.ValidateFormat(body.Email); err != nil {
@@ -119,7 +135,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	// Hash password
 	hashedPassword, err := models.Hash(body.Password)
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 	password := string(hashedPassword)
 	u.Password = &password
@@ -127,13 +143,13 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	// Add new user
 	err = h.DB.Model(models.User{}).Create(&u).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Get new user
 	err = h.DB.Where("username = ?", body.Username).First(&u).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Add group members
@@ -141,7 +157,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 		members := strings.Split(body.MemberOf, ",")
 		err = h.AddMembersOf(u, members)
 		if err != nil {
-			return err
+			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
 	}
 

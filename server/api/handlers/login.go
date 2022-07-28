@@ -19,21 +19,30 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/doncicuto/glim/config"
+	"github.com/doncicuto/glim/types"
 	"gorm.io/gorm"
 
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/server/api/auth"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 // Login - TODO comment
-func (h *Handler) Login(c echo.Context) error {
+// @Summary      Log in to the API
+// @Description  Log in to the API and get JWT access and refresh tokens
+// @Tags         authentication
+// @Accept       json
+// @Produce      json
+// @Param        authentication  body types.LoginBody  true  "Username and password"
+// @Success      200  {object}  types.Response
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /login [post]
+func (h *Handler) Login(c echo.Context, settings types.APISettings) error {
 	var dbUser models.User
 
 	// Parse username and password from body
@@ -61,7 +70,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	// Access token expiry times
-	expiry := config.AccessTokenExpiry()
+	expiry := settings.AccessTokenExpiry
 	atExpiresIn := time.Second * time.Duration(expiry)
 	atExpiresOn := time.Now().Add(atExpiresIn).Unix()
 
@@ -82,7 +91,7 @@ func (h *Handler) Login(c echo.Context) error {
 	ac["readonly"] = dbUser.Readonly
 	t := jwt.New(jwt.SigningMethodHS256)
 	t.Claims = ac
-	at, err := t.SignedString([]byte(os.Getenv("GLIM_API_SECRET")))
+	at, err := t.SignedString([]byte(settings.APISecret))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}
@@ -94,7 +103,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	// Refresh token expiry times
-	expiry = config.RefreshTokenExpiry()
+	expiry = settings.RefreshTokenExpiry
 	rtExpiresIn := time.Second * time.Duration(expiry)
 
 	// Create response token
@@ -106,7 +115,7 @@ func (h *Handler) Login(c echo.Context) error {
 
 	t = jwt.New(jwt.SigningMethodHS256)
 	t.Claims = rc
-	rt, err := t.SignedString([]byte(os.Getenv("GLIM_API_SECRET")))
+	rt, err := t.SignedString([]byte(settings.APISecret))
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not create access token"}
 	}
@@ -118,7 +127,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	// Create response with access and refresh tokens
-	response := auth.Response{}
+	response := types.Response{}
 	response.AccessToken = at
 	response.RefreshToken = rt
 	response.TokenType = "Bearer"

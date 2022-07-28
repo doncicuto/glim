@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/Songmu/prompter"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -41,6 +42,7 @@ var deleteUserCmd = &cobra.Command{
 
 		url := viper.GetString("server")
 		uid := viper.GetUint("uid")
+		username := viper.GetString("username")
 
 		// Read credentials and check if token needs refresh
 		token := ReadCredentials()
@@ -49,12 +51,16 @@ var deleteUserCmd = &cobra.Command{
 			token = ReadCredentials()
 		}
 
+		if uid == 0 && username != "" {
+			uid = getUIDFromUsername(username, url)
+		}
+
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
-		endpoint := fmt.Sprintf("%s/users/%d", url, uid)
+		endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Delete(endpoint)
 
 		if err != nil {
@@ -63,7 +69,7 @@ var deleteUserCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 
@@ -73,5 +79,5 @@ var deleteUserCmd = &cobra.Command{
 
 func init() {
 	deleteUserCmd.Flags().UintP("uid", "i", 0, "user account id")
-	deleteUserCmd.MarkPersistentFlagRequired("uid")
+	deleteUserCmd.Flags().StringP("username", "u", "", "username")
 }

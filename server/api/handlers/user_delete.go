@@ -27,6 +27,20 @@ import (
 )
 
 //DeleteUser - TODO comment
+// @Summary      Delete user account
+// @Description  Delete user account
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User Account ID"
+// @Success      204
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /users/{id} [delete]
+// @Security 		 Bearer
 func (h *Handler) DeleteUser(c echo.Context) error {
 	var u models.User
 	// User id cannot be empty
@@ -34,14 +48,13 @@ func (h *Handler) DeleteUser(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required user uid"}
 	}
 
-	// Get idparam
-	uid, err := strconv.ParseUint(c.Param("uid"), 10, 32)
+	id, err := strconv.Atoi(c.Param("uid"))
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert uid into uint"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "uid param should be a valid integer"}
 	}
 
 	// Remove user
-	err = h.DB.Model(&models.User{}).Where("id = ?", uid).Take(&u).Delete(&u).Error
+	err = h.DB.Model(&models.User{}).Where("id = ?", id).Take(&u).Delete(&u).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}

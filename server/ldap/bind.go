@@ -46,7 +46,7 @@ func bindPassword(p *ber.Packet) (string, *ServerError) {
 }
 
 // HandleBind - TODO comment
-func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, string, error) {
+func HandleBind(message *Message, db *gorm.DB, remoteAddr string, LDAPDomain string) (*ber.Packet, string, error) {
 	username := ""
 	id := message.ID
 	p := message.Request
@@ -66,7 +66,7 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, 
 		username = strings.TrimPrefix(dn[0], "cn=")
 		domain := strings.TrimPrefix(n, dn[0])
 		domain = strings.TrimPrefix(domain, ",")
-		if domain != Domain() {
+		if domain != LDAPDomain {
 			return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong domain: %s", domain)
 		}
 	}
@@ -81,7 +81,7 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string) (*ber.Packet, 
 		domain = strings.TrimPrefix(domain, dn[1])
 		domain = strings.TrimPrefix(domain, ",")
 
-		if domain != Domain() {
+		if domain != LDAPDomain {
 			return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong domain: %s", domain)
 		}
 	}

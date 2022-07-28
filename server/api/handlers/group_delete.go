@@ -19,6 +19,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/doncicuto/glim/models"
 	"github.com/labstack/echo/v4"
@@ -26,16 +27,40 @@ import (
 )
 
 //DeleteGroup - TODO comment
+// @Summary      Delete a group
+// @Description  Delete a group
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Group ID"
+// @Success      204
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /groups/{id} [delete]
+// @Security 		 Bearer
 func (h *Handler) DeleteGroup(c echo.Context) error {
 	var g models.Group
-	gid := c.Param("gid")
-	err := h.DB.Model(&g).Where("id = ?", gid).Take(&g).Delete(&g).Error
+	// Group id cannot be empty
+	if c.Param("gid") == "" {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required group id"}
+	}
+
+	// Get idparam
+	gid, err := strconv.ParseUint(c.Param("gid"), 10, 32)
+	if err != nil {
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert gid into uint"}
+	}
+
+	err = h.DB.Model(&g).Where("id = ?", gid).Take(&g).Delete(&g).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 	return c.NoContent(http.StatusNoContent)
 }

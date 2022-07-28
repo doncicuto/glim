@@ -27,6 +27,19 @@ import (
 )
 
 // FindGroupByID - TODO comment
+// @Summary      Find group by id
+// @Description  Find group by id
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Group ID"
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /groups/{id} [get]
+// @Security 		 Bearer
 func (h *Handler) FindGroupByID(c echo.Context) error {
 	var g models.Group
 	var err error
@@ -37,7 +50,7 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	showMembers := true
@@ -46,6 +59,17 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 }
 
 // FindAllGroups - TODO comment
+// @Summary      Find all groups
+// @Description  Find all groups
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /groups [get]
+// @Security 		 Bearer
 func (h *Handler) FindAllGroups(c echo.Context) error {
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
@@ -66,7 +90,7 @@ func (h *Handler) FindAllGroups(c echo.Context) error {
 		Offset((page - 1) * limit).
 		Limit(limit).
 		Find(&groups).Error; err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	if len(groups) == 0 {

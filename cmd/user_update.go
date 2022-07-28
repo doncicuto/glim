@@ -22,6 +22,7 @@ import (
 
 	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -37,6 +38,29 @@ var updateUserCmd = &cobra.Command{
 
 		var trueValue = true
 		var falseValue = false
+
+		// Read credentials and check expiration
+		token := ReadCredentials()
+		if NeedsRefresh(token) {
+			Refresh(token.RefreshToken)
+			token = ReadCredentials()
+		}
+
+		// Get uid and username
+		uid := viper.GetUint("uid")
+		username := viper.GetString("username")
+
+		if uid == 0 && username == "" {
+			fmt.Println("you must specify either the user account id or a username")
+			os.Exit(1)
+		}
+
+		// Glim server URL
+		url := viper.GetString("server")
+
+		if uid == 0 && username != "" {
+			uid = getUIDFromUsername(username, url)
+		}
 
 		// Validate email
 		email := viper.GetString("email")
@@ -63,19 +87,6 @@ var updateUserCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Glim server URL
-		url := viper.GetString("server")
-
-		// Read credentials
-		uid := viper.GetUint("uid")
-		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/users/%d", url, uid)
-		// Check expiration
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
-		}
-
 		jpegPhoto := ""
 		jpegPhotoPath := viper.GetString("jpeg-photo")
 		if jpegPhotoPath != "" {
@@ -88,7 +99,7 @@ var updateUserCmd = &cobra.Command{
 		}
 
 		userBody := models.JSONUserBody{
-			Username:     viper.GetString("username"),
+			Username:     username,
 			GivenName:    viper.GetString("firstname"),
 			Surname:      viper.GetString("lastname"),
 			Email:        viper.GetString("email"),
@@ -130,11 +141,11 @@ var updateUserCmd = &cobra.Command{
 
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
-
+		endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(userBody).
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Put(endpoint)
 
 		if err != nil {
@@ -143,7 +154,7 @@ var updateUserCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 
@@ -159,13 +170,12 @@ func init() {
 	updateUserCmd.Flags().StringP("ssh-public-key", "k", "", "SSH Public Key")
 	updateUserCmd.Flags().StringP("jpeg-photo", "j", "", "path to JPEG file")
 	updateUserCmd.Flags().StringP("groups", "g", "", "comma-separated list of group names. ")
-	updateUserCmd.Flags().Bool("manager", false, "glim manager account?")
-	updateUserCmd.Flags().Bool("readonly", false, "glim readonly account?")
-	updateUserCmd.Flags().Bool("plainuser", false, "glim plain user account. User can read and modify its own user account information but not its group membership.")
+	updateUserCmd.Flags().Bool("manager", false, "Glim manager account?")
+	updateUserCmd.Flags().Bool("readonly", false, "Glim readonly account?")
+	updateUserCmd.Flags().Bool("plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
 	updateUserCmd.Flags().Bool("replace", false, "replace groups with those specified with -g. Groups are appended to those that the user is a member of by default")
 	updateUserCmd.Flags().Bool("remove", false, "remove group membership with those specified with -g.")
 	updateUserCmd.Flags().Bool("lock", false, "lock account (cannot log in)")
 	updateUserCmd.Flags().Bool("unlock", false, "unlock account (can log in)")
 	updateUserCmd.Flags().UintP("uid", "i", 0, "user account id")
-	updateUserCmd.MarkFlagRequired("uid")
 }

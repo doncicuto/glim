@@ -209,73 +209,6 @@ func searchAttributes(p *ber.Packet) (string, *ServerError) {
 	return strings.Join(attributes, " "), nil
 }
 
-// func analyzeQuery(base string, filter string) Query {
-
-// 	// regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z0-9-]+),ou=users,%s$", Domain()))
-// 	// if regBase.MatchString(strings.ToLower(base)) {
-// 	// 	matches := regBase.FindStringSubmatch(strings.ToLower(base))
-// 	// 	if matches != nil {
-// 	// 		query.filterUser = matches[1]
-// 	// 	}
-// 	// }
-
-// 	// regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z0-9-]+),ou=groups,%s$", Domain()))
-// 	// if regBase.MatchString(strings.ToLower(base)) {
-// 	// 	matches := regBase.FindStringSubmatch(strings.ToLower(base))
-// 	// 	if matches != nil {
-// 	// 		query.filterGroup = matches[1]
-// 	// 	}
-// 	// }
-
-// 	// filterUser, _ := regexp.Compile("member=uid=([A-Za-z0-9-]+)")
-// 	// if filterUser.MatchString(filter) {
-// 	// 	matches := filterUser.FindStringSubmatch(filter)
-// 	// 	if matches != nil {
-// 	// 		query.filterGroupsByUser = matches[1]
-// 	// 		return query
-// 	// 	}
-// 	// }
-
-// 	// filterUser, _ = regexp.Compile("uid=([A-Za-z0-9-]+)")
-// 	// if filterUser.MatchString(filter) {
-// 	// 	matches := filterUser.FindStringSubmatch(filter)
-// 	// 	if matches != nil {
-// 	// 		query.filterUser = matches[1]
-// 	// 		return query
-// 	// 	}
-// 	// }
-
-// 	// filterUser, _ = regexp.Compile("objectClass=inetOrgPerson")
-// 	// if filterUser.MatchString(filter) {
-// 	// 	query.showUsers = false
-// 	// 	query.showInetOrgPerson = true
-// 	// 	return query
-// 	// }
-
-// 	// filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z0-9-]+),ou=Groups,%s", Domain()))
-// 	// if filterGroup.MatchString(filter) {
-// 	// 	matches := filterGroup.FindStringSubmatch(filter)
-// 	// 	if matches != nil {
-// 	// 		query.filterUsersByGroup = matches[1]
-// 	// 		return query
-// 	// 	}
-// 	// }
-
-// 	// filterGroup, _ = regexp.Compile("objectClass=groupOfNames")
-// 	// if filterGroup.MatchString(filter) {
-// 	// 	query.showGroups = false
-// 	// 	query.showGroupOfNames = true
-// 	// 	return query
-// 	// }
-
-// 	// if strings.ToLower(base) == fmt.Sprintf("ou=Groups,%s", Domain()) {
-// 	// 	query.showGroups = true
-// 	// 	return query
-// 	// }
-
-// 	return query
-// }
-
 func baseObject(p *ber.Packet) (string, *ServerError) {
 	if p.ClassType != ber.ClassUniversal ||
 		p.TagType != ber.TypePrimitive ||
@@ -317,7 +250,7 @@ func searchScope(p *ber.Packet) (int64, *ServerError) {
 }
 
 // HandleSearchRequest - TODO comment
-func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
+func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.Packet, error) {
 
 	var r []*ber.Packet
 	id := message.ID
@@ -331,7 +264,7 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	printLog(fmt.Sprintf("search base object: %s", b))
 
 	//Check if base object is valid
-	reg, _ := regexp.Compile(fmt.Sprintf("%s$", Domain()))
+	reg, _ := regexp.Compile(fmt.Sprintf("%s$", domain))
 	if !reg.MatchString(b) {
 		p := encodeSearchResultDone(id, NoSuchObject, "")
 		r = append(r, p)
@@ -396,11 +329,11 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 	    SearchResultEntry and/or SearchResultReference messages, followed by
 		a single SearchResultDone message */
 
-	regBase, _ := regexp.Compile(fmt.Sprintf("^ou=users,%s$", Domain()))
+	regBase, _ := regexp.Compile(fmt.Sprintf("^ou=users,%s$", domain))
 
-	if (b == Domain() && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
+	if (b == domain && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
 		if f == "(objectclass=*)" {
-			ouUsers := fmt.Sprintf("ou=Users,%s", Domain())
+			ouUsers := fmt.Sprintf("ou=Users,%s", domain)
 			values := map[string][]string{
 				"objectClass": {"organizationalUnit", "top"},
 				"ou":          {"Users"},
@@ -409,19 +342,19 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 			r = append(r, e)
 		}
 
-		users, err := getUsers(db, f, f, a, id)
+		users, err := getUsers(db, f, f, a, id, domain)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
 		r = append(r, users...)
 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z0-9-]+),ou=users,%s$", Domain()))
+	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z0-9-]+),ou=users,%s$", domain))
 	if regBase.MatchString(strings.ToLower(b)) {
 		matches := regBase.FindStringSubmatch(strings.ToLower(b))
 		if matches != nil {
 
-			users, err := getUsers(db, fmt.Sprintf("uid=%s", matches[1]), f, a, id)
+			users, err := getUsers(db, fmt.Sprintf("uid=%s", matches[1]), f, a, id, domain)
 			if err != nil {
 				return r, errors.New(err.Msg)
 			}
@@ -429,10 +362,10 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 		}
 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^ou=groups,%s$", Domain()))
-	if (b == Domain() && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
+	regBase, _ = regexp.Compile(fmt.Sprintf("^ou=groups,%s$", domain))
+	if (b == domain && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
 		if f == "(objectclass=*)" {
-			ouGroups := fmt.Sprintf("ou=Groups,%s", Domain())
+			ouGroups := fmt.Sprintf("ou=Groups,%s", domain)
 			values := map[string][]string{
 				"objectClass": {"organizationalUnit", "top"},
 				"ou":          {"Groups"},
@@ -440,7 +373,7 @@ func HandleSearchRequest(message *Message, db *gorm.DB) ([]*ber.Packet, error) {
 			e := encodeSearchResultEntry(id, values, ouGroups)
 			r = append(r, e)
 		}
-		groups, err := getGroups(db, f, a, id)
+		groups, err := getGroups(db, f, a, id, domain)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}

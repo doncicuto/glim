@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -39,7 +40,7 @@ var newGroupCmd = &cobra.Command{
 
 		// Read credentials
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/groups", url)
+		endpoint := fmt.Sprintf("%s/v1/groups", url)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
@@ -54,9 +55,9 @@ var newGroupCmd = &cobra.Command{
 			SetBody(models.JSONGroupBody{
 				Name:        viper.GetString("name"),
 				Description: viper.GetString("description"),
-				Members:     viper.GetString("groupMembers"),
+				Members:     viper.GetString("members"),
 			}).
-			SetError(&APIError{}).
+			SetError(&types.APIError{}).
 			Post(endpoint)
 
 		if err != nil {
@@ -65,7 +66,7 @@ var newGroupCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 

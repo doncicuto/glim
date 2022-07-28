@@ -36,6 +36,7 @@ type Settings struct {
 	TLSCert string
 	TLSKey  string
 	Address string
+	Domain  string
 }
 
 func printLog(msg string) {
@@ -43,7 +44,7 @@ func printLog(msg string) {
 	log.Print(msg)
 }
 
-func handleConnection(c net.Conn, db *gorm.DB) {
+func handleConnection(c net.Conn, db *gorm.DB, domain string) {
 	defer c.Close()
 
 	var username = ""
@@ -69,7 +70,7 @@ L:
 		switch message.Op {
 		case BindRequest:
 			printLog(fmt.Sprintf("bind requested by client: %s", remoteAddress))
-			p, n, err := HandleBind(message, db, remoteAddress)
+			p, n, err := HandleBind(message, db, remoteAddress, domain)
 			username = n
 			if err != nil {
 				printLog(err.Error())
@@ -89,7 +90,7 @@ L:
 			}
 		case SearchRequest:
 			printLog(fmt.Sprintf("search requested by client %s", remoteAddress))
-			p, err := HandleSearchRequest(message, db)
+			p, err := HandleSearchRequest(message, db, domain)
 			if err != nil {
 				printLog(err.Error())
 			}
@@ -175,6 +176,6 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 		}
 
 		// Handle our server connection
-		go handleConnection(c, settings.DB)
+		go handleConnection(c, settings.DB, settings.Domain)
 	}
 }

@@ -29,6 +29,20 @@ import (
 )
 
 //Passwd - TODO comment
+// @Summary      Change user account password
+// @Description  Change user account password
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User Account ID"
+// @Param        password body models.JSONPasswdBody  true  "Password body"
+// @Success      200  {object}  models.UserInfo
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   403  {object} types.ErrorResponse
+// @Failure 	   406  {object} types.ErrorResponse
+// @Router       /users/passwd [post]
+// @Security 		 Bearer
 func (h *Handler) Passwd(c echo.Context) error {
 	var dbUser models.User
 	var newUser = make(map[string]interface{})
@@ -103,13 +117,13 @@ func (h *Handler) Passwd(c echo.Context) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
 		}
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Get updated user
 	err = h.DB.Preload("MemberOf").Model(&models.User{}).Where("id = ?", uid).First(&dbUser).Error
 	if err != nil {
-		return err
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	// Return user

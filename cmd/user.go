@@ -19,6 +19,7 @@ package client
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -32,30 +33,25 @@ var userCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
-
-		tlscacert := viper.GetString("tlscacert")
-		_, err := os.Stat(tlscacert)
-		if os.IsNotExist(err) {
-			fmt.Println("Could not find required CA pem file to validate authority")
-			os.Exit(1)
-		}
-
-		uid := viper.GetUint("uid")
-		if uid != 0 {
-			getUser(uid)
-			os.Exit(0)
-		}
-		getUsers()
-		os.Exit(0)
+		GetUserInfo()
 	},
 }
 
 func init() {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
 	rootCmd.AddCommand(userCmd)
+	userCmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	userCmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 	userCmd.AddCommand(listUserCmd)
 	userCmd.AddCommand(newUserCmd)
 	userCmd.AddCommand(updateUserCmd)
 	userCmd.AddCommand(deleteUserCmd)
 	userCmd.AddCommand(userPasswdCmd)
 	userCmd.Flags().UintP("uid", "i", 0, "user account id")
+	userCmd.Flags().StringP("username", "u", "", "username")
 }

@@ -19,8 +19,9 @@ package client
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/doncicuto/glim/server/api/auth"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -31,7 +32,7 @@ var logoutCmd = &cobra.Command{
 	Short: "Log out from a Glim server",
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(_ *cobra.Command, _ []string) {
-		var token *auth.Response
+		var token *types.Response
 
 		// Read token from file
 		token = ReadCredentials()
@@ -51,8 +52,8 @@ var logoutCmd = &cobra.Command{
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(fmt.Sprintf(`{"refresh_token":"%s"}`, token.RefreshToken)).
-			SetError(&APIError{}).
-			Delete(fmt.Sprintf("%s/login/refresh_token", url))
+			SetError(&types.APIError{}).
+			Delete(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
 		if err != nil {
 			fmt.Printf("Error connecting with Glim: %v\n", err)
@@ -60,7 +61,7 @@ var logoutCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 
@@ -72,5 +73,13 @@ var logoutCmd = &cobra.Command{
 }
 
 func init() {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
 	rootCmd.AddCommand(logoutCmd)
+	logoutCmd.Flags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	logoutCmd.Flags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 }

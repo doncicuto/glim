@@ -21,9 +21,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/Songmu/prompter"
+	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -99,12 +101,12 @@ var loginCmd = &cobra.Command{
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
-			SetBody(Credentials{
+			SetBody(types.Credentials{
 				Username: username,
 				Password: password,
 			}).
-			SetError(&APIError{}).
-			Post(fmt.Sprintf("%s/login", url))
+			SetError(&types.APIError{}).
+			Post(fmt.Sprintf("%s/v1/login", url))
 
 		if err != nil {
 			fmt.Printf("Error connecting with Glim: %v\n", err)
@@ -112,7 +114,7 @@ var loginCmd = &cobra.Command{
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*APIError).Message)
+			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
 			os.Exit(1)
 		}
 
@@ -137,8 +139,16 @@ var loginCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(loginCmd)
 
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
+	rootCmd.AddCommand(loginCmd)
+	loginCmd.Flags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	loginCmd.Flags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 	loginCmd.Flags().StringP("username", "u", "", "Username")
 	loginCmd.Flags().StringP("password", "p", "", "Password")
 	loginCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
