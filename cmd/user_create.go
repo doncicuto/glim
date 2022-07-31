@@ -140,6 +140,7 @@ var newUserCmd = &cobra.Command{
 			SetBody(models.JSONUserBody{
 				Username:     viper.GetString("username"),
 				Password:     password,
+				Name:         strings.Join([]string{viper.GetString("firstname"), viper.GetString("lastname")}, " "),
 				GivenName:    viper.GetString("firstname"),
 				Surname:      viper.GetString("lastname"),
 				Email:        viper.GetString("email"),

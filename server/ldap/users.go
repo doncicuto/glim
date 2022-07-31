@@ -77,7 +77,7 @@ func userEntry(user models.User, attributes string, domain string) map[string][]
 
 	if attributes == "ALL" || attrs["cn"] != "" || attrs["inetOrgPerson"] != "" || operational {
 		if user.GivenName != nil && user.Surname != nil {
-			values["cn"] = []string{strings.Join([]string{*user.GivenName, *user.Surname}, " ")}
+			values["cn"] = []string{*user.Name}
 		}
 	}
 
@@ -167,7 +167,7 @@ func getUsers(db *gorm.DB, filter string, originalFilter string, attributes stri
 		}
 	}
 
-	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z0-9-]+),ou=Groups,%s", domain))
+	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z.0-9-]+),ou=Groups,%s", domain))
 
 	for _, user := range users {
 		if *user.Username != "admin" && !*user.Readonly {
@@ -201,7 +201,8 @@ func getUsers(db *gorm.DB, filter string, originalFilter string, attributes stri
 
 func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOperator string, index int) {
 	if boolean {
-		re := regexp.MustCompile(`\(\|(.*)\)|\(\&(.*)\)|\(\!(.*)\)|\(([a-zA-Z=*]*)\)`)
+
+		re := regexp.MustCompile(`\(\|(.*)\)|\(\&(.*)\)|\(\!(.*)\)|\(([a-zA-Z=\ \.*]*)\)*`)
 		submatchall := re.FindAllString(filter, -1)
 
 		for index, element := range submatchall {
@@ -216,15 +217,19 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 			element := strings.TrimPrefix(filter, "(")
 			element = strings.TrimSuffix(element, ")")
 			analyzeUsersCriteria(db, element, false, "", 0)
+
 		case strings.HasPrefix(filter, "&"):
 			element := strings.TrimPrefix(filter, "&")
 			analyzeUsersCriteria(db, element, true, "and", 0)
+
 		case strings.HasPrefix(filter, "|"):
 			element := strings.TrimPrefix(filter, "|")
 			analyzeUsersCriteria(db, element, true, "or", 0)
+
 		case strings.HasPrefix(filter, "!"):
 			element := strings.TrimPrefix(filter, "!")
 			analyzeUsersCriteria(db, element, true, "not", 0)
+
 		case strings.HasPrefix(filter, "uid="):
 			element := strings.TrimPrefix(filter, "uid=")
 			if strings.Contains(element, "*") {
@@ -235,11 +240,44 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 					db.Or("username LIKE ?", element)
 				}
 			} else {
-				element = strings.Replace(element, "*", "%", -1)
 				if index == 0 {
 					db.Where("username = ?", element)
 				} else {
 					db.Or("username = ?", element)
+				}
+			}
+
+		case strings.HasPrefix(filter, "mail="):
+			element := strings.TrimPrefix(filter, "mail=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("email LIKE ?", element)
+				} else {
+					db.Or("email LIKE ?", element)
+				}
+			} else {
+				if index == 0 {
+					db.Where("email = ?", element)
+				} else {
+					db.Or("email = ?", element)
+				}
+			}
+
+		case strings.HasPrefix(filter, "email="):
+			element := strings.TrimPrefix(filter, "email=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("email LIKE ?", element)
+				} else {
+					db.Or("email LIKE ?", element)
+				}
+			} else {
+				if index == 0 {
+					db.Where("email = ?", element)
+				} else {
+					db.Or("email = ?", element)
 				}
 			}
 
@@ -253,13 +291,13 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 					db.Or("surname LIKE ?", element)
 				}
 			} else {
-				element = strings.Replace(element, "*", "%", -1)
 				if index == 0 {
 					db.Where("surname = ?", element)
 				} else {
 					db.Or("surname = ?", element)
 				}
 			}
+
 		case strings.HasPrefix(filter, "givenName="):
 			element := strings.TrimPrefix(filter, "givenName=")
 			if strings.Contains(element, "*") {
@@ -270,13 +308,30 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 					db.Or("given_name LIKE ?", element)
 				}
 			} else {
-				element = strings.Replace(element, "*", "%", -1)
 				if index == 0 {
 					db.Where("given_name = ?", element)
 				} else {
 					db.Or("given_name = ?", element)
 				}
 			}
+
+		case strings.HasPrefix(filter, "cn="):
+			element := strings.TrimPrefix(filter, "cn=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("name LIKE ?", element)
+				} else {
+					db.Or("name LIKE ?", element)
+				}
+			} else {
+				if index == 0 {
+					db.Where("name = ?", element)
+				} else {
+					db.Or("name = ?", element)
+				}
+			}
+
 		case strings.HasPrefix(filter, "SshPublicKey="):
 			element := strings.TrimPrefix(filter, "SshPublicKey=")
 			if strings.Contains(element, "*") {
@@ -287,7 +342,6 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 					db.Or("ssh_public_key LIKE ?", element)
 				}
 			} else {
-				element = strings.Replace(element, "*", "%", -1)
 				if index == 0 {
 					db.Where("ssh_public_key = ?", element)
 				} else {

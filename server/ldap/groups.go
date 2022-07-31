@@ -97,10 +97,19 @@ func groupEntry(group models.Group, attributes string, domain string) map[string
 		values["member"] = members
 	}
 
+	_, ok = attrs["uid"]
+	if attributes == "ALL" || ok || attrs["groupOfNames"] != "" || operational {
+		uids := []string{}
+		for _, member := range group.Members {
+			uids = append(uids, *member.Username)
+		}
+		values["uid"] = uids
+	}
+
 	return values
 }
 
-func getGroups(db *gorm.DB, filter string, attributes string, id int64, domain string) ([]*ber.Packet, *ServerError) {
+func getGroups(db *gorm.DB, filter string, originalFilter string, attributes string, id int64, domain string) ([]*ber.Packet, *ServerError) {
 	var r []*ber.Packet
 	groups := []models.Group{}
 
@@ -114,22 +123,26 @@ func getGroups(db *gorm.DB, filter string, attributes string, id int64, domain s
 		}
 	}
 
-	filterUser, _ := regexp.Compile("member=uid=([A-Za-z0-9-]+)")
-	if filterUser.MatchString(filter) {
-		matches := filterUser.FindStringSubmatch(filter)
+	filterUser, _ := regexp.Compile("uid=([A-Za-z.0-9-]+)")
+	if filterUser.MatchString(originalFilter) {
+		matches := filterUser.FindStringSubmatch(originalFilter)
 		if matches != nil {
 			for _, group := range groups {
+				filteredMembers := []*models.User{}
 				for _, member := range group.Members {
 					if *member.Username == matches[1] {
-						dn := fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, domain)
-						values := groupEntry(group, attributes, domain)
-						e := encodeSearchResultEntry(id, values, dn)
-						r = append(r, e)
+						filteredMembers = append(filteredMembers, member)
 					}
 				}
+				group.Members = filteredMembers
+				dn := fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, domain)
+				values := groupEntry(group, attributes, domain)
+				e := encodeSearchResultEntry(id, values, dn)
+				r = append(r, e)
 			}
 		}
 	} else {
+
 		for _, group := range groups {
 			dn := fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, domain)
 			values := groupEntry(group, attributes, domain)
@@ -142,10 +155,12 @@ func getGroups(db *gorm.DB, filter string, attributes string, id int64, domain s
 }
 
 func analyzeGroupsCriteria(db *gorm.DB, filter string, boolean bool, booleanOperator string, index int, domain string) {
-	re := regexp.MustCompile(`\(\|(.*)\)|\(\&(.*)\)|\(\!(.*)\)|\(([a-zA-Z=*]*)\)`)
-	submatchall := re.FindAllString(filter, -1)
 
-	if boolean && len(submatchall) > 0 {
+	if boolean {
+
+		re := regexp.MustCompile(`\(\|(.*)\)|\(\&(.*)\)|\(\!(.*)\)|\(([a-zA-Z=\ \.*]*)\)*`)
+		submatchall := re.FindAllString(filter, -1)
+
 		for index, element := range submatchall {
 			element = strings.TrimPrefix(element, "(")
 			element = strings.TrimSuffix(element, ")")

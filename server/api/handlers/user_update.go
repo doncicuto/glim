@@ -64,7 +64,7 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "User Account ID"
-// @Param        user  body models.JSONUserBody  true  "User account body. Username is required. The members property expect a comma-separated list of group names e.g 'admin,devel'. Password property is optional, if set it will be the password for that user, if no password is sent the user account will be locked (user can not log in). Manager property if true will assign the Manager role. Readonly property if true will set this user for read-only usage (queries). Locked property if true will disable log in for that user. Remove property if true will remove group membership from those specified in the members property. Remove property if true will replace group membership from those specified in the members property."
+// @Param        user  body models.JSONUserBody  true  "User account body. Username is required. The members property expect a comma-separated list of group names e.g 'admin,devel'. Password property is optional, if set it will be the password for that user, if no password is sent the user account will be locked (user can not log in). Manager property if true will assign the Manager role. Readonly property if true will set this user for read-only usage (queries). Locked property if true will disable log in for that user. Remove property if true will remove group membership from those specified in the members property. Remove property if true will replace group membership from those specified in the members property. Name property is not used"
 // @Success      200  {object}  models.UserInfo
 // @Failure			 400  {object} types.ErrorResponse
 // @Failure			 401  {object} types.ErrorResponse
@@ -107,7 +107,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	// Find user
-	err = h.DB.Where("id = ?", uid).First(&models.User{}).Error
+	err = h.DB.Where("id = ?", uid).First(&u).Error
 	if err != nil {
 		// Does user exist?
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -131,10 +131,20 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	if body.GivenName != "" {
 		updatedUser["given_name"] = html.EscapeString(strings.TrimSpace(body.GivenName))
+		if body.Surname != "" {
+			updatedUser["name"] = fmt.Sprintf("%s %s", updatedUser["given_name"], html.EscapeString(strings.TrimSpace(body.Surname)))
+		} else {
+			updatedUser["name"] = fmt.Sprintf("%s %s", updatedUser["given_name"], *u.Surname)
+		}
 	}
 
 	if body.Surname != "" {
 		updatedUser["surname"] = html.EscapeString(strings.TrimSpace(body.Surname))
+		if body.GivenName != "" {
+			updatedUser["name"] = fmt.Sprintf("%s %s", html.EscapeString(strings.TrimSpace(body.GivenName)), updatedUser["surname"])
+		} else {
+			updatedUser["name"] = fmt.Sprintf("%s %s", *u.GivenName, updatedUser["surname"])
+		}
 	}
 
 	if body.Email != "" {

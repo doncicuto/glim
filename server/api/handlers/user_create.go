@@ -96,6 +96,9 @@ func (h *Handler) SaveUser(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required username"}
 	}
 	u.Username = &body.Username
+
+	name := strings.Join([]string{body.GivenName, body.Surname}, " ")
+	u.Name = &name
 	u.GivenName = &body.GivenName
 	u.Surname = &body.Surname
 

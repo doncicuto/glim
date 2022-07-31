@@ -19,6 +19,7 @@ package client
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
@@ -89,6 +90,7 @@ var updateUserCmd = &cobra.Command{
 
 		userBody := models.JSONUserBody{
 			Username:     username,
+			Name:         strings.Join([]string{viper.GetString("firstname"), viper.GetString("lastname")}, " "),
 			GivenName:    viper.GetString("firstname"),
 			Surname:      viper.GetString("lastname"),
 			Email:        viper.GetString("email"),

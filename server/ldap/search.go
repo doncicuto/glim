@@ -82,8 +82,11 @@ func decodeAssertionValue(p *ber.Packet) (string, *ServerError) {
 	if p.Tag == ber.TagOctetString {
 		filter += fmt.Sprintf("%v", p.Value)
 	}
+	// WORKAROUND: We're having a problem with filters including asterisks
+	// If we ask for *Cabrerizo* BER request is removing the second asterisk
+	// so as a workaround we're using two asterisks to avoid missing results
 	if p.Tag == ber.TagSequence && len(p.Children) == 1 {
-		filter += fmt.Sprintf("=%v*", p.Children[0].Data)
+		filter += fmt.Sprintf("=*%v*", p.Children[0].Data)
 	}
 	return filter, nil
 }
@@ -349,7 +352,7 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 		r = append(r, users...)
 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z0-9-]+),ou=users,%s$", domain))
+	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z.0-9-]+),ou=users,%s$", domain))
 	if regBase.MatchString(strings.ToLower(b)) {
 		matches := regBase.FindStringSubmatch(strings.ToLower(b))
 		if matches != nil {
@@ -373,55 +376,25 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 			e := encodeSearchResultEntry(id, values, ouGroups)
 			r = append(r, e)
 		}
-		groups, err := getGroups(db, f, a, id, domain)
+		groups, err := getGroups(db, f, f, a, id, domain)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
 		r = append(r, groups...)
 	}
 
-	// if query.showUsers || query.filterUser != "" || query.filterUsersByGroup != "" {
-	// 	// users, err := getUsers(db, query.filterUser, query.filterUsersByGroup, a, id)
-	// 	users, err := getUsers(db, f, a, id)
-	// 	if err != nil {
-	// 		return r, errors.New(err.Msg)
-	// 	}
-	// 	r = append(r, users...)
-	// }
+	regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z.0-9-]+),ou=groups,%s$", domain))
+	if regBase.MatchString(strings.ToLower(b)) {
+		matches := regBase.FindStringSubmatch(strings.ToLower(b))
+		if matches != nil {
 
-	// Groups entries
-
-	// if query.filterGroupsByUser != "" {
-	// 	groups, err := getGroupsByUser(db, query.filterGroupsByUser, a, id)
-	// 	if err != nil {
-	// 		return r, errors.New(err.Msg)
-	// 	}
-	// 	r = append(r, groups...)
-	// }
-
-	// if query.showGroups || query.filterGroup != "" || query.showGroupOfNames {
-	// 	groups, err := getGroupsPro(db, f, a, id)
-	// 	if err != nil {
-	// 		return r, errors.New(err.Msg)
-	// 	}
-	// 	r = append(r, groups...)
-	// }
-
-	// if query.filterGroup != "" {
-	// 	groups, err := getGroups(db, query.filterGroup, a, id)
-	// 	if err != nil {
-	// 		return r, errors.New(err.Msg)
-	// 	}
-	// 	r = append(r, groups...)
-	// }
-
-	// if (query.showGroups && query.filterGroupsByUser == "") || query.showGroupOfNames {
-	// 	groups, err := getGroups(db, "", a, id)
-	// 	if err != nil {
-	// 		return r, errors.New(err.Msg)
-	// 	}
-	// 	r = append(r, groups...)
-	// }
+			groups, err := getGroups(db, fmt.Sprintf("cn=%s", matches[1]), f, a, id, domain)
+			if err != nil {
+				return r, errors.New(err.Msg)
+			}
+			r = append(r, groups...)
+		}
+	}
 
 	d := encodeSearchResultDone(id, Success, "")
 	r = append(r, d)
