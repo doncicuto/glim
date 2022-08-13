@@ -118,9 +118,13 @@ var serverStartCmd = &cobra.Command{
 		// Database
 		dbName := viper.GetString("db")
 		sqlLog := viper.GetBool("sql")
-		initialAdminPasswd := viper.GetString("initial-admin-passwd")
-		initialSearchPasswd := viper.GetString("initial-search-passwd")
-		database, err := db.Initialize(dbName, sqlLog, initialAdminPasswd, initialSearchPasswd)
+		var dbInit = types.DBInit{
+			AdminPasswd:   viper.GetString("initial-admin-passwd"),
+			SearchPasswd:  viper.GetString("initial-search-passwd"),
+			Users:         viper.GetString("initial-users"),
+			DefaultPasswd: viper.GetString("initial-users-password"),
+		}
+		database, err := db.Initialize(dbName, sqlLog, dbInit)
 		if err != nil {
 			fmt.Printf("%s [Glim] ⇨ could not connect to database. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
@@ -238,5 +242,7 @@ func init() {
 	serverStartCmd.Flags().String("hosts", "127.0.0.1, localhost", "comma-separated list of hosts and IP addresses to be added to Glim's auto-generated certificate")
 	serverStartCmd.Flags().String("path", path, "filesystem path where Glim's auto-generated certificates and private keys files will be created")
 	serverStartCmd.Flags().Int("years", 1, "number of years that we want Glim's auto-generated to be valid.")
+	serverStartCmd.Flags().String("initial-users", "", "comma-separated lists of usernames to be added when server starts")
+	serverStartCmd.Flags().String("initial-users-password", "glim", "default password for your initial users")
 	viper.BindPFlags(serverStartCmd.Flags())
 }

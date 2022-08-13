@@ -66,6 +66,13 @@ type APIError struct {
 	Message string `json:"message"`
 }
 
+type DBInit struct {
+	AdminPasswd   string
+	SearchPasswd  string
+	Users         string
+	DefaultPasswd string
+}
+
 type ErrorResponse struct {
 	Message string `json:"message"`
 }

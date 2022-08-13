@@ -19,14 +19,52 @@ package db
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	"github.com/google/uuid"
 	"github.com/sethvargo/go-password/password"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+func createUsers(db *gorm.DB, dbInit types.DBInit) {
+	users := dbInit.Users
+	password := dbInit.DefaultPasswd
+
+	for _, username := range strings.Split(users, ",") {
+		var u models.User
+		err := db.Where("username = ?", username).Take(&u).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) && username != "" {
+			createUser(db, username, password)
+		}
+	}
+}
+
+func createUser(db *gorm.DB, username string, password string) {
+	hash, err := models.Hash(password)
+	if err != nil {
+		fmt.Printf("Username: %s", "could not be created")
+		return
+	}
+
+	userUUID := uuid.New().String()
+	hashed := string(hash)
+	manager := false
+	readonly := false
+
+	if err := db.Create(&models.User{
+		Username: &username,
+		Password: &hashed,
+		Manager:  &manager,
+		Readonly: &readonly,
+		UUID:     &userUUID,
+	}).Error; err != nil {
+		fmt.Printf("Username: %s", "could not be created")
+	}
+}
 
 func createManager(db *gorm.DB, initialPassword string) error {
 	var chosenPassword string
@@ -124,7 +162,7 @@ func createReadonly(db *gorm.DB, initialPassword string) error {
 }
 
 //Initialize - TODO common
-func Initialize(dbName string, sqlLog bool, initialAdminPasswd string, initialSearchPasswd string) (*gorm.DB, error) {
+func Initialize(dbName string, sqlLog bool, dbInit types.DBInit) (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
 
@@ -147,7 +185,7 @@ func Initialize(dbName string, sqlLog bool, initialAdminPasswd string, initialSe
 	var manager models.User
 	err = db.Where("manager = ?", true).Take(&manager).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		if err := createManager(db, initialAdminPasswd); err != nil {
+		if err := createManager(db, dbInit.AdminPasswd); err != nil {
 			return nil, err
 		}
 	}
@@ -155,10 +193,12 @@ func Initialize(dbName string, sqlLog bool, initialAdminPasswd string, initialSe
 	var search models.User
 	err = db.Where("readonly = ?", true).Take(&search).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		if err := createReadonly(db, initialSearchPasswd); err != nil {
+		if err := createReadonly(db, dbInit.SearchPasswd); err != nil {
 			return nil, err
 		}
 	}
+
+	createUsers(db, dbInit)
 
 	return db, nil
 }
