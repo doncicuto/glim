@@ -110,6 +110,8 @@ Glim can use the following environment variables. The same variables can be set 
 | GLIM_BADGERDB_STORE | No | Directory path for BadgerDB Key Value store | /tmp/kv |
 | GLIM_INITIAL_ADMIN_PASSWD | No | Initial password for the admin account | - |
 | GLIM_INITIAL_SEARCH_PASSWD | No | Initial password for the search account | - |
+| GLIM_INITIAL_USERS | No | Users that will be added to Glim when server starts | - |
+| GLIM_INITIAL_USERS_PASSWORD | No | Password for initial users | glim |
 
 ## Configuration file
 
