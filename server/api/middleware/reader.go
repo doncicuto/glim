@@ -42,7 +42,7 @@ func IsReader(next echo.HandlerFunc) echo.HandlerFunc {
 		if !ok {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 		}
-		if jwtManager || !jwtReadonly || (jwtReadonly && uid == fmt.Sprintf("%f", jwtID)) {
+		if jwtManager || jwtReadonly || uid == fmt.Sprintf("%d", uint(jwtID)) {
 			return next(c)
 		}
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "user has no proper permissions"}
