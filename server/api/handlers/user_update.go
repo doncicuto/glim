@@ -85,6 +85,12 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	if !ok {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
+
+	manager, ok := claims["manager"].(bool)
+	if !ok {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
+
 	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(tokenUID)).First(&modifiedBy).Error; err != nil {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
 	}
@@ -122,6 +128,9 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		if err != nil {
 			// Does username exist?
 			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if !manager {
+					return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update the username"}
+				}
 				updatedUser["username"] = html.EscapeString(strings.TrimSpace(body.Username))
 			}
 		} else {
@@ -159,14 +168,23 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	if body.Manager != nil {
+		if !manager {
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update manager status"}
+		}
 		updatedUser["manager"] = *body.Manager
 	}
 
 	if body.Readonly != nil {
+		if !manager {
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update readonly status"}
+		}
 		updatedUser["readonly"] = *body.Readonly
 	}
 
 	if body.Locked != nil {
+		if !manager {
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update locked status"}
+		}
 		updatedUser["locked"] = *body.Locked
 	}
 
@@ -196,6 +214,9 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	// Update group members
 	if body.MemberOf != "" {
+		if !manager {
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update group memberships"}
+		}
 		members := strings.Split(body.MemberOf, ",")
 
 		if body.ReplaceMembersOf {

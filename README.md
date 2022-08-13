@@ -78,6 +78,14 @@ $ glim logout
 $ glim server stop
 ```
 
+## Glim user types (roles)
+
+Glim has the following roles:
+
+- Manager. Can create, update and delete users and/or groups and set group memberships.
+- Plain users. A plain user can get its user account information, update its name, email, ssh public key and password. A plain user can change its role and its memberships.
+- Read-only. Can read users and groups information.
+
 ## Secured communications by design
 
 Glim server will listen on 1323 TCP port (REST API) and on 1636 TCP (LDAPS) port and only TLS communications will be allowed in order to secure credentials and data exchange.

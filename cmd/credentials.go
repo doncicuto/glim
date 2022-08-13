@@ -147,7 +147,6 @@ func AmIManager(token *types.Response) bool {
 	claims := make(jwt.MapClaims)
 	jwt.ParseWithClaims(token.AccessToken, claims, nil)
 
-	// Extract access token jti
 	manager, ok := claims["manager"].(bool)
 	if !ok {
 		fmt.Printf("Could not parse access token. Please try to log in again\n")
@@ -155,6 +154,25 @@ func AmIManager(token *types.Response) bool {
 	}
 
 	return manager
+}
+
+// AmIReadonly - TODO comment
+func AmIReadonly(token *types.Response) bool {
+	claims := make(jwt.MapClaims)
+	jwt.ParseWithClaims(token.AccessToken, claims, nil)
+
+	readonly, ok := claims["readonly"].(bool)
+	if !ok {
+		fmt.Printf("Could not parse access token. Please try to log in again\n")
+		os.Exit(1)
+	}
+
+	return readonly
+}
+
+// AmIManager - TODO comment
+func AmIPlainUser(token *types.Response) bool {
+	return !AmIManager(token) && !AmIReadonly(token)
 }
 
 // WhichIsMyTokenUID - TODO comment
