@@ -109,7 +109,7 @@ func (h *Handler) FindUserByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, i)
 }
 
-//FindUserByID - TODO comment
+//FindUIDFromUsername - TODO comment
 // @Summary      Find user by username
 // @Description  Find user by username
 // @Tags         users

@@ -36,10 +36,21 @@ var updateGroupCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 		// Glim server URL
 		url := viper.GetString("server")
+		gid := viper.GetUint("gid")
+		group := viper.GetString("group")
+
+		if gid == 0 && group == "" {
+			fmt.Println("you must specify either the group id or name")
+			os.Exit(1)
+		}
+
+		if gid == 0 && group != "" {
+			gid = getGIDFromGroupName(group, url)
+		}
 
 		// Read credentials
 		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, viper.GetUint("gid"))
+		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 		// Check expiration
 		if NeedsRefresh(token) {
 			Refresh(token.RefreshToken)
@@ -52,7 +63,7 @@ var updateGroupCmd = &cobra.Command{
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONGroupBody{
-				Name:           viper.GetString("name"),
+				Name:           viper.GetString("group"),
 				Description:    viper.GetString("description"),
 				Members:        viper.GetString("members"),
 				ReplaceMembers: viper.GetBool("replace"),
@@ -75,10 +86,9 @@ var updateGroupCmd = &cobra.Command{
 }
 
 func init() {
-	updateGroupCmd.Flags().UintP("gid", "g", 0, "group id")
-	updateGroupCmd.Flags().StringP("name", "n", "", "our group name")
+	updateGroupCmd.Flags().UintP("gid", "i", 0, "group id")
+	updateGroupCmd.Flags().StringP("group", "g", "", "our group name")
 	updateGroupCmd.Flags().StringP("description", "d", "", "our group description")
 	updateGroupCmd.Flags().StringP("members", "m", "", "comma-separated list of usernames e.g: admin,tux")
 	updateGroupCmd.Flags().Bool("replace", false, "Replace group members with those specified with -m. Usernames are appended to members by default")
-	updateGroupCmd.MarkFlagRequired("gid")
 }

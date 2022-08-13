@@ -33,14 +33,7 @@ var groupCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
-		gid := viper.GetUint("gid")
-		if gid != 0 {
-			getGroup(gid)
-			os.Exit(0)
-		}
-		getGroups()
-		os.Exit(0)
-
+		GetGroupInfo()
 	},
 }
 
@@ -58,5 +51,6 @@ func init() {
 	groupCmd.AddCommand(newGroupCmd)
 	groupCmd.AddCommand(updateGroupCmd)
 	groupCmd.AddCommand(deleteGroupCmd)
-	groupCmd.Flags().UintP("gid", "g", 0, "group id")
+	groupCmd.Flags().UintP("gid", "i", 0, "group id")
+	groupCmd.Flags().StringP("group", "g", "", "group name")
 }

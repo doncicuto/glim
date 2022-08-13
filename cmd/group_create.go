@@ -53,7 +53,7 @@ var newGroupCmd = &cobra.Command{
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONGroupBody{
-				Name:        viper.GetString("name"),
+				Name:        viper.GetString("group"),
 				Description: viper.GetString("description"),
 				Members:     viper.GetString("members"),
 			}).
@@ -75,8 +75,8 @@ var newGroupCmd = &cobra.Command{
 }
 
 func init() {
-	newGroupCmd.Flags().StringP("name", "n", "", "our group name")
+	newGroupCmd.Flags().StringP("group", "g", "", "our group name")
 	newGroupCmd.Flags().StringP("description", "d", "", "our group description")
 	newGroupCmd.Flags().StringP("members", "m", "", "comma-separated list of usernames e.g: admin,tux")
-	newGroupCmd.MarkFlagRequired("name")
+	newGroupCmd.MarkFlagRequired("group")
 }

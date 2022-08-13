@@ -58,6 +58,38 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, i)
 }
 
+//FindGIDFromGroupName - TODO comment
+// @Summary      Find user by group
+// @Description  Find user by group
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        group   path      string  true  "group"
+// @Success      200  {object}  models.UserID
+// @Failure			 400  {object} types.ErrorResponse
+// @Failure			 401  {object} types.ErrorResponse
+// @Failure 	   404  {object} types.ErrorResponse
+// @Failure 	   500  {object} types.ErrorResponse
+// @Router       /users/{username}/uid [get]
+// @Security 		 Bearer
+func (h *Handler) FindGIDFromGroupName(c echo.Context) error {
+	var g models.Group
+	var response models.GroupID
+	var err error
+	group := c.Param("group")
+
+	err = h.DB.Model(&models.Group{}).Where("name = ?", group).Take(&g).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &echo.HTTPError{Code: http.StatusNotFound, Message: "group not found"}
+		}
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	response.ID = g.ID
+	return c.JSON(http.StatusOK, response)
+}
+
 // FindAllGroups - TODO comment
 // @Summary      Find all groups
 // @Description  Find all groups

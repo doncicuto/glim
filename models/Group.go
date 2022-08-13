@@ -41,6 +41,10 @@ type GroupInfo struct {
 	Members     []UserInfo `json:"members,omitempty"`
 }
 
+type GroupID struct {
+	ID uint32 `json:"gid"`
+}
+
 //GroupMembers - TODO comment
 type GroupMembers struct {
 	Members string `json:"members"`
