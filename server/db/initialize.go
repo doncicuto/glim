@@ -170,7 +170,7 @@ func Initialize(dbName string, sqlLog bool, dbInit types.DBInit) (*gorm.DB, erro
 	if sqlLog {
 		db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	} else {
-		db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{})
+		db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	}
 
 	if err != nil {

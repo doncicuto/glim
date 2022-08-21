@@ -4,9 +4,9 @@ go 1.13
 
 require (
 	github.com/Songmu/prompter v0.5.1
-	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/badoux/checkmail v1.2.1
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dchest/validator v0.0.0-20191217151620-8e45250f2371
 	github.com/dgraph-io/badger v1.6.2
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.4
