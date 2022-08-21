@@ -18,7 +18,6 @@ package api
 
 import (
 	"context"
-	"os"
 	"sync"
 	"time"
 
@@ -33,10 +32,6 @@ import (
 	"github.com/doncicuto/glim/types"
 )
 
-//Settings - TODO comment
-
-// Server - TODO command
-
 // @title Glim REST API
 // @version 1.0
 // @description Glim REST API for login/logout, user and group operations. Users and groups require a Bearer Token (JWT) that you can retrieve using login. Please use the project's README for full information about how you can use this token with Swagger.
@@ -49,34 +44,17 @@ import (
 // @securityDefinitions.apikey Bearer
 // @in header
 // @name Authorization
-func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings types.APISettings) {
-	defer wg.Done()
-
+func echoServer(settings types.APISettings) *echo.Echo {
 	// New Echo framework server
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
-
-	// Set logger level
-	e.Logger.SetLevel(log.ERROR)
-	e.Logger.SetHeader("${time_rfc3339} [Glim] ⇨")
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "${time_rfc3339} [REST] ⇨ ${status} ${method} ${uri} ${remote_ip} ${error}\n",
-	}))
-
-	// Get server address
-	addr, ok := os.LookupEnv("API_SERVER_ADDRESS")
-	if !ok {
-		addr = settings.Address
-	}
 
 	// Initialize handler
 	blacklist := settings.KV
 	h := &handler.Handler{DB: settings.DB, KV: blacklist}
 
 	// Routes
-	// JWT tokens will be used for all endpoints but for token requests and swagger
-
 	v1 := e.Group("v1")
 	v1.POST("/login", func(c echo.Context) error {
 		return h.Login(c, settings)
@@ -111,16 +89,31 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings types.APISet
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	// starting API server....
-	e.Logger.Printf("starting REST API in address %s...", addr)
+	return e
+}
+
+// Server - TODO command
+func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings types.APISettings) {
+	defer wg.Done()
+
+	// Get instance of Echo
+	e := echoServer(settings)
+
+	// Set logger level
+	e.Logger.SetLevel(log.ERROR)
+	e.Logger.SetHeader("${time_rfc3339} [Glim] ⇨")
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "${time_rfc3339} [REST] ⇨ ${status} ${method} ${uri} ${remote_ip} ${error}\n",
+	}))
+	e.Logger.Printf("starting REST API in address %s...", settings.Address)
 
 	go func() {
-		if err := e.StartTLS(addr, settings.TLSCert, settings.TLSKey); err != nil {
+		if err := e.StartTLS(settings.Address, settings.TLSCert, settings.TLSKey); err != nil {
 			e.Logger.Printf("shutting down REST API server...")
 		}
 	}()
 
-	// Wait for shutdown signals and gracefully shutdown echo server (10 seconds tiemout)
+	// Wait for shutdown signals and gracefully shutdown echo server (10 seconds timeout)
 	// Reference: https://echo.labstack.com/cookbook/graceful-shutdown
 	<-shutdownChannel
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
