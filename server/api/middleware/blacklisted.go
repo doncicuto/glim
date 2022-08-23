@@ -19,13 +19,13 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/doncicuto/glim/server/kv"
+	"github.com/doncicuto/glim/types"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
 // IsBlacklisted - TODO comment
-func IsBlacklisted(kv kv.Store) echo.MiddlewareFunc {
+func IsBlacklisted(kv types.Store) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 

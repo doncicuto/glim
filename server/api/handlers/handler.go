@@ -17,12 +17,12 @@ limitations under the License.
 package handlers
 
 import (
-	"github.com/doncicuto/glim/server/kv"
+	"github.com/doncicuto/glim/types"
 	"gorm.io/gorm"
 )
 
 //Handler - TODO comment
 type Handler struct {
 	DB *gorm.DB
-	KV kv.Store
+	KV types.Store
 }

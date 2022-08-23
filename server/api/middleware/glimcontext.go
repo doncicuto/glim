@@ -17,12 +17,12 @@ limitations under the License.
 package middleware
 
 import (
-	"github.com/doncicuto/glim/server/kv"
+	"github.com/doncicuto/glim/types"
 	"github.com/labstack/echo/v4"
 )
 
 //GlimContext - TODO comment
 type GlimContext struct {
-	Blacklist *kv.Store
+	Blacklist *types.Store
 	echo.Context
 }
