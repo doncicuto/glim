@@ -93,17 +93,7 @@ func TestLogout(t *testing.T) {
 			} else {
 				he := err.(*echo.HTTPError)
 				assert.Equal(t, tc.expResCode, he.Code)
-				t.Logf("%s, %v", response.RefreshToken, he.Message)
 			}
 		})
 	}
 }
-
-// Old, expired token
-// {
-//   "token_type": "Bearer",
-//   "expires_in": 3600,
-//   "expires_on": 1661277223,
-//   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE2NjEyNzcyMjMsImlhdCI6MTY2MTI3MzYyMywiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiOGE1NDM4ZTItMTIxYy00M2U2LWFlZjUtMTU4OWIxMTk2YTBmIiwibWFuYWdlciI6dHJ1ZSwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjF9.TsYg_8JiHvn-sdt8JttY0vCNRWQ-tXboUkDVxUqdFBc",
-//   "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOGE1NDM4ZTItMTIxYy00M2U2LWFlZjUtMTU4OWIxMTk2YTBmIiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxNjYxNTMyODIzLCJpYXQiOjE2NjEyNzM2MjMsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6ImQ5OGQ0YTA2LTYyOGMtNGNjZC05M2YxLWY5NjNhNmQ0YWU0OSIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.R2XfTbfIdPnqhFLoTvLvE1_RgvmjMG5vXh_fLyjsLaY"
-// }
