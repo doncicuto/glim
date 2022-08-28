@@ -20,9 +20,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/mail"
 	"strings"
 
-	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
@@ -106,7 +106,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	u.Surname = &body.Surname
 
 	if body.Email != "" {
-		if err := checkmail.ValidateFormat(body.Email); err != nil {
+		if _, err := mail.ParseAddress(body.Email); err != nil {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
 		}
 	}
