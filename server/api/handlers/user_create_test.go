@@ -100,6 +100,14 @@ func TestUserCreate(t *testing.T) {
 			secret:     adminToken,
 		},
 		{
+			name:             "non-existent manager user can't create account info",
+			expResCode:       http.StatusForbidden,
+			reqURL:           "/v1/users",
+			reqMethod:        http.MethodPost,
+			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwibWFuYWdlciI6dHJ1ZSwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjEwMDB9.amq5OV7gU7HUrn5YA8sbs2cXMRFeYHTmXm6bhXJ9PDg",
+			expectedBodyJSON: `{"message":"wrong user attempting to create user"}`,
+		},
+		{
 			name:        "wrong email",
 			expResCode:  http.StatusNotAcceptable,
 			reqURL:      "/v1/users",

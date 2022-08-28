@@ -18,7 +18,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -38,17 +37,12 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 		// Find user
 		createdBy := new(models.User)
 		err = h.DB.Model(&models.User{}).Where("username = ?", member).Take(&createdBy).Error
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("user %s not found", member)}
+		if err == nil {
+			// Append association
+			err = h.DB.Model(&g).Association("Members").Append(createdBy)
+			if err != nil {
+				return err
 			}
-			return err
-		}
-
-		// Append association
-		err = h.DB.Model(&g).Association("Members").Append(createdBy)
-		if err != nil {
-			return err
 		}
 	}
 	return nil
@@ -86,7 +80,7 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
 	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(uid)).First(&createdBy).Error; err != nil {
-		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
+		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to create group"}
 	}
 
 	// Get request body
