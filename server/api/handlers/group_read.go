@@ -70,7 +70,7 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 // @Failure			 401  {object} types.ErrorResponse
 // @Failure 	   404  {object} types.ErrorResponse
 // @Failure 	   500  {object} types.ErrorResponse
-// @Router       /users/{username}/uid [get]
+// @Router       /groups/{group}/gid [get]
 // @Security 		 Bearer
 func (h *Handler) FindGIDFromGroupName(c echo.Context) error {
 	var g models.Group

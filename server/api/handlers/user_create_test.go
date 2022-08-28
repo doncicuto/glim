@@ -146,7 +146,7 @@ func TestUserCreate(t *testing.T) {
 			e.ServeHTTP(res, req)
 
 			assert.Equal(t, tc.expResCode, res.Code)
-			if res.Code == http.StatusOK {
+			if tc.expectedBodyJSON != "" {
 				assert.Equal(t, tc.expectedBodyJSON, strings.TrimSuffix(res.Body.String(), "\n"))
 			}
 		})
