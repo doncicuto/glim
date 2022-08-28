@@ -51,7 +51,7 @@ func (h *Handler) DeleteGroup(c echo.Context) error {
 	// Get idparam
 	gid, err := strconv.ParseUint(c.Param("gid"), 10, 32)
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert gid into uint"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "gid param should be a valid integer"}
 	}
 
 	err = h.DB.Model(&g).Where("id = ?", gid).Take(&g).Delete(&g).Error
