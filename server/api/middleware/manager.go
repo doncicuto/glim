@@ -26,6 +26,9 @@ import (
 //IsManager - TODO comment
 func IsManager(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		if c.Get("user") == nil {
+			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		}
 		user := c.Get("user").(*jwt.Token)
 		claims := user.Claims.(jwt.MapClaims)
 		jwtManager, ok := claims["manager"].(bool)

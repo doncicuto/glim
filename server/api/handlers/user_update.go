@@ -79,6 +79,9 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	// Get username that is updating this user
 	modifiedBy := new(models.User)
+	if c.Get("user") == nil {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
 	tokenUser := c.Get("user").(*jwt.Token)
 	claims := tokenUser.Claims.(jwt.MapClaims)
 	tokenUID, ok := claims["uid"].(float64)
