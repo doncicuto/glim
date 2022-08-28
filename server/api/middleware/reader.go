@@ -17,37 +17,61 @@ limitations under the License.
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 //IsReader - TODO comment
-func IsReader(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		uid := c.Param("uid")
-		if c.Get("user") == nil {
-			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+func IsReader(db *gorm.DB) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			uid := c.Param("uid")
+			if c.Get("user") == nil {
+				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+			}
+			user := c.Get("user").(*jwt.Token)
+			claims := user.Claims.(jwt.MapClaims)
+			jwtID, ok := claims["uid"].(float64)
+			if !ok {
+				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+			}
+			jwtReadonly, ok := claims["readonly"].(bool)
+			if !ok {
+				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+			}
+			jwtManager, ok := claims["manager"].(bool)
+			if !ok {
+				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+			}
+
+			if jwtManager || jwtReadonly || (uid != "" && uid == fmt.Sprintf("%d", uint(jwtID))) {
+				return next(c)
+			}
+
+			// If plain user asks for her own id it's ok
+			username := c.Param("username")
+			var u models.User
+			if username != "" {
+				err := db.Where("username = ?", username).Take(&u).Error
+				if err != nil {
+					if errors.Is(err, gorm.ErrRecordNotFound) {
+						return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "user has no proper permissions"}
+					}
+					return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
+				} else {
+					if u.ID == uint32(jwtID) {
+						return next(c)
+					}
+				}
+			}
+
+			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "user has no proper permissions"}
 		}
-		user := c.Get("user").(*jwt.Token)
-		claims := user.Claims.(jwt.MapClaims)
-		jwtID, ok := claims["uid"].(float64)
-		if !ok {
-			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
-		}
-		jwtReadonly, ok := claims["readonly"].(bool)
-		if !ok {
-			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
-		}
-		jwtManager, ok := claims["manager"].(bool)
-		if !ok {
-			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
-		}
-		if jwtManager || jwtReadonly || uid == fmt.Sprintf("%d", uint(jwtID)) {
-			return next(c)
-		}
-		return &echo.HTTPError{Code: http.StatusForbidden, Message: "user has no proper permissions"}
 	}
 }
