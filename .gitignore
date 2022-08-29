@@ -9,3 +9,4 @@ tasks.md
 *.pem
 glim
 *.db
+.vscode/**/*
