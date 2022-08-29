@@ -3,8 +3,6 @@ package handlers
 import (
 	"net/http"
 	"testing"
-
-	"github.com/labstack/echo/v4/middleware"
 )
 
 func TestUserUpdate(t *testing.T) {
@@ -24,7 +22,6 @@ func TestUserUpdate(t *testing.T) {
 
 	settings := testSettings(db, kv)
 	e := EchoServer(settings)
-	e.Pre(middleware.JWT([]byte(settings.APISecret)))
 	h := &Handler{DB: db, KV: kv}
 
 	// Log in with admin, search and/or plain user and get tokens

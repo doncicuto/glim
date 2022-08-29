@@ -43,7 +43,7 @@ func IsBlacklisted(kv types.Store) echo.MiddlewareFunc {
 			val, found, err := kv.Get(jti)
 
 			if err != nil {
-				return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not get stored token info"}
+				return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not query the key-value store"}
 			}
 
 			if found {
