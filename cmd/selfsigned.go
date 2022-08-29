@@ -64,7 +64,7 @@ limitations under the License.
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package certs
+package cmd
 
 import (
 	"bytes"
@@ -90,12 +90,8 @@ type cert struct {
 	PublicBytes  []byte
 }
 
-type certs struct {
-	Root, server, Client *cert
-}
-
 // Config stores information to be used in our certificate generation requests
-type Config struct {
+type certConfig struct {
 	Organization string
 	Hosts        []string
 	OutputPath   string
@@ -122,12 +118,12 @@ func genCert(leaf *x509.Certificate, parent *x509.Certificate, key *ecdsa.Privat
 	cert := new(cert)
 	derBytes, err := x509.CreateCertificate(rand.Reader, leaf, parent, &key.PublicKey, caPrivKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create certificate: %v", err)
+		return nil, fmt.Errorf("failed to create certificate: %v", err)
 	}
 	cert.Public = &pem.Block{Type: "CERTIFICATE", Bytes: derBytes}
 	buf := new(bytes.Buffer)
 	if err := pem.Encode(buf, cert.Public); err != nil {
-		return nil, fmt.Errorf("Failed to write data to cert.pem: %v", err)
+		return nil, fmt.Errorf("failed to write data to cert.pem: %v", err)
 	}
 	cert.PublicBytes = make([]byte, buf.Len())
 	copy(cert.PublicBytes, buf.Bytes())
@@ -135,11 +131,11 @@ func genCert(leaf *x509.Certificate, parent *x509.Certificate, key *ecdsa.Privat
 
 	b, err := x509.MarshalECPrivateKey(key)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to marshal ECDSA private key: %v", err)
+		return nil, fmt.Errorf("unable to marshal ECDSA private key: %v", err)
 	}
 	cert.Private = &pem.Block{Type: "EC PRIVATE KEY", Bytes: b}
 	if err := pem.Encode(buf, cert.Private); err != nil {
-		return nil, fmt.Errorf("Failed to encode key data: %v", err)
+		return nil, fmt.Errorf("failed to encode key data: %v", err)
 	}
 	cert.PrivateBytes = make([]byte, buf.Len())
 	copy(cert.PrivateBytes, buf.Bytes())
@@ -147,11 +143,11 @@ func genCert(leaf *x509.Certificate, parent *x509.Certificate, key *ecdsa.Privat
 }
 
 // Generate rootCA, server and client certificate
-func Generate(config *Config) error {
+func generateSelfSignedCerts(config *certConfig) error {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		return fmt.Errorf("Failed to generate serial number: %v", err)
+		return fmt.Errorf("failed to generate serial number: %v", err)
 	}
 	notBefore := time.Now()
 	notAfter := notBefore.AddDate(config.Years, 0, 0)
@@ -169,7 +165,7 @@ func Generate(config *Config) error {
 
 	serverSerialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		log.Fatalf("Failed to generate serial number: %v", err)
+		log.Fatalf("failed to generate serial number: %v", err)
 	}
 	serverTemplate := x509.Certificate{
 		IsCA:                  false,
@@ -184,7 +180,7 @@ func Generate(config *Config) error {
 
 	clientSerialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		log.Fatalf("Failed to generate serial number: %v", err)
+		log.Fatalf("failed to generate serial number: %v", err)
 	}
 	clientTemplate := x509.Certificate{
 		IsCA:                  false,

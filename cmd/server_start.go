@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package client
+package cmd
 
 import (
 	"fmt"
@@ -28,7 +28,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/doncicuto/glim/certs"
 	"github.com/doncicuto/glim/server/kv/badgerdb"
 	"github.com/doncicuto/glim/types"
 
@@ -60,7 +59,7 @@ var serverStartCmd = &cobra.Command{
 		_, errKey := os.Stat(tlskey)
 
 		if os.IsNotExist(errCert) && os.IsNotExist(errKey) {
-			var config = certs.Config{}
+			var config = certConfig{}
 
 			fmt.Println("Oh, I can't find your certificates and private keys, don't worry I'll create some for you.")
 
@@ -97,7 +96,7 @@ var serverStartCmd = &cobra.Command{
 			config.Years = years
 
 			// create our certificates signed by our fake CA
-			err = certs.Generate(&config)
+			err = generateSelfSignedCerts(&config)
 			if err != nil {
 				fmt.Printf("Could not generate our certificates. Error: %v\n", err)
 			}
