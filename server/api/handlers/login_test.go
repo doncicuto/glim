@@ -2,55 +2,44 @@ package handlers
 
 import (
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
-
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestLogin(t *testing.T) {
 
-	testCases := []struct {
-		name        string
-		expResCode  int
-		reqURL      string
-		reqBodyJSON string
-		reqMethod   string
-	}{
+	testCases := []RestTestCase{
 		{
 			name:        "Login succesful saul",
 			expResCode:  http.StatusOK,
-			reqURL:      "/login",
+			reqURL:      "/v1/login",
 			reqBodyJSON: `{"username": "saul", "password": "test"}`,
 			reqMethod:   http.MethodPost,
 		},
 		{
 			name:        "Login succesful kim",
 			expResCode:  http.StatusOK,
-			reqURL:      "/login",
+			reqURL:      "/v1/login",
 			reqBodyJSON: `{"username": "kim", "password": "test"}`,
 			reqMethod:   http.MethodPost,
 		},
 		{
 			name:        "Wrong password mike",
 			expResCode:  http.StatusUnauthorized,
-			reqURL:      "/login",
+			reqURL:      "/v1/login",
 			reqBodyJSON: `{"username": "mike", "password": "boooo"}`,
 			reqMethod:   http.MethodPost,
 		},
 		{
 			name:        "User doesn't exist walter",
 			expResCode:  http.StatusUnauthorized,
-			reqURL:      "/login",
+			reqURL:      "/v1/login",
 			reqBodyJSON: `{"username": "walter", "password": "boooo"}`,
 			reqMethod:   http.MethodPost,
 		},
 		{
 			name:        "No JSON body",
 			expResCode:  http.StatusUnauthorized,
-			reqURL:      "/login",
+			reqURL:      "/v1/login",
 			reqBodyJSON: `""`,
 			reqMethod:   http.MethodPost,
 		},
@@ -72,22 +61,8 @@ func TestLogin(t *testing.T) {
 
 	settings := testSettings(db, kv)
 	e := EchoServer(settings)
-	h := &Handler{DB: db, KV: kv}
 
 	for _, tc := range testCases {
-		var req *http.Request
-		t.Run(tc.name, func(t *testing.T) {
-			req = httptest.NewRequest(tc.reqMethod, tc.reqURL, strings.NewReader(tc.reqBodyJSON))
-			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-			res := httptest.NewRecorder()
-			c := e.NewContext(req, res)
-
-			if err := h.Login(c, settings); err == nil {
-				assert.Equal(t, tc.expResCode, res.Code)
-			} else {
-				he := err.(*echo.HTTPError)
-				assert.Equal(t, tc.expResCode, he.Code)
-			}
-		})
+		runTests(t, tc, e)
 	}
 }
