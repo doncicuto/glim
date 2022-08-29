@@ -31,13 +31,6 @@ func TestUserCreate(t *testing.T) {
 	// Test cases
 	testCases := []RestTestCase{
 		{
-			name:       "invalid token",
-			expResCode: http.StatusUnauthorized,
-			reqURL:     "/v1/users",
-			reqMethod:  http.MethodPost,
-			secret:     "wrong secret",
-		},
-		{
 			name:       "uid in token, not in database",
 			expResCode: http.StatusForbidden,
 			reqURL:     "/v1/users",

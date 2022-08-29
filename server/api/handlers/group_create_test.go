@@ -31,13 +31,6 @@ func TestGroupCreate(t *testing.T) {
 	// Test cases
 	testCases := []RestTestCase{
 		{
-			name:       "invalid token",
-			expResCode: http.StatusUnauthorized,
-			reqURL:     "/v1/groups",
-			reqMethod:  http.MethodPost,
-			secret:     "wrong secret",
-		},
-		{
 			name:             "only a valid manager can create a group",
 			expResCode:       http.StatusForbidden,
 			reqURL:           "/v1/groups",

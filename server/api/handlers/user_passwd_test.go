@@ -31,13 +31,6 @@ func TestUserPasswd(t *testing.T) {
 	// Test cases
 	testCases := []RestTestCase{
 		{
-			name:       "invalid token",
-			expResCode: http.StatusUnauthorized,
-			reqURL:     "/v1/users/5/passwd",
-			reqMethod:  http.MethodPost,
-			secret:     "wrong secret",
-		},
-		{
 			name:             "uid not in path",
 			expResCode:       http.StatusNotAcceptable,
 			reqURL:           "/v1/users//passwd",
