@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	glimMiddleware "github.com/doncicuto/glim/server/api/middleware"
 	"github.com/doncicuto/glim/types"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -45,24 +44,24 @@ func EchoServer(settings types.APISettings) *echo.Echo {
 
 	u := v1.Group("/users")
 	u.Use(middleware.JWT([]byte(settings.APISecret)))
-	u.GET("", h.FindAllUsers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader(settings.DB))
-	u.POST("", h.SaveUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	u.GET("/:uid", h.FindUserByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader(settings.DB))
-	u.GET("/:username/uid", h.FindUIDFromUsername, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader(settings.DB))
-	u.PUT("/:uid", h.UpdateUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsUpdater)
-	u.DELETE("/:uid", h.DeleteUser, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	u.POST("/:uid/passwd", h.Passwd, glimMiddleware.IsBlacklisted(blacklist))
+	u.GET("", h.FindAllUsers, IsBlacklisted(blacklist), IsReader(settings.DB))
+	u.POST("", h.SaveUser, IsBlacklisted(blacklist), IsManager)
+	u.GET("/:uid", h.FindUserByID, IsBlacklisted(blacklist), IsReader(settings.DB))
+	u.GET("/:username/uid", h.FindUIDFromUsername, IsBlacklisted(blacklist), IsReader(settings.DB))
+	u.PUT("/:uid", h.UpdateUser, IsBlacklisted(blacklist), IsUpdater)
+	u.DELETE("/:uid", h.DeleteUser, IsBlacklisted(blacklist), IsManager)
+	u.POST("/:uid/passwd", h.Passwd, IsBlacklisted(blacklist))
 
 	g := v1.Group("/groups")
 	g.Use(middleware.JWT([]byte(settings.APISecret)))
-	g.GET("", h.FindAllGroups, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader(settings.DB))
-	g.POST("", h.SaveGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	g.GET("/:gid", h.FindGroupByID, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	g.GET("/:group/gid", h.FindGIDFromGroupName, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsReader(settings.DB))
-	g.PUT("/:gid", h.UpdateGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	g.DELETE("/:gid", h.DeleteGroup, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	g.POST("/:gid/members", h.AddGroupMembers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
-	g.DELETE("/:gid/members", h.RemoveGroupMembers, glimMiddleware.IsBlacklisted(blacklist), glimMiddleware.IsManager)
+	g.GET("", h.FindAllGroups, IsBlacklisted(blacklist), IsReader(settings.DB))
+	g.POST("", h.SaveGroup, IsBlacklisted(blacklist), IsManager)
+	g.GET("/:gid", h.FindGroupByID, IsBlacklisted(blacklist), IsManager)
+	g.GET("/:group/gid", h.FindGIDFromGroupName, IsBlacklisted(blacklist), IsReader(settings.DB))
+	g.PUT("/:gid", h.UpdateGroup, IsBlacklisted(blacklist), IsManager)
+	g.DELETE("/:gid", h.DeleteGroup, IsBlacklisted(blacklist), IsManager)
+	g.POST("/:gid/members", h.AddGroupMembers, IsBlacklisted(blacklist), IsManager)
+	g.DELETE("/:gid/members", h.RemoveGroupMembers, IsBlacklisted(blacklist), IsManager)
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 

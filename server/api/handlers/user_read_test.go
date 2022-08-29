@@ -77,41 +77,6 @@ func TestUserRead(t *testing.T) {
 		expectedBodyJSON string
 	}{
 		{
-			name:       "invalid token",
-			expResCode: http.StatusUnauthorized,
-			reqURL:     "/v1/users",
-			reqMethod:  http.MethodGet,
-			secret:     "wrong secret",
-		},
-		{
-			name:       "uid not found in token",
-			expResCode: http.StatusNotAcceptable,
-			reqURL:     "/v1/users",
-			reqMethod:  http.MethodGet,
-			secret:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwibWFuYWdlciI6dHJ1ZSwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQifQ.SQ0P6zliTGQiAdTi2DjCDeht0n2FjYdPGV7JgOx0TRY",
-		},
-		{
-			name:       "manager claim not in token",
-			expResCode: http.StatusNotAcceptable,
-			reqURL:     "/v1/users",
-			reqMethod:  http.MethodGet,
-			secret:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjF9.j1lc0cK-KtsI5qI6Vpws6mc4RMSwWL-fuobIujGfJYo",
-		},
-		{
-			name:       "readonly claim not in token",
-			expResCode: http.StatusNotAcceptable,
-			reqURL:     "/v1/users",
-			reqMethod:  http.MethodGet,
-			secret:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwibWFuYWdlciI6dHJ1ZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.eDcXE_IFDAMuvExWiEyQBhJeujL7F7tRrIqKxV6E9rM",
-		},
-		{
-			name:       "plain user can't list everybody's info",
-			expResCode: http.StatusUnauthorized,
-			reqURL:     "/v1/users",
-			reqMethod:  http.MethodGet,
-			secret:     plainUserToken,
-		},
-		{
 			name:             "search user can list everybody's information",
 			expResCode:       http.StatusOK,
 			reqURL:           "/v1/users",
@@ -222,22 +187,6 @@ func TestUserRead(t *testing.T) {
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
 			expectedBodyJSON: `{"uid":3}`,
-		},
-		{
-			name:             "plainuser user can't get uid from other's username",
-			expResCode:       http.StatusUnauthorized,
-			reqURL:           "/v1/users/kim/uid",
-			reqMethod:        http.MethodGet,
-			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
-		},
-		{
-			name:             "plainuser user can't get uid from non-existent username",
-			expResCode:       http.StatusUnauthorized,
-			reqURL:           "/v1/users/walter/uid",
-			reqMethod:        http.MethodGet,
-			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
 		},
 	}
 
