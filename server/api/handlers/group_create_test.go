@@ -38,14 +38,6 @@ func TestGroupCreate(t *testing.T) {
 			secret:     "wrong secret",
 		},
 		{
-			name:             "manager claim not in token",
-			expResCode:       http.StatusNotAcceptable,
-			reqURL:           "/v1/groups",
-			reqMethod:        http.MethodPost,
-			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjF9.j1lc0cK-KtsI5qI6Vpws6mc4RMSwWL-fuobIujGfJYo",
-			expectedBodyJSON: `{"message":"wrong token or missing info in token claims"}`,
-		},
-		{
 			name:             "only a valid manager can create a group",
 			expResCode:       http.StatusForbidden,
 			reqURL:           "/v1/groups",

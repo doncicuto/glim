@@ -35,34 +35,6 @@ func TestUserUpdate(t *testing.T) {
 	// Test cases
 	testCases := []RestTestCase{
 		{
-			name:       "invalid token",
-			expResCode: http.StatusUnauthorized,
-			reqURL:     "/v1/users/3",
-			reqMethod:  http.MethodPut,
-			secret:     "wrong secret",
-		},
-		{
-			name:       "uid not found in token",
-			expResCode: http.StatusNotAcceptable,
-			reqURL:     "/v1/users/3",
-			reqMethod:  http.MethodPut,
-			secret:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwibWFuYWdlciI6dHJ1ZSwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQifQ.SQ0P6zliTGQiAdTi2DjCDeht0n2FjYdPGV7JgOx0TRY",
-		},
-		{
-			name:       "manager claim not in token",
-			expResCode: http.StatusNotAcceptable,
-			reqURL:     "/v1/users/3",
-			reqMethod:  http.MethodPut,
-			secret:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjF9.j1lc0cK-KtsI5qI6Vpws6mc4RMSwWL-fuobIujGfJYo",
-		},
-		{
-			name:       "readonly claim not in token",
-			expResCode: http.StatusNotAcceptable,
-			reqURL:     "/v1/users/3",
-			reqMethod:  http.MethodPut,
-			secret:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwibWFuYWdlciI6dHJ1ZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.eDcXE_IFDAMuvExWiEyQBhJeujL7F7tRrIqKxV6E9rM",
-		},
-		{
 			name:             "search user can't update accounts",
 			expResCode:       http.StatusForbidden,
 			reqURL:           "/v1/users/3",
