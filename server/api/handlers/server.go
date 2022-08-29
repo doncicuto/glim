@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"gorm.io/gorm"
 )
 
 // EchoServer - TODO command
@@ -20,6 +21,11 @@ import (
 // @securityDefinitions.apikey Bearer
 // @in header
 // @name Authorization
+type Handler struct {
+	DB *gorm.DB
+	KV types.Store
+}
+
 func EchoServer(settings types.APISettings) *echo.Echo {
 	// New Echo framework server
 	e := echo.New()
