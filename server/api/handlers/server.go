@@ -62,7 +62,7 @@ func EchoServer(settings types.APISettings) *echo.Echo {
 	g.Use(middleware.JWT([]byte(settings.APISecret)))
 	g.GET("", h.FindAllGroups, IsBlacklisted(blacklist), IsReader(settings.DB))
 	g.POST("", h.SaveGroup, IsBlacklisted(blacklist), IsManager)
-	g.GET("/:gid", h.FindGroupByID, IsBlacklisted(blacklist), IsManager)
+	g.GET("/:gid", h.FindGroupByID, IsBlacklisted(blacklist), IsReader(settings.DB))
 	g.GET("/:group/gid", h.FindGIDFromGroupName, IsBlacklisted(blacklist), IsReader(settings.DB))
 	g.PUT("/:gid", h.UpdateGroup, IsBlacklisted(blacklist), IsManager)
 	g.DELETE("/:gid", h.DeleteGroup, IsBlacklisted(blacklist), IsManager)
