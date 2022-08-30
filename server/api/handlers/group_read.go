@@ -33,7 +33,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Group ID"
-// @Success      200  {object}  models.UserInfo
+// @Success      200  {object}  models.GroupInfo
 // @Failure			 400  {object} types.ErrorResponse
 // @Failure			 401  {object} types.ErrorResponse
 // @Failure 	   404  {object} types.ErrorResponse
@@ -65,7 +65,7 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        group   path      string  true  "group"
-// @Success      200  {object}  models.UserID
+// @Success      200  {object}  models.GroupID
 // @Failure			 400  {object} types.ErrorResponse
 // @Failure			 401  {object} types.ErrorResponse
 // @Failure 	   404  {object} types.ErrorResponse
@@ -96,7 +96,7 @@ func (h *Handler) FindGIDFromGroupName(c echo.Context) error {
 // @Tags         groups
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  models.UserInfo
+// @Success      200  {object}  models.GroupInfo
 // @Failure			 400  {object} types.ErrorResponse
 // @Failure			 401  {object} types.ErrorResponse
 // @Failure 	   500  {object} types.ErrorResponse

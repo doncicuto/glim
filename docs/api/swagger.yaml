@@ -1,4 +1,9 @@
 definitions:
+  models.GroupID:
+    properties:
+      gid:
+        type: integer
+    type: object
   models.GroupInfo:
     properties:
       description:
@@ -142,7 +147,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.UserInfo'
+            $ref: '#/definitions/models.GroupInfo'
         "400":
           description: Bad Request
           schema:
@@ -222,7 +227,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.UserID'
+            $ref: '#/definitions/models.GroupID'
         "400":
           description: Bad Request
           schema:
@@ -301,7 +306,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.UserInfo'
+            $ref: '#/definitions/models.GroupInfo'
         "400":
           description: Bad Request
           schema:

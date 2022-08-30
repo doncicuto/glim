@@ -38,7 +38,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UserInfo"
+                            "$ref": "#/definitions/models.GroupInfo"
                         }
                     },
                     "400": {
@@ -160,7 +160,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UserID"
+                            "$ref": "#/definitions/models.GroupID"
                         }
                     },
                     "400": {
@@ -221,7 +221,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UserInfo"
+                            "$ref": "#/definitions/models.GroupInfo"
                         }
                     },
                     "400": {
@@ -1101,6 +1101,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.GroupID": {
+            "type": "object",
+            "properties": {
+                "gid": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.GroupInfo": {
             "type": "object",
             "properties": {
