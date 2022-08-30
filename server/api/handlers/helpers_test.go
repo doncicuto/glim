@@ -56,6 +56,31 @@ func testSettings(db *gorm.DB, kv types.Store) types.APISettings {
 	}
 }
 
+func testSetup(t *testing.T) (*Handler, *echo.Echo, types.APISettings) {
+	// New SQLite test database
+	db, err := newTestDatabase()
+	if err != nil {
+		t.Fatalf("could not initialize db - %v", err)
+	}
+
+	// New BadgerDB test key-value storage
+	kv, err := newTestKV()
+	if err != nil {
+		t.Fatalf("could not initialize kv - %v", err)
+	}
+
+	settings := testSettings(db, kv)
+	e := EchoServer(settings)
+	h := &Handler{DB: db, KV: kv}
+
+	return h, e, settings
+}
+
+func testCleanUp() {
+	removeDatabase()
+	removeKV()
+}
+
 func runTests(t *testing.T, tc RestTestCase, e *echo.Echo) {
 	var req *http.Request
 	t.Run(tc.name, func(t *testing.T) {

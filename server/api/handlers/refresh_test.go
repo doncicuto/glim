@@ -7,26 +7,13 @@ import (
 )
 
 func TestRefresh(t *testing.T) {
-	// New SQLite test database
-	db, err := newTestDatabase()
-	if err != nil {
-		t.Fatalf("could not initialize db - %v", err)
-	}
-	defer removeDatabase()
-
-	// New BadgerDB test key-value storage
-	kv, err := newTestKV()
-	if err != nil {
-		t.Fatalf("could not initialize kv - %v", err)
-	}
-	defer removeKV()
-
-	settings := testSettings(db, kv)
-	e := EchoServer(settings)
-	h := &Handler{DB: db, KV: kv}
+	// Setup
+	h, e, settings := testSetup(t)
+	defer testCleanUp()
 
 	// Log in with admin user and get tokens
-	_, refreshToken := getUserTokens("admin", h, e, settings)
+	adminToken, refreshToken := getUserTokens("admin", h, e, settings)
+	_, plainUserRefreshToken := getUserTokens("saul", h, e, settings)
 
 	// Test cases
 	testCases := []RestTestCase{
@@ -79,10 +66,17 @@ func TestRefresh(t *testing.T) {
 			expectedBodyJSON: `{"message":"refresh token usage without log in exceeded"}`,
 		},
 		{
+			name:       "user deleted",
+			expResCode: http.StatusNoContent,
+			reqURL:     "/v1/users/3",
+			reqMethod:  http.MethodDelete,
+			secret:     adminToken,
+		},
+		{
 			name:             "Bad request invalid uid found in token",
 			expResCode:       http.StatusBadRequest,
 			reqURL:           "/v1/login/refresh_token",
-			reqBodyJSON:      `{"refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOGE1NDM4ZTItMTIxYy00M2U2LWFlZjUtMTU4OWIxMTk2YTBmIiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoyNzcxNTMyODIzLCJpYXQiOjE2NjEyNzM2MjMsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6ImQ5OGQ0YTA2LTYyOGMtNGNjZC05M2YxLWY5NjNhNmQ0YWU0OSIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxMDAwMH0.bo-gc9lUiX0A41_BntUZTLRBtVzoxZqRo6bIrV1Gs4Y"}`,
+			reqBodyJSON:      fmt.Sprintf(`{"refresh_token": "%s"}`, plainUserRefreshToken),
 			reqMethod:        http.MethodPost,
 			expectedBodyJSON: `{"message":"invalid uid found in token"}`,
 		},
