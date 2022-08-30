@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package client
+package cmd
 
 import (
 	"fmt"
+	"net/mail"
 	"os"
 	"strings"
 
-	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
@@ -66,7 +66,7 @@ var updateUserCmd = &cobra.Command{
 		// Validate email
 		email := viper.GetString("email")
 		if email != "" {
-			if err := checkmail.ValidateFormat(email); err != nil {
+			if _, err := mail.ParseAddress(email); err != nil {
 				fmt.Println("email should have a valid format")
 				os.Exit(1)
 			}

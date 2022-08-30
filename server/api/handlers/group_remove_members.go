@@ -78,7 +78,7 @@ func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 		err = h.DB.Model(&models.User{}).Where("username = ?", member).Take(&u).Error
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return &echo.HTTPError{Code: http.StatusNotFound, Message: fmt.Sprintf("user %s not found", member)}
+				continue
 			}
 			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}

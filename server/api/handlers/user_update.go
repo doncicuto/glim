@@ -21,11 +21,11 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"net/mail"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -79,6 +79,9 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	// Get username that is updating this user
 	modifiedBy := new(models.User)
+	if c.Get("user") == nil {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
 	tokenUser := c.Get("user").(*jwt.Token)
 	claims := tokenUser.Claims.(jwt.MapClaims)
 	tokenUID, ok := claims["uid"].(float64)
@@ -92,7 +95,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(tokenUID)).First(&modifiedBy).Error; err != nil {
-		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
+		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update account"}
 	}
 
 	// User id cannot be empty
@@ -103,7 +106,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	// Get idparam
 	uid, err := strconv.ParseUint(c.Param("uid"), 10, 32)
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert uid into uint"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "uid param should be a valid integer"}
 	}
 
 	// Bind
@@ -157,7 +160,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	if body.Email != "" {
-		if err := checkmail.ValidateFormat(body.Email); err != nil {
+		if _, err := mail.ParseAddress(body.Email); err != nil {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
 		}
 		updatedUser["email"] = body.Email

@@ -102,6 +102,9 @@ func GetUserInfo(u User, showMemberOf bool) UserInfo {
 	if u.Username != nil {
 		i.Username = *u.Username
 	}
+	if u.Name != nil {
+		i.Name = *u.Name
+	}
 	if u.GivenName != nil {
 		i.GivenName = *u.GivenName
 	}

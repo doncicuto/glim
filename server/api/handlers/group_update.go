@@ -53,7 +53,11 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 	body := models.JSONGroupBody{}
 
 	// Get username that is updating this group
+	if c.Get("user") == nil {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
 	user := c.Get("user").(*jwt.Token)
+
 	claims := user.Claims.(jwt.MapClaims)
 	uid, ok := claims["uid"].(float64)
 	if !ok {

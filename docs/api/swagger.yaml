@@ -1,5 +1,9 @@
-basePath: /v1
 definitions:
+  models.GroupID:
+    properties:
+      gid:
+        type: integer
+    type: object
   models.GroupInfo:
     properties:
       description:
@@ -130,19 +134,7 @@ definitions:
         type: string
     type: object
 info:
-  contact:
-    email: support@sologitops.com
-    name: Miguel Cabrerizo
-    url: https://github.com/doncicuto/glim/issues
-  description: Glim REST API for login/logout, user and group operations. Users and
-    groups require a Bearer Token (JWT) that you can retrieve using login. Please
-    use the project's README for full information about how you can use this token
-    with Swagger.
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  title: Glim REST API
-  version: "1.0"
+  contact: {}
 paths:
   /groups:
     get:
@@ -155,7 +147,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.UserInfo'
+            $ref: '#/definitions/models.GroupInfo'
         "400":
           description: Bad Request
           schema:
@@ -218,6 +210,45 @@ paths:
       summary: Create a new group
       tags:
       - groups
+  /groups/{group}/gid:
+    get:
+      consumes:
+      - application/json
+      description: Find user by group
+      parameters:
+      - description: group
+        in: path
+        name: group
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GroupID'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Find user by group
+      tags:
+      - users
   /groups/{id}:
     delete:
       consumes:
@@ -275,7 +306,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.UserInfo'
+            $ref: '#/definitions/models.GroupInfo'
         "400":
           description: Bad Request
           schema:
@@ -743,6 +774,49 @@ paths:
       summary: Update user account information
       tags:
       - users
+  /users/{id}/passwd:
+    post:
+      consumes:
+      - application/json
+      description: Change user account password
+      parameters:
+      - description: User Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Password body
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/models.JSONPasswdBody'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Change user account password
+      tags:
+      - users
   /users/{username}/uid:
     get:
       consumes:
@@ -782,54 +856,4 @@ paths:
       summary: Find user by username
       tags:
       - users
-  /users/passwd:
-    post:
-      consumes:
-      - application/json
-      description: Change user account password
-      parameters:
-      - description: User Account ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Password body
-        in: body
-        name: password
-        required: true
-        schema:
-          $ref: '#/definitions/models.JSONPasswdBody'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.UserInfo'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/types.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/types.ErrorResponse'
-        "406":
-          description: Not Acceptable
-          schema:
-            $ref: '#/definitions/types.ErrorResponse'
-      security:
-      - Bearer: []
-      summary: Change user account password
-      tags:
-      - users
-securityDefinitions:
-  Bearer:
-    in: header
-    name: Authorization
-    type: apiKey
 swagger: "2.0"

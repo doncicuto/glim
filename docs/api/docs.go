@@ -10,15 +10,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {
-            "name": "Miguel Cabrerizo",
-            "url": "https://github.com/doncicuto/glim/issues",
-            "email": "support@sologitops.com"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -46,7 +38,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UserInfo"
+                            "$ref": "#/definitions/models.GroupInfo"
                         }
                     },
                     "400": {
@@ -137,6 +129,67 @@ const docTemplate = `{
                 }
             }
         },
+        "/groups/{group}/gid": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Find user by group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Find user by group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "group",
+                        "name": "group",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.GroupID"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/groups/{id}": {
             "get": {
                 "security": [
@@ -168,7 +221,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UserInfo"
+                            "$ref": "#/definitions/models.GroupInfo"
                         }
                     },
                     "400": {
@@ -727,76 +780,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/passwd": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Change user account password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Change user account password",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User Account ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Password body",
-                        "name": "password",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.JSONPasswdBody"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.UserInfo"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
-                        }
-                    },
-                    "406": {
-                        "description": "Not Acceptable",
-                        "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/users/{id}": {
             "get": {
                 "security": [
@@ -988,6 +971,73 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/{id}/passwd": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Change user account password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Change user account password",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Password body",
+                        "name": "password",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.JSONPasswdBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/{username}/uid": {
             "get": {
                 "security": [
@@ -1051,6 +1101,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.GroupID": {
+            "type": "object",
+            "properties": {
+                "gid": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.GroupInfo": {
             "type": "object",
             "properties": {
@@ -1250,24 +1308,17 @@ const docTemplate = `{
                 }
             }
         }
-    },
-    "securityDefinitions": {
-        "Bearer": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
-        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "",
 	Host:             "",
-	BasePath:         "/v1",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "Glim REST API",
-	Description:      "Glim REST API for login/logout, user and group operations. Users and groups require a Bearer Token (JWT) that you can retrieve using login. Please use the project's README for full information about how you can use this token with Swagger.",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

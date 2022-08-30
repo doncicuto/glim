@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package middleware
+package handlers
 
 import (
 	"fmt"
@@ -28,6 +28,9 @@ import (
 func IsUpdater(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		uid := c.Param("uid")
+		if c.Get("user") == nil {
+			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		}
 		user := c.Get("user").(*jwt.Token)
 		claims := user.Claims.(jwt.MapClaims)
 		jwtID, ok := claims["uid"].(float64)

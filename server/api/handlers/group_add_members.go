@@ -78,7 +78,7 @@ func (h *Handler) AddGroupMembers(c echo.Context) error {
 
 	// Get updated group
 	g = new(models.Group)
-	err = h.DB.Model(&models.Group{}).Where("id = ?", gid).First(&g).Error
+	err = h.DB.Preload("Members").Model(&models.Group{}).Where("id = ?", gid).First(&g).Error
 	if err != nil {
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}

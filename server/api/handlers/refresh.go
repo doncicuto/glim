@@ -17,12 +17,10 @@ limitations under the License.
 package handlers
 
 import (
-	"errors"
 	"net/http"
 	"time"
 
 	"github.com/doncicuto/glim/types"
-	"github.com/jinzhu/gorm"
 
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
@@ -98,7 +96,7 @@ func (h *Handler) Refresh(c echo.Context, settings types.APISettings) error {
 	// Check if user exists
 	var dbUser models.User
 	err = h.DB.Where("id = ?", uid).First(&dbUser).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid uid found in token"}
 	}
 
