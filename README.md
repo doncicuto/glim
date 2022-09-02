@@ -78,6 +78,86 @@ $ glim logout
 $ glim server stop
 ```
 
+## Using the Docker image
+
+Glim images are published in Docker Hub at [https://hub.docker.com/r/sologitops/glim](https://hub.docker.com/r/sologitops/glim)
+
+Before you run Glim with Docker create a directory that will store self-signed certificates and user database.
+
+For example:
+
+`mkdir /tmp/glim`
+
+You can run a server using the following command:
+
+`docker run -e GLIM_API_SECRET="yourapisecret" -v /tmp/glim:/home/glim/.glim  --name glim -p 1323:1323 -p 1636:1636 -d sologitops/glim`
+
+You'll find some interesting files in our mounted directory. Our fake CA private key and public certificate, our Glim server certificate and private key and a client certificate and key that can be used to query our server. Also we'll find the glim SQLite database file, glim.db.
+
+Note that we've published 1323 and 1636 ports. Thanks to these published ports, Glim REST and LDAP servers will listen on ports 1323 and 1636 for localhost.
+
+```(bash)
+-rw-------  1 sologitops sologitops   227 sep  2 19:37 ca.key
+-rw-r--r--  1 sologitops sologitops   607 sep  2 19:37 ca.pem
+-rw-------  1 sologitops sologitops   227 sep  2 19:37 client.key
+-rw-r--r--  1 sologitops sologitops   603 sep  2 19:37 client.pem
+-rw-r--r--  1 sologitops sologitops 36864 sep  2 19:37 glim.db
+-rw-------  1 sologitops sologitops   227 sep  2 19:37 server.key
+-rw-r--r--  1 sologitops sologitops   607 sep  2 19:37 server.pem
+```
+
+If you want to know the default passwords for your admin and search users, you can use docker logs to find them:
+
+`docker logs -f glim`
+
+```(bash)
+...
+------------------------------------- WARNING -------------------------------------
+A new user with manager permissions has been created:
+- Username: admin
+- Password Dg9FXUkrs6aOTqhMkKLW3ESvmsQvS4Bm6g12WAamQ9cbzRfxEdxpL7NEsOlyZax2
+Please store or write down this password to manage Glim.
+You can delete this user once you assign manager permissions to another user
+-----------------------------------------------------------------------------------
+
+------------------------------------- WARNING -------------------------------------
+A new user with read-only permissions has been created:
+- Username: search
+- Password WgkJeRgAuRzdPncgj50f9TXAtN9NbGiAqDn8pRvlxW7vJetGeSy4zf2aMTEc1X4G
+Please store or write down this password to perform search queries in Glim.
+-----------------------------------------------------------------------------------
+```
+
+Now, that we have a Glim server we can run Glim's CLI using a container. Before we can run our commands against our server, we must log in first and use a client certificate. For an easier use we'll use the directory that we created earlier to get access to our client certificate and to store the token needed to perform our operations against a Glim server. Also, we'll use the same network used by the glim container so every command runs as we were using localhost.
+
+```(bash)
+docker run -v /tmp/glim:/home/glim/.glim --rm -it --network container:glim sologitops/glim login
+Username: admin
+Password: 
+Login Succeeded
+
+docker run -v /tmp/glim:/home/glim/.glim --rm -it --network container:glim sologitops/glim user
+UID    USERNAME        FULLNAME             EMAIL                GROUPS               MANAGER  READONLY LOCKED  
+1      admin           LDAP administrator                        none                 true     false    false   
+2      search          Read-Only Account                         none                 false    true     false 
+
+docker run -v /tmp/glim:/home/glim/.glim --rm -it --network container:glim sologitops/glim group create -g devel -d "Developers"
+Group created
+```
+
+Now, if we want to use Glim to answer LDAP queries we'll specify our CA certificate for TLS communications and set our host (127.0.0.1) and port (1636). For example, I'll run an ldapwhoami command:
+
+```(bash)
+LDAPTLS_CACERT=/tmp/glim/ca.pem ldapwhoami -x -D "cn=admin,dc=example,dc=org" -W -H ldaps://127.0.0.1:1636
+Enter LDAP Password: 
+dn:cn=admin,dc=example,dc=org
+```
+
+Once we are finished with our Glim server we can stop it and remove it
+
+`docker stop glim`
+`docker rm glim`
+
 ## Glim user types (roles)
 
 Glim has the following roles:
@@ -85,6 +165,8 @@ Glim has the following roles:
 - Manager. Can create, update and delete users and/or groups and set group memberships.
 - Plain users. A plain user can get its user account information, update its name, email, ssh public key and password. A plain user can change its role and its memberships.
 - Read-only. Can read users and groups information.
+
+Glim will create and admin user (manager) and a search user (readonly) to start managing your database.
 
 ## Secured communications by design
 
@@ -132,8 +214,8 @@ server: "https://192.168.1.136:1323"
 username: "admin"
 
 # Server flags
-tlscert: /home/mcabrerizo/glim/server.pem
-tlskey: /home/mcabrerizo/glim/server.key
+tlscert: /home/sologitops/glim/server.pem
+tlskey: /home/sologitops/glim/server.key
 rest-addr: "192.168.1.136:1323"
 ldap-addr: "192.168.1.136:1636"
 ```
