@@ -19,6 +19,7 @@ package db
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/doncicuto/glim/models"
@@ -102,14 +103,17 @@ func createManager(db *gorm.DB, initialPassword string) error {
 	}).Error; err != nil {
 		return err
 	}
-	fmt.Println("")
-	fmt.Println("------------------------------------- WARNING -------------------------------------")
-	fmt.Println("A new user with manager permissions has been created:")
-	fmt.Println("- Username: admin") // TODO - Allow username with env
-	fmt.Printf("- Password %s\n", chosenPassword)
-	fmt.Println("Please store or write down this password to manage Glim.")
-	fmt.Println("You can delete this user once you assign manager permissions to another user")
-	fmt.Println("-----------------------------------------------------------------------------------")
+
+	if os.Getenv("ENV") != "test" {
+		fmt.Println("")
+		fmt.Println("------------------------------------- WARNING -------------------------------------")
+		fmt.Println("A new user with manager permissions has been created:")
+		fmt.Println("- Username: admin") // TODO - Allow username with env
+		fmt.Printf("- Password %s\n", chosenPassword)
+		fmt.Println("Please store or write down this password to manage Glim.")
+		fmt.Println("You can delete this user once you assign manager permissions to another user")
+		fmt.Println("-----------------------------------------------------------------------------------")
+	}
 
 	return nil
 }
@@ -150,13 +154,16 @@ func createReadonly(db *gorm.DB, initialPassword string) error {
 	}).Error; err != nil {
 		return err
 	}
-	fmt.Println("")
-	fmt.Println("------------------------------------- WARNING -------------------------------------")
-	fmt.Println("A new user with read-only permissions has been created:")
-	fmt.Println("- Username: search") // TODO - Allow username with env
-	fmt.Printf("- Password %s\n", chosenPassword)
-	fmt.Println("Please store or write down this password to perform search queries in Glim.")
-	fmt.Println("-----------------------------------------------------------------------------------")
+
+	if os.Getenv("ENV") != "test" {
+		fmt.Println("")
+		fmt.Println("------------------------------------- WARNING -------------------------------------")
+		fmt.Println("A new user with read-only permissions has been created:")
+		fmt.Println("- Username: search") // TODO - Allow username with env
+		fmt.Printf("- Password %s\n", chosenPassword)
+		fmt.Println("Please store or write down this password to perform search queries in Glim.")
+		fmt.Println("-----------------------------------------------------------------------------------")
+	}
 
 	return nil
 }
