@@ -86,11 +86,15 @@ Before you run Glim with Docker create a directory that will store self-signed c
 
 For example:
 
-`mkdir /tmp/glim`
+```(bash)
+mkdir /tmp/glim`
+```
 
 You can run a server using the following command:
 
-`docker run -e GLIM_API_SECRET="yourapisecret" -v /tmp/glim:/home/glim/.glim  --name glim -p 1323:1323 -p 1636:1636 -d sologitops/glim`
+```(bash)
+docker run -e GLIM_API_SECRET="yourapisecret" -v /tmp/glim:/home/glim/.glim  --name glim -p 1323:1323 -p 1636:1636 -d sologitops/glim`
+```
 
 You'll find some interesting files in our mounted directory. Our fake CA private key and public certificate, our Glim server certificate and private key and a client certificate and key that can be used to query our server. Also we'll find the glim SQLite database file, glim.db.
 
@@ -108,7 +112,9 @@ Note that we've published 1323 and 1636 ports. Thanks to these published ports, 
 
 If you want to know the default passwords for your admin and search users, you can use docker logs to find them:
 
-`docker logs -f glim`
+```(bash)
+docker logs -f glim
+```
 
 ```(bash)
 ...
@@ -155,8 +161,10 @@ dn:cn=admin,dc=example,dc=org
 
 Once we are finished with our Glim server we can stop it and remove it
 
-`docker stop glim`
-`docker rm glim`
+```(bash)
+docker stop glim
+docker rm glim
+```
 
 ## Glim user types (roles)
 
@@ -222,35 +230,7 @@ ldap-addr: "192.168.1.136:1636"
 
 ## REST API
 
-Glim comes with a REST API,that you can use right away using Swagger. The API documentation is accesible visiting `https://yourserver:1323/swagger/index.html`. Note: you may have to add your CA.pem file to your trusted certificates so your browser doesn't complain about security.
-
-Here's the web page offering API documentation.
-
-![swagger_auth_bearer_0.png](./docs/images/swagger_auth_bearer_0.png)
-
-Glim uses JWT tokens to authenticate users so you'll have to request a token from the API using the /v1/login endpoint. Using Glim's Swagger server you can do it following these steps:
-
-1. Go to the login endpoint and click on it
-
-   ![swagger_auth_bearer_login1.png](./docs/images/swagger_auth_bearer_login1.png)
-
-2. Click the "Try it out button". Replace "string" with your username and password to log in and click on "Execute".
-
-   ![swagger_auth_bearer_login2.png](./docs/images/swagger_auth_bearer_login2.png)
-
-3. If your credentials are fine and Glim's working as expected you'll see the access token that you can use in your next requests
-
-   ![swagger_auth_bearer_login3.png](./docs/images/swagger_auth_bearer_login3.png)
-
-4. Now you can copy that token and use it to authenticate your requests. In Swagger you can click on the padlock and a form will be offered to enter that token. Finally click on Authorize to set the authentication token.
-
-   > ⚠️ WARNING: You'll have to put "Bearer " (that's Bearer followed by space) before the token. This is needed as Swagger 2.0 can't use JWT directly. Unfortunately the [swag](https://github.com/swaggo/swag) library used by Glim doesn't support OpenAPI 3.0, so this workaround must be used.
-
-   ![swagger_auth_bearer_1.png](./docs/images/swagger_auth_bearer_1.png)
-
-5. Once you've entered the token, click on the "Close" button. Now you'll see that the padlock icon shows a closed state and your token will be sent with your requests.
-
-   ![swagger_auth_bearer_2.png](./docs/images/swagger_auth_bearer_2.png)
+Glim comes with a [REST API](/docs/rest.md),that you can use right away using Swagger.
 
 ## Installation scenarios
 
@@ -268,7 +248,19 @@ Glim will be able to use Postgres to store users and groups data and Redis will 
 
 When I search entries in our LDAP tree, the following diagram shows how Glim works.
 
-![ldap_tree](./docs/images/ldap_tree.png)
+```mermaid
+graph TD;
+    A[dc=example.dc=org]-->B[ou=Users,dc=example,dc=org];
+    A[dc=example.dc=org]-->C[ou=Groups,dc=example,dc=org];
+    B[ou=Users,dc=example.dc=org]-->D[uid=glim,ou=Users,dc=example,dc=org];
+    C[ou=Groups,dc=example.dc=org]-->E[cn=Developers,ou=Groups,dc=example,dc=org];
+    E[cn=Developers,ou=Groups,dc=example,dc=org]--member-->D[uid=glim,ou=Users,dc=example,dc=org];
+    style A fill:#f60
+    style C fill:#039
+    style E fill:#039
+    style B fill:#060
+    style D fill:#060
+```
 
 Users will be shown as entries under organization unit ou=Users.
 
@@ -278,7 +270,45 @@ Groups will be shown as entries under organization unit ou=Groups.
 
 This is a sample of a Glim server log showing REST and LDAP interaction
 
-![logging](./docs/images/sample_server_logging.png)
+```(bash)
+2022-09-03T09:12:47+02:00 [Glim] ⇨ connected to database...
+2022-09-03T09:12:47+02:00 [Glim] ⇨ connected to key-value store...
+2022-09-03T09:12:47+02:00 [Glim] ⇨ starting REST API in address :1323...
+2022-09-03T09:12:47+02:00 [Glim] ⇨ starting LDAPS server in address :1636...
+2022-09-03T09:12:57+02:00 [REST] ⇨ 200 POST /v1/login/refresh_token 127.0.0.1 
+2022-09-03T09:12:57+02:00 [REST] ⇨ 200 GET /v1/users 127.0.0.1 
+2022-09-03T09:13:04+02:00 [REST] ⇨ 200 POST /v1/login 127.0.0.1 
+2022-09-03T09:13:08+02:00 [REST] ⇨ 200 GET /v1/groups 127.0.0.1 
+2022-09-03T09:13:22+02:00 [REST] ⇨ 200 GET /v1/users/5 127.0.0.1 
+2022-09-03T09:13:37+02:00 [LDAP] ⇨ serving LDAPS connection from 127.0.0.1:37100
+2022-09-03T09:13:37+02:00 [LDAP] ⇨ connection closed by client 127.0.0.1:37100
+2022-09-03T09:14:13+02:00 [LDAP] ⇨ serving LDAPS connection from 127.0.0.1:58564
+2022-09-03T09:14:13+02:00 [LDAP] ⇨ bind requested by client: 127.0.0.1:58564
+2022-09-03T09:14:13+02:00 [LDAP] ⇨ bind protocol version: 3 client 127.0.0.1:58564
+2022-09-03T09:14:13+02:00 [LDAP] ⇨ bind name: cn=admin,dc=example,dc=org client 127.0.0.1:58564
+2022-09-03T09:14:13+02:00 [LDAP] ⇨ bind password: ********** client 127.0.0.1:58564
+2022-09-03T09:14:13+02:00 [LDAP] ⇨ success: valid credentials provided
+2022-09-03T09:14:13+02:00 [LDAP] ⇨ whoami requested by client
+2022-09-03T09:14:13+02:00 [LDAP] ⇨ whoami response: dn:cn=admin,dc=example,dc=org
+2022-09-03T09:14:13+02:00 [LDAP] ⇨ unbind requested by client: 127.0.0.1:58564
+2022-09-03T09:14:13+02:00 [LDAP] ⇨ connection closed by client 127.0.0.1:58564
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ serving LDAPS connection from 192.168.1.136:41610
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ bind requested by client: 192.168.1.136:41610
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ bind protocol version: 3 client 192.168.1.136:41610
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ bind name: cn=search,dc=example,dc=org client 192.168.1.136:41610
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ bind password: ********** client 192.168.1.136:41610
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ success: valid credentials provided
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ search requested by client 192.168.1.136:41610
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ search base object: cn=devel,ou=Groups,dc=example,dc=org
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ search scope: wholeSubtree
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ search maximum number of entries to be returned (0 - No limit restriction): 0
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ search maximum time limit (0 - No limit restriction): 0
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ search show types only: false
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ search filter: (&(objectClass=groupOfNames)(uid=*))
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ search attributes: uid
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ unbind requested by client: 192.168.1.136:41610
+2022-09-03T09:14:46+02:00 [LDAP] ⇨ connection closed by client 192.168.1.136:41610
+```
 
 ## Testing Glim with openLDAP client tools (ldapsearch, ldapwhoami...)
 
