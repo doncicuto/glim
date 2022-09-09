@@ -257,8 +257,8 @@ graph TD;
     C[ou=Groups,dc=example.dc=org]-->E[cn=Developers,ou=Groups,dc=example,dc=org];
     E[cn=Developers,ou=Groups,dc=example,dc=org]--member-->D[uid=glim,ou=Users,dc=example,dc=org];
     style A fill:#f60
-    style C fill:#039
-    style E fill:#039
+    style C fill:#008B8B
+    style E fill:#008B8B
     style B fill:#060
     style D fill:#060
 ```
@@ -336,3 +336,9 @@ See this [page](./docs/examples/openldap.md) for examples that I used to check G
 2. Glim cannot reply to Root DSE requests, so you cannot use LDAP tools like Apache Directory Studio or phpLDAPadmin to browse or manage your directory.
 
 3. Alias dereferencing in search requests is not supported.
+
+### Acknowledgments
+
+Many thanks to @johnweldon and all the contributors for [https://github.com/go-asn1-ber/asn1-ber](https://github.com/go-asn1-ber/asn1-ber).
+
+Also, many thanks to @labstack for the [Echo framework](https://github.com/labstack/echo).
