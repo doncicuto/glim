@@ -38,8 +38,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var ()
-
 // serverCmd represents the server command
 var serverStartCmd = &cobra.Command{
 	Use:   "start",
@@ -163,15 +161,18 @@ var serverStartCmd = &cobra.Command{
 		}
 
 		ldapAddress := viper.GetString("ldap-addr")
+		ldapSizeLimit := viper.GetInt("ldap-size-limit")
 		domain := viper.GetString("ldap-domain")
 
 		// Preparing LDAP server settings
-		ldapSettings := ldap.Settings{
-			DB:      database,
-			TLSCert: tlscert,
-			TLSKey:  tlskey,
-			Address: ldapAddress,
-			Domain:  ldap.GetDomain(domain),
+		ldapSettings := types.LDAPSettings{
+			KV:        blacklist,
+			DB:        database,
+			TLSCert:   tlscert,
+			TLSKey:    tlskey,
+			Address:   ldapAddress,
+			Domain:    ldap.GetDomain(domain),
+			SizeLimit: ldapSizeLimit,
 		}
 
 		// get current PID and store it in glim.pid at our tmp directory
@@ -226,6 +227,7 @@ func init() {
 	serverStartCmd.Flags().String("tlscert", defaultCertPEMFilePath, "TLS server certificate path")
 	serverStartCmd.Flags().String("tlskey", defaultCertKeyFilePath, "TLS server private key path")
 	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
+	serverStartCmd.Flags().Int("ldap-size-limit", 500, "LDAP server maximum number of entries that should be returned from the search")
 	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
 	serverStartCmd.Flags().String("db", defaultDbPath, "path of the file containing Glim's database")

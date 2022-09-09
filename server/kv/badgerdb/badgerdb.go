@@ -95,6 +95,15 @@ func (s Store) Set(k string, v string, expiration time.Duration) error {
 	return err
 }
 
+// Delete given key
+func (s Store) Delete(k string) error {
+	err := s.DB.Update(func(txn *badger.Txn) error {
+		err := txn.Delete([]byte(k))
+		return err
+	})
+	return err
+}
+
 // Close will terminate a connection with BadgerDB
 func (s Store) Close() error {
 	return s.DB.Close()

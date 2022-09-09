@@ -53,6 +53,16 @@ type APISettings struct {
 	MaxDaysWoRelogin   int
 }
 
+type LDAPSettings struct {
+	DB        *gorm.DB
+	KV        Store
+	TLSCert   string
+	TLSKey    string
+	Address   string
+	Domain    string
+	SizeLimit int
+}
+
 type Credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -83,6 +93,8 @@ type Store interface {
 	Set(k string, v string, expiration time.Duration) error
 	// Get a value from our key-value store
 	Get(k string) (v string, found bool, err error)
+	// Delete a key
+	Delete(k string) (err error)
 	// Close a connection with our key-value store
 	Close() error
 }
