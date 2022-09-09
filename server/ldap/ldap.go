@@ -18,15 +18,20 @@ package ldap
 
 import (
 	"errors"
+	"fmt"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
 // Message - TODO comment
 type Message struct {
-	ID      int64
-	Op      int64
-	Request []*ber.Packet
+	ID                      int64
+	Op                      int64
+	Request                 []*ber.Packet
+	Paging                  bool
+	PagedResultsSize        int64
+	PagedResultsCookie      string
+	PagedResultsCriticality bool
 }
 
 func messageID(p *ber.Packet) (int64, error) {
@@ -93,6 +98,57 @@ func requestName(p *ber.Packet) (string, *ServerError) {
 	return p.Data.String(), nil
 }
 
+func control(p *ber.Packet, message *Message) error {
+	if p.ClassType != ber.ClassUniversal ||
+		p.TagType != ber.TypeConstructed ||
+		p.Tag != ber.TagSequence ||
+		len(p.Children) < 2 {
+		return errors.New("wrong ASN.1 Envelope for Control")
+	}
+
+	controlType := p.Children[0].Value.(string)
+
+	//https://www.ietf.org/rfc/rfc2696.txt
+	if controlType == "1.2.840.113556.1.4.319" {
+		message.Paging = true
+		npIndex := 1
+		pagedResults := ""
+		if p.Children[1].Tag == ber.TagBoolean {
+			message.PagedResultsCriticality = p.Children[1].Value.(bool)
+			pagedResults = "pagedResults critical control found"
+			npIndex = 2
+		} else {
+			message.PagedResultsCriticality = false
+			pagedResults = "pagedResults control found"
+		}
+
+		np := ber.DecodePacket(p.Children[npIndex].Data.Bytes())
+		if len(np.Children) == 2 {
+			message.PagedResultsSize = np.Children[0].Value.(int64)
+			message.PagedResultsCookie = np.Children[1].Value.(string)
+			printLog(fmt.Sprintf("%s: size=%d cookie=%s ", pagedResults, message.PagedResultsSize, message.PagedResultsCookie))
+		}
+		return nil
+	}
+
+	return nil
+}
+
+func controls(p *ber.Packet, message *Message) error {
+	if p.ClassType != ber.ClassContext ||
+		p.TagType != ber.TypeConstructed ||
+		p.Tag != ber.TagEOC ||
+		len(p.Children) < 1 {
+		return errors.New("wrong ASN.1 Envelope for Controls")
+	}
+
+	for _, item := range p.Children {
+		control(item, message)
+	}
+
+	return nil
+}
+
 //DecodeMessage - TODO comment
 func DecodeMessage(p *ber.Packet) (*Message, error) {
 	message := new(Message)
@@ -117,6 +173,11 @@ func DecodeMessage(p *ber.Packet) (*Message, error) {
 	message.Op = op
 
 	message.Request = p.Children[1].Children
+
+	// Check if we have controls https://www.rfc-editor.org/rfc/rfc4511#section-4.1.11
+	if len(p.Children) == 3 {
+		controls(p.Children[2], message)
+	}
 
 	return message, nil
 }

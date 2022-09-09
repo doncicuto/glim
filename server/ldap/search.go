@@ -4,13 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/doncicuto/glim/types"
 	ber "github.com/go-asn1-ber/asn1-ber"
-	"gorm.io/gorm"
+	"github.com/google/uuid"
 )
 
-func searchSize(p *ber.Packet) (int64, *ServerError) {
+func searchSize(p *ber.Packet, searchLimit int, pagedResultSize int64) (int, *ServerError) {
+	limit := 0
 	if p.ClassType != ber.ClassUniversal ||
 		p.TagType != ber.TypePrimitive ||
 		p.Tag != ber.TagInteger {
@@ -28,7 +32,13 @@ func searchSize(p *ber.Packet) (int64, *ServerError) {
 		}
 	}
 
-	return size, nil
+	if size < pagedResultSize {
+		limit = int(pagedResultSize)
+	} else {
+		limit = int(size)
+	}
+
+	return limit, nil
 }
 
 func searchTimeLimit(p *ber.Packet) (int64, *ServerError) {
@@ -253,30 +263,100 @@ func searchScope(p *ber.Packet) (int64, *ServerError) {
 }
 
 // HandleSearchRequest - TODO comment
-func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.Packet, error) {
+func HandleSearchRequest(message *Message, settings types.LDAPSettings) ([]*ber.Packet, error) {
+
+	// Defined in https://www.rfc-editor.org/rfc/rfc4511#section-4.5.1
+	var offset = 0
+	var cookie = ""
+	var totalResults int64 = 0
+	var nResults int = 0
+	var users []*ber.Packet = nil
+	var groups []*ber.Packet = nil
 
 	var r []*ber.Packet
 	id := message.ID
 	p := message.Request
+
+	// Paging
+	if message.Paging && message.PagedResultsCookie != "" {
+		val, found, err := settings.KV.Get(message.PagedResultsCookie)
+		if err != nil {
+			p := encodeSearchResultDone(searchResultDoneParams{
+				messageID:    id,
+				resultCode:   UnwillingToPerform,
+				msg:          "could not find cookie in KV",
+				paging:       message.PagedResultsSize > 0,
+				totalResults: 0,
+				criticality:  message.PagedResultsCriticality,
+				cookie:       cookie,
+			})
+			r = append(r, p)
+			return r, errors.New("KV not working correctly")
+		}
+
+		if found {
+			cookie = message.PagedResultsCookie
+			offset, err = strconv.Atoi(val)
+			if err != nil {
+				p := encodeSearchResultDone(searchResultDoneParams{
+					messageID:    id,
+					resultCode:   UnwillingToPerform,
+					msg:          "could not get offset from KV",
+					paging:       message.PagedResultsSize > 0,
+					totalResults: 0,
+					criticality:  message.PagedResultsCriticality,
+					cookie:       cookie,
+				})
+				r = append(r, p)
+				return r, errors.New("KV not working correctly")
+			}
+		}
+	}
+
 	b, err := baseObject(p[0])
 	if err != nil {
-		p := encodeSearchResultDone(id, err.Code, err.Msg)
+		p := encodeSearchResultDone(searchResultDoneParams{
+			messageID:    id,
+			resultCode:   err.Code,
+			msg:          err.Msg,
+			paging:       message.PagedResultsSize > 0,
+			totalResults: 0,
+			criticality:  message.PagedResultsCriticality,
+			cookie:       cookie,
+		})
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
 	printLog(fmt.Sprintf("search base object: %s", b))
 
 	//Check if base object is valid
-	reg, _ := regexp.Compile(fmt.Sprintf("%s$", domain))
+	reg, _ := regexp.Compile(fmt.Sprintf("%s$", settings.Domain))
 	if !reg.MatchString(b) {
-		p := encodeSearchResultDone(id, NoSuchObject, "")
+		p := encodeSearchResultDone(searchResultDoneParams{
+			messageID:    id,
+			resultCode:   NoSuchObject,
+			msg:          "",
+			paging:       message.PagedResultsSize > 0,
+			totalResults: 0,
+			criticality:  message.PagedResultsCriticality,
+			cookie:       cookie,
+		})
 		r = append(r, p)
-		return r, errors.New("wrong domain")
+		return r, errors.New("wrong settings.Domain")
 	}
 
 	s, err := searchScope(p[1])
 	if err != nil {
-		p := encodeSearchResultDone(id, err.Code, err.Msg)
+		p := encodeSearchResultDone(searchResultDoneParams{
+			messageID:    id,
+			resultCode:   err.Code,
+			msg:          err.Msg,
+			paging:       message.PagedResultsSize > 0,
+			totalResults: 0,
+			criticality:  message.PagedResultsCriticality,
+			cookie:       cookie,
+		})
+
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
@@ -284,9 +364,17 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 
 	// p[2] represents derefAliases which are not currently supported by Glim
 
-	n, err := searchSize(p[3])
+	n, err := searchSize(p[3], settings.SizeLimit, message.PagedResultsSize)
 	if err != nil {
-		p := encodeSearchResultDone(id, err.Code, err.Msg)
+		p := encodeSearchResultDone(searchResultDoneParams{
+			messageID:    id,
+			resultCode:   err.Code,
+			msg:          err.Msg,
+			paging:       message.PagedResultsSize > 0,
+			totalResults: 0,
+			criticality:  message.PagedResultsCriticality,
+			cookie:       cookie,
+		})
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
@@ -294,7 +382,15 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 
 	l, err := searchTimeLimit(p[4])
 	if err != nil {
-		p := encodeSearchResultDone(id, err.Code, err.Msg)
+		p := encodeSearchResultDone(searchResultDoneParams{
+			messageID:    id,
+			resultCode:   err.Code,
+			msg:          err.Msg,
+			paging:       message.PagedResultsSize > 0,
+			totalResults: 0,
+			criticality:  message.PagedResultsCriticality,
+			cookie:       cookie,
+		})
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
@@ -302,7 +398,15 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 
 	t, err := searchTypesOnly(p[5])
 	if err != nil {
-		p := encodeSearchResultDone(id, err.Code, err.Msg)
+		p := encodeSearchResultDone(searchResultDoneParams{
+			messageID:    id,
+			resultCode:   err.Code,
+			msg:          err.Msg,
+			paging:       message.PagedResultsSize > 0,
+			totalResults: 0,
+			criticality:  message.PagedResultsCriticality,
+			cookie:       cookie,
+		})
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
@@ -310,7 +414,15 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 
 	f, err := searchFilter(p[6])
 	if err != nil {
-		p := encodeSearchResultDone(id, err.Code, err.Msg)
+		p := encodeSearchResultDone(searchResultDoneParams{
+			messageID:    id,
+			resultCode:   err.Code,
+			msg:          err.Msg,
+			paging:       message.PagedResultsSize > 0,
+			totalResults: 0,
+			criticality:  message.PagedResultsCriticality,
+			cookie:       cookie,
+		})
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
@@ -318,7 +430,15 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 
 	a, err := searchAttributes(p[7])
 	if err != nil {
-		p := encodeSearchResultDone(id, err.Code, err.Msg)
+		p := encodeSearchResultDone(searchResultDoneParams{
+			messageID:    id,
+			resultCode:   err.Code,
+			msg:          err.Msg,
+			paging:       message.PagedResultsSize > 0,
+			totalResults: 0,
+			criticality:  message.PagedResultsCriticality,
+			cookie:       cookie,
+		})
 		r = append(r, p)
 		return r, errors.New(err.Msg)
 	}
@@ -332,11 +452,11 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 	    SearchResultEntry and/or SearchResultReference messages, followed by
 		a single SearchResultDone message */
 
-	regBase, _ := regexp.Compile(fmt.Sprintf("^ou=users,%s$", domain))
+	regBase, _ := regexp.Compile(fmt.Sprintf("^ou=users,%s$", settings.Domain))
 
-	if (b == domain && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
-		if f == "(objectclass=*)" {
-			ouUsers := fmt.Sprintf("ou=Users,%s", domain)
+	if (b == settings.Domain && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
+		if (f == "(objectclass=*)" && !message.Paging) || (f == "(objectclass=*)" && message.Paging && offset == 0) {
+			ouUsers := fmt.Sprintf("ou=Users,%s", settings.Domain)
 			values := map[string][]string{
 				"objectClass": {"organizationalUnit", "top"},
 				"ou":          {"Users"},
@@ -345,30 +465,52 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 			r = append(r, e)
 		}
 
-		users, err := getUsers(db, f, f, a, id, domain)
+		params := userQueryParams{
+			db:             settings.DB,
+			filter:         f,
+			originalFilter: f,
+			attributes:     a,
+			messageID:      id,
+			domain:         settings.Domain,
+			limit:          n,
+			offset:         offset,
+		}
+
+		users, err, nResults, totalResults = getUsersFromDB(params)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
 		r = append(r, users...)
 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z.0-9-]+),ou=users,%s$", domain))
+	regBase, _ = regexp.Compile(fmt.Sprintf("^uid=([A-Za-z.0-9-]+),ou=users,%s$", settings.Domain))
 	if regBase.MatchString(strings.ToLower(b)) {
 		matches := regBase.FindStringSubmatch(strings.ToLower(b))
 		if matches != nil {
+			params := userQueryParams{
+				db:             settings.DB,
+				filter:         fmt.Sprintf("uid=%s", matches[1]),
+				originalFilter: f,
+				attributes:     a,
+				messageID:      id,
+				domain:         settings.Domain,
+				limit:          n,
+				offset:         offset,
+			}
 
-			users, err := getUsers(db, fmt.Sprintf("uid=%s", matches[1]), f, a, id, domain)
+			users, err, nResults, totalResults = getUsersFromDB(params)
 			if err != nil {
 				return r, errors.New(err.Msg)
 			}
+
 			r = append(r, users...)
 		}
 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^ou=groups,%s$", domain))
-	if (b == domain && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
-		if f == "(objectclass=*)" {
-			ouGroups := fmt.Sprintf("ou=Groups,%s", domain)
+	regBase, _ = regexp.Compile(fmt.Sprintf("^ou=groups,%s$", settings.Domain))
+	if (b == settings.Domain && strings.Contains(f, "objectClass=*")) || regBase.MatchString(strings.ToLower(b)) {
+		if (f == "(objectclass=*)" && !message.Paging) || (f == "(objectclass=*)" && message.Paging && offset == 0) {
+			ouGroups := fmt.Sprintf("ou=Groups,%s", settings.Domain)
 			values := map[string][]string{
 				"objectClass": {"organizationalUnit", "top"},
 				"ou":          {"Groups"},
@@ -376,19 +518,42 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 			e := encodeSearchResultEntry(id, values, ouGroups)
 			r = append(r, e)
 		}
-		groups, err := getGroups(db, f, f, a, id, domain)
+
+		params := groupQueryParams{
+			db:             settings.DB,
+			filter:         f,
+			originalFilter: f,
+			attributes:     a,
+			id:             id,
+			domain:         settings.Domain,
+			limit:          n,
+			offset:         offset,
+		}
+
+		groups, err, nResults, totalResults = getGroupsFromDB(params)
 		if err != nil {
 			return r, errors.New(err.Msg)
 		}
 		r = append(r, groups...)
 	}
 
-	regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z.0-9-]+),ou=groups,%s$", domain))
+	regBase, _ = regexp.Compile(fmt.Sprintf("^cn=([A-Za-z.0-9-]+),ou=groups,%s$", settings.Domain))
 	if regBase.MatchString(strings.ToLower(b)) {
 		matches := regBase.FindStringSubmatch(strings.ToLower(b))
 		if matches != nil {
 
-			groups, err := getGroups(db, fmt.Sprintf("cn=%s", matches[1]), f, a, id, domain)
+			params := groupQueryParams{
+				db:             settings.DB,
+				filter:         fmt.Sprintf("cn=%s", matches[1]),
+				originalFilter: f,
+				attributes:     a,
+				id:             id,
+				domain:         settings.Domain,
+				limit:          n,
+				offset:         offset,
+			}
+
+			groups, err, nResults, totalResults = getGroupsFromDB(params)
 			if err != nil {
 				return r, errors.New(err.Msg)
 			}
@@ -396,7 +561,59 @@ func HandleSearchRequest(message *Message, db *gorm.DB, domain string) ([]*ber.P
 		}
 	}
 
-	d := encodeSearchResultDone(id, Success, "")
+	// Paging
+	if message.Paging {
+		// More results?
+		if offset+nResults < int(totalResults) {
+			// Create a cookie and store current offset
+			if cookie == "" {
+				cookie = uuid.New().String()
+			}
+
+			err := settings.KV.Set(cookie, fmt.Sprintf("%d", offset+nResults), time.Second*3600)
+			if err != nil {
+				p := encodeSearchResultDone(searchResultDoneParams{
+					messageID:    id,
+					resultCode:   UnwillingToPerform,
+					msg:          "KV not working correctly 1",
+					paging:       message.PagedResultsSize > 0,
+					totalResults: 0,
+					criticality:  message.PagedResultsCriticality,
+					cookie:       cookie,
+				})
+				r = append(r, p)
+				return r, errors.New("KV not working correctly")
+			}
+		} else {
+			if cookie != "" {
+				err := settings.KV.Delete(cookie)
+				if err != nil {
+					p := encodeSearchResultDone(searchResultDoneParams{
+						messageID:    id,
+						resultCode:   UnwillingToPerform,
+						msg:          "KV not working correctly 2",
+						paging:       message.PagedResultsSize > 0,
+						totalResults: 0,
+						criticality:  message.PagedResultsCriticality,
+						cookie:       cookie,
+					})
+					r = append(r, p)
+					return r, errors.New("KV not working correctly")
+				}
+			}
+			cookie = ""
+		}
+	}
+
+	d := encodeSearchResultDone(searchResultDoneParams{
+		messageID:    id,
+		resultCode:   Success,
+		msg:          "",
+		paging:       message.PagedResultsSize > 0,
+		totalResults: totalResults,
+		criticality:  message.PagedResultsCriticality,
+		cookie:       cookie,
+	})
 	r = append(r, d)
 	return r, nil
 }

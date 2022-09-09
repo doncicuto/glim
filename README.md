@@ -204,6 +204,7 @@ Glim can use the following environment variables. The same variables can be set 
 | GLIM_LDAP_DOMAIN | No | Our ldap domain | example.org |
 | GLIM_REST_ADDR | No | Listen address for our REST API server | :1323 |
 | GLIM_LDAP_ADDR | No | Listen address for our LDAP server | :1636 |
+| GLIM_LDAP_SIZE_LIMIT | No | Max number of entries that should be returned from a search | 500 |
 | GLIM_SERVER | No | Glim Rest API address for Glim commands | `https://127.0.0.1:1323` |
 | GLIM_BADGERDB_STORE | No | Directory path for BadgerDB Key Value store | /tmp/kv |
 | GLIM_INITIAL_ADMIN_PASSWD | No | Initial password for the admin account | - |

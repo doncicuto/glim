@@ -10,6 +10,17 @@ import (
 	"gorm.io/gorm"
 )
 
+type userQueryParams struct {
+	db             *gorm.DB
+	filter         string
+	originalFilter string
+	attributes     string
+	messageID      int64
+	domain         string
+	limit          int
+	offset         int
+}
+
 func userEntry(user models.User, attributes string, domain string) map[string][]string {
 	attrs := make(map[string]string)
 	for _, a := range strings.Split(attributes, " ") {
@@ -153,32 +164,48 @@ func userEntry(user models.User, attributes string, domain string) map[string][]
 	return values
 }
 
-func getUsers(db *gorm.DB, filter string, originalFilter string, attributes string, id int64, domain string) ([]*ber.Packet, *ServerError) {
+func getUsersFromDB(params userQueryParams) ([]*ber.Packet, *ServerError, int, int64) {
 	var r []*ber.Packet
 	users := []models.User{}
 
-	db = db.Preload("MemberOf").Model(&models.User{})
-	analyzeUsersCriteria(db, filter, false, "", 0)
-	err := db.Find(&users).Error
+	params.db = params.db.Preload("MemberOf").Model(&models.User{})
+	analyzeUsersCriteria(params.db, params.filter, false, "", 0)
+
+	allResults := params.db.Find(&users)
+	if allResults.Error != nil {
+		return nil, &ServerError{
+			Msg:  "could not retrieve information from database",
+			Code: Other,
+		}, 0, 0
+	}
+	totalResults := allResults.RowsAffected
+
+	if params.limit > 0 {
+		params.db.Limit(params.limit)
+	}
+
+	params.db.Offset(params.offset)
+
+	err := params.db.Find(&users).Error
 	if err != nil {
 		return nil, &ServerError{
 			Msg:  "could not retrieve information from database",
 			Code: Other,
-		}
+		}, 0, 0
 	}
 
-	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z.0-9-]+),ou=Groups,%s", domain))
+	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z.0-9-]+),ou=Groups,%s", params.domain))
 
 	for _, user := range users {
 		if *user.Username != "admin" && !*user.Readonly {
-			if filterGroup.MatchString(originalFilter) {
-				matches := filterGroup.FindStringSubmatch(originalFilter)
+			if filterGroup.MatchString(params.originalFilter) {
+				matches := filterGroup.FindStringSubmatch(params.originalFilter)
 				if matches != nil {
 					for _, group := range user.MemberOf {
 						if *group.Name == matches[1] {
-							dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, domain)
-							values := userEntry(user, attributes, domain)
-							e := encodeSearchResultEntry(id, values, dn)
+							dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, params.domain)
+							values := userEntry(user, params.attributes, params.domain)
+							e := encodeSearchResultEntry(params.messageID, values, dn)
 							r = append(r, e)
 							break
 						}
@@ -186,9 +213,9 @@ func getUsers(db *gorm.DB, filter string, originalFilter string, attributes stri
 				}
 
 			} else {
-				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, domain)
-				values := userEntry(user, attributes, domain)
-				e := encodeSearchResultEntry(id, values, dn)
+				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, params.domain)
+				values := userEntry(user, params.attributes, params.domain)
+				e := encodeSearchResultEntry(params.messageID, values, dn)
 				r = append(r, e)
 			}
 
@@ -196,7 +223,7 @@ func getUsers(db *gorm.DB, filter string, originalFilter string, attributes stri
 
 	}
 
-	return r, nil
+	return r, nil, len(users), totalResults
 }
 
 func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOperator string, index int) {

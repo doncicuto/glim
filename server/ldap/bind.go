@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	ber "github.com/go-asn1-ber/asn1-ber"
 	"gorm.io/gorm"
 )
@@ -46,7 +47,7 @@ func bindPassword(p *ber.Packet) (string, *ServerError) {
 }
 
 // HandleBind - TODO comment
-func HandleBind(message *Message, db *gorm.DB, remoteAddr string, LDAPDomain string) (*ber.Packet, string, error) {
+func HandleBind(message *Message, settings types.LDAPSettings, remoteAddr string) (*ber.Packet, string, error) {
 	username := ""
 	id := message.ID
 	p := message.Request
@@ -66,7 +67,7 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string, LDAPDomain str
 		username = strings.TrimPrefix(dn[0], "cn=")
 		domain := strings.TrimPrefix(n, dn[0])
 		domain = strings.TrimPrefix(domain, ",")
-		if domain != LDAPDomain {
+		if domain != settings.Domain {
 			return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong domain: %s", domain)
 		}
 	}
@@ -81,7 +82,7 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string, LDAPDomain str
 		domain = strings.TrimPrefix(domain, dn[1])
 		domain = strings.TrimPrefix(domain, ",")
 
-		if domain != LDAPDomain {
+		if domain != settings.Domain {
 			return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong domain: %s", domain)
 		}
 	}
@@ -100,7 +101,7 @@ func HandleBind(message *Message, db *gorm.DB, remoteAddr string, LDAPDomain str
 	var dbUser models.User
 
 	// Check if user exists
-	if errors.Is(db.Where("username = ?", username).First(&dbUser).Error, gorm.ErrRecordNotFound) {
+	if errors.Is(settings.DB.Where("username = ?", username).First(&dbUser).Error, gorm.ErrRecordNotFound) {
 		return encodeBindResponse(id, InsufficientAccessRights, ""), n, fmt.Errorf("wrong username or password client %s", remoteAddr)
 	}
 

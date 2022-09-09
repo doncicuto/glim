@@ -47,7 +47,7 @@ func encodeResponseType(t int) *ber.Packet {
 		ber.TypeConstructed,
 		ber.Tag(t),
 		nil,
-		types[t])
+		protocolOps[t])
 }
 
 func encodeResultCode(code int64) *ber.Packet {
@@ -137,17 +137,52 @@ func encodeSearchResultEntry(messageID int64, values map[string][]string, object
 	return r
 }
 
-func encodeSearchResultDone(messageID int64, resultCode int64, msg string) *ber.Packet {
+func encodeControls(params searchResultDoneParams) *ber.Packet {
+
+	controls := ber.Encode(ber.ClassContext, ber.TypeConstructed, ber.TagEOC, nil, "Controls")
+
+	control := ber.NewSequence("control")
+	control.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, "1.2.840.113556.1.4.319", "controlType"))
+	control.AppendChild(ber.NewBoolean(ber.ClassUniversal, ber.TypePrimitive, ber.TagBoolean, params.criticality, "criticality"))
+
+	controlValue := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, nil, "controlValue")
+	searchControlValue := ber.NewSequence("searchControlValue")
+	searchControlValue.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, 0, "size"))
+	cookie := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, params.cookie, "cookie")
+	searchControlValue.AppendChild(cookie)
+	controlValue.AppendChild(searchControlValue)
+	control.AppendChild(controlValue)
+
+	controls.AppendChild(control)
+	return controls
+}
+
+type searchResultDoneParams struct {
+	messageID    int64
+	resultCode   int64
+	msg          string
+	paging       bool
+	totalResults int64
+	criticality  bool
+	cookie       string
+}
+
+func encodeSearchResultDone(params searchResultDoneParams) *ber.Packet {
 	// LDAP Message envelope
-	r := responseHeader(messageID)
+	r := responseHeader(params.messageID)
 
 	// Response packet
 	bp := encodeResponseType(SearchResultDone)
-	bp.AppendChild(encodeResultCode(resultCode))
+	bp.AppendChild(encodeResultCode(params.resultCode))
 	bp.AppendChild(encodeOctetString("", "MatchedDN"))
-	bp.AppendChild(encodeOctetString(msg, "DiagnosticMessage"))
+	bp.AppendChild(encodeOctetString(params.msg, "DiagnosticMessage"))
 
 	// Add response packet to LDAP Message
 	r.AppendChild(bp)
+
+	// Append controls to LDAP Message
+	if params.paging {
+		r.AppendChild(encodeControls(params))
+	}
 	return r
 }
