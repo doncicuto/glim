@@ -42,7 +42,7 @@ const (
 	IntermediateResponse  = 25
 )
 
-var types = map[int]string{
+var protocolOps = map[int]string{
 	0:  "BindRequest",
 	1:  "BindResponse",
 	2:  "UnbindRequest",

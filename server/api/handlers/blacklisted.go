@@ -14,21 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package middleware
+package handlers
 
 import (
 	"net/http"
 
-	"github.com/doncicuto/glim/server/kv"
+	"github.com/doncicuto/glim/types"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
 // IsBlacklisted - TODO comment
-func IsBlacklisted(kv kv.Store) echo.MiddlewareFunc {
+func IsBlacklisted(kv types.Store) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-
+			if c.Get("user") == nil {
+				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+			}
 			user := c.Get("user").(*jwt.Token)
 			claims := user.Claims.(jwt.MapClaims)
 
@@ -41,7 +43,7 @@ func IsBlacklisted(kv kv.Store) echo.MiddlewareFunc {
 			val, found, err := kv.Get(jti)
 
 			if err != nil {
-				return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not get stored token info"}
+				return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not query the key-value store"}
 			}
 
 			if found {

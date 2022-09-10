@@ -21,14 +21,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asaskevich/govalidator"
+	"github.com/dchest/validator"
 )
 
 func GetDomain(domain string) string {
 	const defaultDomain string = "dc=example,dc=org"
 
-	if !govalidator.IsDNSName(domain) {
-		fmt.Printf("%s [Glim] ⇨ LDAP_DOMAIN env does not contain a valid domain, using example.org...\n", time.Now().Format(time.RFC3339))
+	if !validator.IsValidDomain(domain) {
+		fmt.Printf("%s [Glim] ⇨ ldap domain does not contain a valid domain, using example.org...\n", time.Now().Format(time.RFC3339))
 		return defaultDomain
 	}
 

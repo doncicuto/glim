@@ -4,8 +4,8 @@
 /server/kv/MANIFEST
 /server/kv/*.sst
 /server/db/glim.db
-tasks.md
 *.key
 *.pem
 glim
 *.db
+.vscode/**/*

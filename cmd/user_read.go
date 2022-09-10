@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package client
+package cmd
 
 import (
 	"fmt"
@@ -193,6 +193,19 @@ func GetUserInfo() {
 		getUser(uid)
 		os.Exit(0)
 	}
+
+	// Check expiration
+	token := ReadCredentials()
+	if NeedsRefresh(token) {
+		Refresh(token.RefreshToken)
+		token = ReadCredentials()
+	}
+	if AmIPlainUser(token) {
+		uid = uint(WhichIsMyTokenUID(token))
+		getUser(uid)
+		os.Exit(0)
+	}
+
 	getUsers()
 }
 

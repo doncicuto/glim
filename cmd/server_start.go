@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package client
+package cmd
 
 import (
 	"fmt"
@@ -28,7 +28,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/doncicuto/glim/certs"
 	"github.com/doncicuto/glim/server/kv/badgerdb"
 	"github.com/doncicuto/glim/types"
 
@@ -38,8 +37,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-var ()
 
 // serverCmd represents the server command
 var serverStartCmd = &cobra.Command{
@@ -60,7 +57,7 @@ var serverStartCmd = &cobra.Command{
 		_, errKey := os.Stat(tlskey)
 
 		if os.IsNotExist(errCert) && os.IsNotExist(errKey) {
-			var config = certs.Config{}
+			var config = certConfig{}
 
 			fmt.Println("Oh, I can't find your certificates and private keys, don't worry I'll create some for you.")
 
@@ -97,7 +94,7 @@ var serverStartCmd = &cobra.Command{
 			config.Years = years
 
 			// create our certificates signed by our fake CA
-			err = certs.Generate(&config)
+			err = generateSelfSignedCerts(&config)
 			if err != nil {
 				fmt.Printf("Could not generate our certificates. Error: %v\n", err)
 			}
@@ -116,11 +113,15 @@ var serverStartCmd = &cobra.Command{
 		}
 
 		// Database
-		dbName := viper.GetString("db-name")
+		dbName := viper.GetString("db")
 		sqlLog := viper.GetBool("sql")
-		initialAdminPasswd := viper.GetString("initial-admin-passwd")
-		initialSearchPasswd := viper.GetString("initial-search-passwd")
-		database, err := db.Initialize(dbName, sqlLog, initialAdminPasswd, initialSearchPasswd)
+		var dbInit = types.DBInit{
+			AdminPasswd:   viper.GetString("initial-admin-passwd"),
+			SearchPasswd:  viper.GetString("initial-search-passwd"),
+			Users:         viper.GetString("initial-users"),
+			DefaultPasswd: viper.GetString("initial-users-password"),
+		}
+		database, err := db.Initialize(dbName, sqlLog, dbInit)
 		if err != nil {
 			fmt.Printf("%s [Glim] ⇨ could not connect to database. Exiting now...\n", time.Now().Format(time.RFC3339))
 			os.Exit(1)
@@ -160,15 +161,18 @@ var serverStartCmd = &cobra.Command{
 		}
 
 		ldapAddress := viper.GetString("ldap-addr")
+		ldapSizeLimit := viper.GetInt("ldap-size-limit")
 		domain := viper.GetString("ldap-domain")
 
 		// Preparing LDAP server settings
-		ldapSettings := ldap.Settings{
-			DB:      database,
-			TLSCert: tlscert,
-			TLSKey:  tlskey,
-			Address: ldapAddress,
-			Domain:  ldap.GetDomain(domain),
+		ldapSettings := types.LDAPSettings{
+			KV:        blacklist,
+			DB:        database,
+			TLSCert:   tlscert,
+			TLSKey:    tlskey,
+			Address:   ldapAddress,
+			Domain:    ldap.GetDomain(domain),
+			SizeLimit: ldapSizeLimit,
 		}
 
 		// get current PID and store it in glim.pid at our tmp directory
@@ -223,6 +227,7 @@ func init() {
 	serverStartCmd.Flags().String("tlscert", defaultCertPEMFilePath, "TLS server certificate path")
 	serverStartCmd.Flags().String("tlskey", defaultCertKeyFilePath, "TLS server private key path")
 	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
+	serverStartCmd.Flags().Int("ldap-size-limit", 500, "LDAP server maximum number of entries that should be returned from the search")
 	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
 	serverStartCmd.Flags().String("db", defaultDbPath, "path of the file containing Glim's database")
@@ -238,5 +243,7 @@ func init() {
 	serverStartCmd.Flags().String("hosts", "127.0.0.1, localhost", "comma-separated list of hosts and IP addresses to be added to Glim's auto-generated certificate")
 	serverStartCmd.Flags().String("path", path, "filesystem path where Glim's auto-generated certificates and private keys files will be created")
 	serverStartCmd.Flags().Int("years", 1, "number of years that we want Glim's auto-generated to be valid.")
+	serverStartCmd.Flags().String("initial-users", "", "comma-separated lists of usernames to be added when server starts")
+	serverStartCmd.Flags().String("initial-users-password", "glim", "default password for your initial users")
 	viper.BindPFlags(serverStartCmd.Flags())
 }

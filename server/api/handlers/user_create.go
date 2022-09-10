@@ -20,9 +20,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/mail"
 	"strings"
 
-	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
@@ -75,6 +75,9 @@ func (h *Handler) SaveUser(c echo.Context) error {
 
 	// Get username that is updating this user
 	createdBy := new(models.User)
+	if c.Get("user") == nil {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
 	tokenUser := c.Get("user").(*jwt.Token)
 	claims := tokenUser.Claims.(jwt.MapClaims)
 	tokenUID, ok := claims["uid"].(float64)
@@ -82,7 +85,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
 	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(tokenUID)).First(&createdBy).Error; err != nil {
-		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
+		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to create user"}
 	}
 
 	body := models.JSONUserBody{}
@@ -96,11 +99,14 @@ func (h *Handler) SaveUser(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required username"}
 	}
 	u.Username = &body.Username
+
+	name := strings.Join([]string{body.GivenName, body.Surname}, " ")
+	u.Name = &name
 	u.GivenName = &body.GivenName
 	u.Surname = &body.Surname
 
 	if body.Email != "" {
-		if err := checkmail.ValidateFormat(body.Email); err != nil {
+		if _, err := mail.ParseAddress(body.Email); err != nil {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
 		}
 	}

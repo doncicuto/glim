@@ -17,7 +17,8 @@ limitations under the License.
 package types
 
 import (
-	"github.com/doncicuto/glim/server/kv"
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -42,7 +43,7 @@ type LoginBody struct {
 
 type APISettings struct {
 	DB                 *gorm.DB
-	KV                 kv.Store
+	KV                 Store
 	TLSCert            string
 	TLSKey             string
 	Address            string
@@ -50,6 +51,16 @@ type APISettings struct {
 	AccessTokenExpiry  uint
 	RefreshTokenExpiry uint
 	MaxDaysWoRelogin   int
+}
+
+type LDAPSettings struct {
+	DB        *gorm.DB
+	KV        Store
+	TLSCert   string
+	TLSKey    string
+	Address   string
+	Domain    string
+	SizeLimit int
 }
 
 type Credentials struct {
@@ -66,6 +77,24 @@ type APIError struct {
 	Message string `json:"message"`
 }
 
+type DBInit struct {
+	AdminPasswd   string
+	SearchPasswd  string
+	Users         string
+	DefaultPasswd string
+}
+
 type ErrorResponse struct {
 	Message string `json:"message"`
+}
+
+type Store interface {
+	// Set a value for a given key
+	Set(k string, v string, expiration time.Duration) error
+	// Get a value from our key-value store
+	Get(k string) (v string, found bool, err error)
+	// Delete a key
+	Delete(k string) (err error)
+	// Close a connection with our key-value store
+	Close() error
 }

@@ -25,26 +25,19 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/doncicuto/glim/types"
 	ber "github.com/go-asn1-ber/asn1-ber"
 	"github.com/labstack/gommon/log"
-	"gorm.io/gorm"
 )
 
 //Settings - TODO comment
-type Settings struct {
-	DB      *gorm.DB
-	TLSCert string
-	TLSKey  string
-	Address string
-	Domain  string
-}
 
 func printLog(msg string) {
 	log.SetHeader("${time_rfc3339} [LDAP] ⇨")
 	log.Print(msg)
 }
 
-func handleConnection(c net.Conn, db *gorm.DB, domain string) {
+func handleConnection(c net.Conn, settings types.LDAPSettings) {
 	defer c.Close()
 
 	var username = ""
@@ -70,7 +63,7 @@ L:
 		switch message.Op {
 		case BindRequest:
 			printLog(fmt.Sprintf("bind requested by client: %s", remoteAddress))
-			p, n, err := HandleBind(message, db, remoteAddress, domain)
+			p, n, err := HandleBind(message, settings, remoteAddress)
 			username = n
 			if err != nil {
 				printLog(err.Error())
@@ -90,7 +83,7 @@ L:
 			}
 		case SearchRequest:
 			printLog(fmt.Sprintf("search requested by client %s", remoteAddress))
-			p, err := HandleSearchRequest(message, db, domain)
+			p, err := HandleSearchRequest(message, settings)
 			if err != nil {
 				printLog(err.Error())
 			}
@@ -130,7 +123,7 @@ func waitForShutdown(l net.Listener, ch chan bool) {
 }
 
 // Server - TODO comment
-func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
+func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings types.LDAPSettings) {
 	defer wg.Done()
 	addr, ok := os.LookupEnv("LDAP_SERVER_ADDRESS")
 	if !ok {
@@ -176,6 +169,6 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings Settings) {
 		}
 
 		// Handle our server connection
-		go handleConnection(c, settings.DB, settings.Domain)
+		go handleConnection(c, settings)
 	}
 }

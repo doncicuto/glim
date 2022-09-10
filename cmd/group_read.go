@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package client
+package cmd
 
 import (
 	"fmt"
@@ -25,6 +25,35 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+func getGIDFromGroupName(group string, url string) uint {
+	token := ReadCredentials()
+	if NeedsRefresh(token) {
+		Refresh(token.RefreshToken)
+		token = ReadCredentials()
+	}
+
+	client := RestClient(token.AccessToken)
+	endpoint := fmt.Sprintf("%s/v1/groups/%s/gid", url, group)
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetResult(models.GroupID{}).
+		SetError(&types.APIError{}).
+		Get(endpoint)
+
+	if err != nil {
+		fmt.Printf("Error connecting with Glim: %v\n", err)
+		os.Exit(1)
+	}
+
+	if resp.IsError() {
+		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		os.Exit(1)
+	}
+
+	result := resp.Result().(*models.GroupID)
+	return uint(result.ID)
+}
 
 func getGroup(id uint) {
 	// Glim server URL
@@ -133,6 +162,23 @@ func getGroups() {
 	}
 }
 
+func GetGroupInfo() {
+	gid := viper.GetUint("gid")
+	group := viper.GetString("group")
+	if gid != 0 {
+		getGroup(gid)
+		os.Exit(0)
+	}
+	if group != "" {
+		url := viper.GetString("server")
+		gid = getGIDFromGroupName(group, url)
+		getGroup(gid)
+		os.Exit(0)
+	}
+	getGroups()
+	os.Exit(0)
+}
+
 // ListGroupCmd - TODO comment
 var listGroupCmd = &cobra.Command{
 	Use:   "ls",
@@ -141,6 +187,11 @@ var listGroupCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
-		getGroups()
+		GetGroupInfo()
 	},
+}
+
+func init() {
+	listGroupCmd.Flags().UintP("gid", "i", 0, "group id")
+	listGroupCmd.Flags().StringP("group", "g", "", "group name")
 }

@@ -36,12 +36,12 @@ import (
 // @Produce      json
 // @Param        id   path      int  true  "User Account ID"
 // @Param        password body models.JSONPasswdBody  true  "Password body"
-// @Success      200  {object}  models.UserInfo
+// @Success      204
 // @Failure			 400  {object} types.ErrorResponse
 // @Failure			 401  {object} types.ErrorResponse
 // @Failure 	   403  {object} types.ErrorResponse
 // @Failure 	   406  {object} types.ErrorResponse
-// @Router       /users/passwd [post]
+// @Router       /users/{id}/passwd [post]
 // @Security 		 Bearer
 func (h *Handler) Passwd(c echo.Context) error {
 	var dbUser models.User
@@ -62,6 +62,9 @@ func (h *Handler) Passwd(c echo.Context) error {
 	}
 
 	// Get uid and manager status from JWT token
+	if c.Get("user") == nil {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	tokenUID, ok := claims["uid"].(float64)
@@ -90,14 +93,24 @@ func (h *Handler) Passwd(c echo.Context) error {
 	// Check if user exists
 	err = h.DB.Where("id = ?", uid).First(&dbUser).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
+		return &echo.HTTPError{Code: http.StatusNotFound, Message: "wrong username or password"}
 	}
 
-	// Check if passwords match
+	// Check if old passwords match
 	if int(tokenUID) == id {
 		if err := models.VerifyPassword(*dbUser.Password, body.OldPassword); err != nil {
-			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong old password"}
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong old password"}
 		}
+	}
+
+	// New password can't be empty
+	if body.Password == "" {
+		return &echo.HTTPError{Code: http.StatusForbidden, Message: "the new password must be provided"}
+	}
+
+	// If new password and old password are the same do nothing
+	if int(tokenUID) == id && body.Password == body.OldPassword {
+		return &echo.HTTPError{Code: http.StatusNoContent}
 	}
 
 	// New password
@@ -113,20 +126,9 @@ func (h *Handler) Passwd(c echo.Context) error {
 	// Update user
 	err = h.DB.Model(&models.User{}).Where("id = ?", uid).Updates(newUser).Error
 	if err != nil {
-		// Does user exist?
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
-		}
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
-	// Get updated user
-	err = h.DB.Preload("MemberOf").Model(&models.User{}).Where("id = ?", uid).First(&dbUser).Error
-	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
-	}
-
-	// Return user
-	showMemberOf := true
-	return c.JSON(http.StatusOK, models.GetUserInfo(dbUser, showMemberOf))
+	// Return OK
+	return c.NoContent(http.StatusNoContent)
 }

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package client
+package cmd
 
 import (
 	"fmt"
@@ -45,7 +45,14 @@ var deleteGroupCmd = &cobra.Command{
 
 		// Read credentials
 		gid := viper.GetUint("gid")
+		group := viper.GetString("group")
+
 		token := ReadCredentials()
+
+		if gid == 0 && group != "" {
+			gid = getGIDFromGroupName(group, url)
+		}
+
 		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 		// Check expiration
 		if NeedsRefresh(token) {
@@ -76,6 +83,6 @@ var deleteGroupCmd = &cobra.Command{
 }
 
 func init() {
-	deleteGroupCmd.Flags().UintP("gid", "g", 0, "group id")
-	deleteGroupCmd.MarkFlagRequired("gid")
+	deleteGroupCmd.Flags().UintP("gid", "i", 0, "group id")
+	deleteGroupCmd.Flags().StringP("group", "g", "", "group name")
 }

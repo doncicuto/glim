@@ -21,11 +21,11 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"net/mail"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -64,7 +64,7 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "User Account ID"
-// @Param        user  body models.JSONUserBody  true  "User account body. Username is required. The members property expect a comma-separated list of group names e.g 'admin,devel'. Password property is optional, if set it will be the password for that user, if no password is sent the user account will be locked (user can not log in). Manager property if true will assign the Manager role. Readonly property if true will set this user for read-only usage (queries). Locked property if true will disable log in for that user. Remove property if true will remove group membership from those specified in the members property. Remove property if true will replace group membership from those specified in the members property."
+// @Param        user  body models.JSONUserBody  true  "User account body. Username is required. The members property expect a comma-separated list of group names e.g 'admin,devel'. Password property is optional, if set it will be the password for that user, if no password is sent the user account will be locked (user can not log in). Manager property if true will assign the Manager role. Readonly property if true will set this user for read-only usage (queries). Locked property if true will disable log in for that user. Remove property if true will remove group membership from those specified in the members property. Remove property if true will replace group membership from those specified in the members property. Name property is not used"
 // @Success      200  {object}  models.UserInfo
 // @Failure			 400  {object} types.ErrorResponse
 // @Failure			 401  {object} types.ErrorResponse
@@ -79,14 +79,23 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	// Get username that is updating this user
 	modifiedBy := new(models.User)
+	if c.Get("user") == nil {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
 	tokenUser := c.Get("user").(*jwt.Token)
 	claims := tokenUser.Claims.(jwt.MapClaims)
 	tokenUID, ok := claims["uid"].(float64)
 	if !ok {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
 	}
+
+	manager, ok := claims["manager"].(bool)
+	if !ok {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+	}
+
 	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(tokenUID)).First(&modifiedBy).Error; err != nil {
-		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}
+		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update account"}
 	}
 
 	// User id cannot be empty
@@ -97,7 +106,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	// Get idparam
 	uid, err := strconv.ParseUint(c.Param("uid"), 10, 32)
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not convert uid into uint"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "uid param should be a valid integer"}
 	}
 
 	// Bind
@@ -107,7 +116,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	// Find user
-	err = h.DB.Where("id = ?", uid).First(&models.User{}).Error
+	err = h.DB.Where("id = ?", uid).First(&u).Error
 	if err != nil {
 		// Does user exist?
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -122,6 +131,9 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		if err != nil {
 			// Does username exist?
 			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if !manager {
+					return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update the username"}
+				}
 				updatedUser["username"] = html.EscapeString(strings.TrimSpace(body.Username))
 			}
 		} else {
@@ -131,14 +143,24 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	if body.GivenName != "" {
 		updatedUser["given_name"] = html.EscapeString(strings.TrimSpace(body.GivenName))
+		if body.Surname != "" {
+			updatedUser["name"] = fmt.Sprintf("%s %s", updatedUser["given_name"], html.EscapeString(strings.TrimSpace(body.Surname)))
+		} else {
+			updatedUser["name"] = fmt.Sprintf("%s %s", updatedUser["given_name"], *u.Surname)
+		}
 	}
 
 	if body.Surname != "" {
 		updatedUser["surname"] = html.EscapeString(strings.TrimSpace(body.Surname))
+		if body.GivenName != "" {
+			updatedUser["name"] = fmt.Sprintf("%s %s", html.EscapeString(strings.TrimSpace(body.GivenName)), updatedUser["surname"])
+		} else {
+			updatedUser["name"] = fmt.Sprintf("%s %s", *u.GivenName, updatedUser["surname"])
+		}
 	}
 
 	if body.Email != "" {
-		if err := checkmail.ValidateFormat(body.Email); err != nil {
+		if _, err := mail.ParseAddress(body.Email); err != nil {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
 		}
 		updatedUser["email"] = body.Email
@@ -153,14 +175,23 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	}
 
 	if body.Manager != nil {
+		if !manager {
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update manager status"}
+		}
 		updatedUser["manager"] = *body.Manager
 	}
 
 	if body.Readonly != nil {
+		if !manager {
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update readonly status"}
+		}
 		updatedUser["readonly"] = *body.Readonly
 	}
 
 	if body.Locked != nil {
+		if !manager {
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update locked status"}
+		}
 		updatedUser["locked"] = *body.Locked
 	}
 
@@ -190,6 +221,9 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	// Update group members
 	if body.MemberOf != "" {
+		if !manager {
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update group memberships"}
+		}
 		members := strings.Split(body.MemberOf, ",")
 
 		if body.ReplaceMembersOf {

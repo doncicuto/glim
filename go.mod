@@ -4,9 +4,8 @@ go 1.13
 
 require (
 	github.com/Songmu/prompter v0.5.1
-	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
-	github.com/badoux/checkmail v1.2.1
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dchest/validator v0.0.0-20191217151620-8e45250f2371
 	github.com/dgraph-io/badger v1.6.2
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.4
@@ -16,7 +15,6 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/google/uuid v1.3.0
-	github.com/jinzhu/gorm v1.9.16
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/labstack/gommon v0.3.1
 	github.com/mattn/go-sqlite3 v1.14.13 // indirect
@@ -25,6 +23,7 @@ require (
 	github.com/sethvargo/go-password v0.2.0
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.12.0
+	github.com/stretchr/testify v1.8.0
 	github.com/subosito/gotenv v1.4.0 // indirect
 	github.com/swaggo/echo-swagger v1.3.3
 	github.com/swaggo/swag v1.8.4

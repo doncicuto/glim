@@ -14,17 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package client
+package cmd
 
 import (
 	"bufio"
 	"fmt"
 	"io"
+	"net/mail"
 	"os"
 	"strings"
 
 	"github.com/Songmu/prompter"
-	"github.com/badoux/checkmail"
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
@@ -42,7 +42,7 @@ var newUserCmd = &cobra.Command{
 		// Validate email
 		email := viper.GetString("email")
 		if email != "" {
-			if err := checkmail.ValidateFormat(email); err != nil {
+			if _, err := mail.ParseAddress(email); err != nil {
 				fmt.Println("email should have a valid format")
 				os.Exit(1)
 			}
@@ -140,6 +140,7 @@ var newUserCmd = &cobra.Command{
 			SetBody(models.JSONUserBody{
 				Username:     viper.GetString("username"),
 				Password:     password,
+				Name:         strings.Join([]string{viper.GetString("firstname"), viper.GetString("lastname")}, " "),
 				GivenName:    viper.GetString("firstname"),
 				Surname:      viper.GetString("lastname"),
 				Email:        viper.GetString("email"),

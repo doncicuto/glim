@@ -19,14 +19,53 @@ package db
 import (
 	"errors"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/doncicuto/glim/models"
+	"github.com/doncicuto/glim/types"
 	"github.com/google/uuid"
 	"github.com/sethvargo/go-password/password"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+func createUsers(db *gorm.DB, dbInit types.DBInit) {
+	users := dbInit.Users
+	password := dbInit.DefaultPasswd
+
+	for _, username := range strings.Split(users, ",") {
+		var u models.User
+		err := db.Where("username = ?", username).Take(&u).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) && username != "" {
+			createUser(db, username, password)
+		}
+	}
+}
+
+func createUser(db *gorm.DB, username string, password string) {
+	hash, err := models.Hash(password)
+	if err != nil {
+		fmt.Printf("Username: %s", "could not be created")
+		return
+	}
+
+	userUUID := uuid.New().String()
+	hashed := string(hash)
+	manager := false
+	readonly := false
+
+	if err := db.Create(&models.User{
+		Username: &username,
+		Password: &hashed,
+		Manager:  &manager,
+		Readonly: &readonly,
+		UUID:     &userUUID,
+	}).Error; err != nil {
+		fmt.Printf("Username: %s", "could not be created")
+	}
+}
 
 func createManager(db *gorm.DB, initialPassword string) error {
 	var chosenPassword string
@@ -64,14 +103,17 @@ func createManager(db *gorm.DB, initialPassword string) error {
 	}).Error; err != nil {
 		return err
 	}
-	fmt.Println("")
-	fmt.Println("------------------------------------- WARNING -------------------------------------")
-	fmt.Println("A new user with manager permissions has been created:")
-	fmt.Println("- Username: admin") // TODO - Allow username with env
-	fmt.Printf("- Password %s\n", chosenPassword)
-	fmt.Println("Please store or write down this password to manage Glim.")
-	fmt.Println("You can delete this user once you assign manager permissions to another user")
-	fmt.Println("-----------------------------------------------------------------------------------")
+
+	if os.Getenv("ENV") != "test" {
+		fmt.Println("")
+		fmt.Println("------------------------------------- WARNING -------------------------------------")
+		fmt.Println("A new user with manager permissions has been created:")
+		fmt.Println("- Username: admin") // TODO - Allow username with env
+		fmt.Printf("- Password %s\n", chosenPassword)
+		fmt.Println("Please store or write down this password to manage Glim.")
+		fmt.Println("You can delete this user once you assign manager permissions to another user")
+		fmt.Println("-----------------------------------------------------------------------------------")
+	}
 
 	return nil
 }
@@ -112,19 +154,22 @@ func createReadonly(db *gorm.DB, initialPassword string) error {
 	}).Error; err != nil {
 		return err
 	}
-	fmt.Println("")
-	fmt.Println("------------------------------------- WARNING -------------------------------------")
-	fmt.Println("A new user with read-only permissions has been created:")
-	fmt.Println("- Username: search") // TODO - Allow username with env
-	fmt.Printf("- Password %s\n", chosenPassword)
-	fmt.Println("Please store or write down this password to perform search queries in Glim.")
-	fmt.Println("-----------------------------------------------------------------------------------")
+
+	if os.Getenv("ENV") != "test" {
+		fmt.Println("")
+		fmt.Println("------------------------------------- WARNING -------------------------------------")
+		fmt.Println("A new user with read-only permissions has been created:")
+		fmt.Println("- Username: search") // TODO - Allow username with env
+		fmt.Printf("- Password %s\n", chosenPassword)
+		fmt.Println("Please store or write down this password to perform search queries in Glim.")
+		fmt.Println("-----------------------------------------------------------------------------------")
+	}
 
 	return nil
 }
 
 //Initialize - TODO common
-func Initialize(dbName string, sqlLog bool, initialAdminPasswd string, initialSearchPasswd string) (*gorm.DB, error) {
+func Initialize(dbName string, sqlLog bool, dbInit types.DBInit) (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
 
@@ -132,7 +177,7 @@ func Initialize(dbName string, sqlLog bool, initialAdminPasswd string, initialSe
 	if sqlLog {
 		db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	} else {
-		db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{})
+		db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	}
 
 	if err != nil {
@@ -147,7 +192,7 @@ func Initialize(dbName string, sqlLog bool, initialAdminPasswd string, initialSe
 	var manager models.User
 	err = db.Where("manager = ?", true).Take(&manager).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		if err := createManager(db, initialAdminPasswd); err != nil {
+		if err := createManager(db, dbInit.AdminPasswd); err != nil {
 			return nil, err
 		}
 	}
@@ -155,10 +200,12 @@ func Initialize(dbName string, sqlLog bool, initialAdminPasswd string, initialSe
 	var search models.User
 	err = db.Where("readonly = ?", true).Take(&search).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		if err := createReadonly(db, initialSearchPasswd); err != nil {
+		if err := createReadonly(db, dbInit.SearchPasswd); err != nil {
 			return nil, err
 		}
 	}
+
+	createUsers(db, dbInit)
 
 	return db, nil
 }

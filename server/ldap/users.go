@@ -10,6 +10,17 @@ import (
 	"gorm.io/gorm"
 )
 
+type userQueryParams struct {
+	db             *gorm.DB
+	filter         string
+	originalFilter string
+	attributes     string
+	messageID      int64
+	domain         string
+	limit          int
+	offset         int
+}
+
 func userEntry(user models.User, attributes string, domain string) map[string][]string {
 	attrs := make(map[string]string)
 	for _, a := range strings.Split(attributes, " ") {
@@ -77,7 +88,7 @@ func userEntry(user models.User, attributes string, domain string) map[string][]
 
 	if attributes == "ALL" || attrs["cn"] != "" || attrs["inetOrgPerson"] != "" || operational {
 		if user.GivenName != nil && user.Surname != nil {
-			values["cn"] = []string{strings.Join([]string{*user.GivenName, *user.Surname}, " ")}
+			values["cn"] = []string{*user.Name}
 		}
 	}
 
@@ -166,32 +177,48 @@ func userEntry(user models.User, attributes string, domain string) map[string][]
 	return values
 }
 
-func getUsers(db *gorm.DB, filter string, originalFilter string, attributes string, id int64, domain string) ([]*ber.Packet, *ServerError) {
+func getUsersFromDB(params userQueryParams) ([]*ber.Packet, *ServerError, int, int64) {
 	var r []*ber.Packet
 	users := []models.User{}
 
-	db = db.Preload("MemberOf").Model(&models.User{})
-	analyzeUsersCriteria(db, filter, false, "", 0)
-	err := db.Find(&users).Error
+	params.db = params.db.Preload("MemberOf").Model(&models.User{})
+	analyzeUsersCriteria(params.db, params.filter, false, "", 0)
+
+	allResults := params.db.Find(&users)
+	if allResults.Error != nil {
+		return nil, &ServerError{
+			Msg:  "could not retrieve information from database",
+			Code: Other,
+		}, 0, 0
+	}
+	totalResults := allResults.RowsAffected
+
+	if params.limit > 0 {
+		params.db.Limit(params.limit)
+	}
+
+	params.db.Offset(params.offset)
+
+	err := params.db.Find(&users).Error
 	if err != nil {
 		return nil, &ServerError{
 			Msg:  "could not retrieve information from database",
 			Code: Other,
-		}
+		}, 0, 0
 	}
 
-	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z0-9-]+),ou=Groups,%s", domain))
+	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z.0-9-]+),ou=Groups,%s", params.domain))
 
 	for _, user := range users {
 		if *user.Username != "admin" && !*user.Readonly {
-			if filterGroup.MatchString(originalFilter) {
-				matches := filterGroup.FindStringSubmatch(originalFilter)
+			if filterGroup.MatchString(params.originalFilter) {
+				matches := filterGroup.FindStringSubmatch(params.originalFilter)
 				if matches != nil {
 					for _, group := range user.MemberOf {
 						if *group.Name == matches[1] {
-							dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, domain)
-							values := userEntry(user, attributes, domain)
-							e := encodeSearchResultEntry(id, values, dn)
+							dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, params.domain)
+							values := userEntry(user, params.attributes, params.domain)
+							e := encodeSearchResultEntry(params.messageID, values, dn)
 							r = append(r, e)
 							break
 						}
@@ -199,9 +226,9 @@ func getUsers(db *gorm.DB, filter string, originalFilter string, attributes stri
 				}
 
 			} else {
-				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, domain)
-				values := userEntry(user, attributes, domain)
-				e := encodeSearchResultEntry(id, values, dn)
+				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, params.domain)
+				values := userEntry(user, params.attributes, params.domain)
+				e := encodeSearchResultEntry(params.messageID, values, dn)
 				r = append(r, e)
 			}
 
@@ -209,12 +236,13 @@ func getUsers(db *gorm.DB, filter string, originalFilter string, attributes stri
 
 	}
 
-	return r, nil
+	return r, nil, len(users), totalResults
 }
 
 func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOperator string, index int) {
 	if boolean {
-		re := regexp.MustCompile(`\(\|(.*)\)|\(\&(.*)\)|\(\!(.*)\)|\(([a-zA-Z=*]*)\)`)
+
+		re := regexp.MustCompile(`\(\|(.*)\)|\(\&(.*)\)|\(\!(.*)\)|\(([a-zA-Z=\ \.*]*)\)*`)
 		submatchall := re.FindAllString(filter, -1)
 
 		for index, element := range submatchall {
@@ -229,15 +257,19 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 			element := strings.TrimPrefix(filter, "(")
 			element = strings.TrimSuffix(element, ")")
 			analyzeUsersCriteria(db, element, false, "", 0)
+
 		case strings.HasPrefix(filter, "&"):
 			element := strings.TrimPrefix(filter, "&")
 			analyzeUsersCriteria(db, element, true, "and", 0)
+
 		case strings.HasPrefix(filter, "|"):
 			element := strings.TrimPrefix(filter, "|")
 			analyzeUsersCriteria(db, element, true, "or", 0)
+
 		case strings.HasPrefix(filter, "!"):
 			element := strings.TrimPrefix(filter, "!")
 			analyzeUsersCriteria(db, element, true, "not", 0)
+
 		case strings.HasPrefix(filter, "uid="):
 			element := strings.TrimPrefix(filter, "uid=")
 			if strings.Contains(element, "*") {
@@ -248,11 +280,44 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 					db.Or("username LIKE ?", element)
 				}
 			} else {
-				element = strings.Replace(element, "*", "%", -1)
 				if index == 0 {
 					db.Where("username = ?", element)
 				} else {
 					db.Or("username = ?", element)
+				}
+			}
+
+		case strings.HasPrefix(filter, "mail="):
+			element := strings.TrimPrefix(filter, "mail=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("email LIKE ?", element)
+				} else {
+					db.Or("email LIKE ?", element)
+				}
+			} else {
+				if index == 0 {
+					db.Where("email = ?", element)
+				} else {
+					db.Or("email = ?", element)
+				}
+			}
+
+		case strings.HasPrefix(filter, "email="):
+			element := strings.TrimPrefix(filter, "email=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("email LIKE ?", element)
+				} else {
+					db.Or("email LIKE ?", element)
+				}
+			} else {
+				if index == 0 {
+					db.Where("email = ?", element)
+				} else {
+					db.Or("email = ?", element)
 				}
 			}
 
@@ -266,13 +331,13 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 					db.Or("surname LIKE ?", element)
 				}
 			} else {
-				element = strings.Replace(element, "*", "%", -1)
 				if index == 0 {
 					db.Where("surname = ?", element)
 				} else {
 					db.Or("surname = ?", element)
 				}
 			}
+
 		case strings.HasPrefix(filter, "givenName="):
 			element := strings.TrimPrefix(filter, "givenName=")
 			if strings.Contains(element, "*") {
@@ -283,13 +348,30 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 					db.Or("given_name LIKE ?", element)
 				}
 			} else {
-				element = strings.Replace(element, "*", "%", -1)
 				if index == 0 {
 					db.Where("given_name = ?", element)
 				} else {
 					db.Or("given_name = ?", element)
 				}
 			}
+
+		case strings.HasPrefix(filter, "cn="):
+			element := strings.TrimPrefix(filter, "cn=")
+			if strings.Contains(element, "*") {
+				element = strings.Replace(element, "*", "%", -1)
+				if index == 0 {
+					db.Where("name LIKE ?", element)
+				} else {
+					db.Or("name LIKE ?", element)
+				}
+			} else {
+				if index == 0 {
+					db.Where("name = ?", element)
+				} else {
+					db.Or("name = ?", element)
+				}
+			}
+
 		case strings.HasPrefix(filter, "SshPublicKey="):
 			element := strings.TrimPrefix(filter, "SshPublicKey=")
 			if strings.Contains(element, "*") {
@@ -300,7 +382,6 @@ func analyzeUsersCriteria(db *gorm.DB, filter string, boolean bool, booleanOpera
 					db.Or("ssh_public_key LIKE ?", element)
 				}
 			} else {
-				element = strings.Replace(element, "*", "%", -1)
 				if index == 0 {
 					db.Where("ssh_public_key = ?", element)
 				} else {

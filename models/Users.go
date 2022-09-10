@@ -26,6 +26,7 @@ import (
 type User struct {
 	ID           uint32    `gorm:"primary_key;auto_increment" json:"uid"`
 	Username     *string   `gorm:"size:64;not null;unique" json:"username"`
+	Name         *string   `gorm:"size:300" json:"name"`
 	GivenName    *string   `gorm:"size:150" json:"firstname"`
 	Surname      *string   `gorm:"size:150" json:"lastname"`
 	Email        *string   `gorm:"size:322" json:"email"`
@@ -46,6 +47,7 @@ type User struct {
 // JSONUserBody - TODO comment
 type JSONUserBody struct {
 	Username         string `json:"username"`
+	Name             string `json:"name"`
 	GivenName        string `json:"firstname"`
 	Surname          string `json:"lastname"`
 	Email            string `json:"email"`
@@ -70,6 +72,7 @@ type JSONPasswdBody struct {
 type UserInfo struct {
 	ID           uint32      `json:"uid"`
 	Username     string      `json:"username"`
+	Name         string      `json:"name"`
 	GivenName    string      `json:"firstname"`
 	Surname      string      `json:"lastname"`
 	Email        string      `json:"email"`
@@ -101,6 +104,9 @@ func GetUserInfo(u User, showMemberOf bool) UserInfo {
 	i.ID = u.ID
 	if u.Username != nil {
 		i.Username = *u.Username
+	}
+	if u.Name != nil {
+		i.Name = *u.Name
 	}
 	if u.GivenName != nil {
 		i.GivenName = *u.GivenName
