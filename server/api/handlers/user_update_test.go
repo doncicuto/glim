@@ -123,15 +123,6 @@ func TestUserUpdate(t *testing.T) {
 			reqBodyJSON:      fmt.Sprintf(`{"firstname":"saul","lastname":"goodman","email":"new@email.com","ssh_public_key":"key","jpeg_photo":%s}`, jpegPhoto),
 			expectedBodyJSON: fmt.Sprintf(`{"uid":3,"username":"saul","name":"saul goodman","firstname":"saul","lastname":"goodman","email":"new@email.com","ssh_public_key":"key","jpeg_photo":%s,"manager":false,"readonly":false,"locked":false}`, jpegPhoto),
 		},
-		{
-			name:             "plainuser can update her acount",
-			expResCode:       http.StatusOK,
-			reqURL:           "/v1/users/3",
-			reqMethod:        http.MethodPut,
-			secret:           adminToken,
-			reqBodyJSON:      `{"firstname":"saul","lastname":"goodman","email":"new@email.com","ssh_public_key":"key"}`,
-			expectedBodyJSON: `{"uid":3,"username":"saul","name":"saul goodman","firstname":"saul","lastname":"goodman","email":"new@email.com","ssh_public_key":"key","jpeg_photo":"","manager":false,"readonly":false,"locked":false}`,
-		},
 	}
 
 	for _, tc := range testCases {
