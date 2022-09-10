@@ -66,7 +66,7 @@ func TestGroupCreate(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "lawyers", "description": "Lawyers", "members":"saul,kim"}`,
-			expectedBodyJSON: `{"gid":2,"name":"lawyers","description":"Lawyers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":2,"name":"lawyers","description":"Lawyers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
 		},
 		{
 			name:             "group can be created with non-existent members",
@@ -84,7 +84,7 @@ func TestGroupCreate(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "fixers", "description": "Fixers", "members":"walter,mike"}`,
-			expectedBodyJSON: `{"gid":4,"name":"fixers","description":"Fixers","members":[{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":4,"name":"fixers","description":"Fixers","members":[{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
 		},
 	}
 
