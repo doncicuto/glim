@@ -88,6 +88,17 @@ var updateUserCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		jpegPhoto := ""
+		jpegPhotoPath := viper.GetString("jpeg-photo")
+		if jpegPhotoPath != "" {
+			photo, err := JPEGToBase64(jpegPhotoPath)
+			if err != nil {
+				fmt.Printf("could not convert JPEG photo to Base64 - %v\n", err)
+				os.Exit(1)
+			}
+			jpegPhoto = *photo
+		}
+
 		userBody := models.JSONUserBody{
 			Username:     username,
 			Name:         strings.Join([]string{viper.GetString("firstname"), viper.GetString("lastname")}, " "),
@@ -96,6 +107,7 @@ var updateUserCmd = &cobra.Command{
 			Email:        viper.GetString("email"),
 			SSHPublicKey: viper.GetString("ssh-public-key"),
 			MemberOf:     viper.GetString("groups"),
+			JPEGPhoto:    jpegPhoto,
 		}
 
 		if viper.GetBool("manager") {
@@ -158,6 +170,7 @@ func init() {
 	updateUserCmd.Flags().StringP("lastname", "l", "", "last name")
 	updateUserCmd.Flags().StringP("email", "e", "", "email")
 	updateUserCmd.Flags().StringP("ssh-public-key", "k", "", "SSH Public Key")
+	updateUserCmd.Flags().StringP("jpeg-photo", "j", "", "path to avatar file (jpg, png)")
 	updateUserCmd.Flags().StringP("groups", "g", "", "comma-separated list of group names. ")
 	updateUserCmd.Flags().Bool("manager", false, "Glim manager account?")
 	updateUserCmd.Flags().Bool("readonly", false, "Glim readonly account?")

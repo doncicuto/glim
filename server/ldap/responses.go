@@ -17,6 +17,8 @@ limitations under the License.
 package ldap
 
 import (
+	b64 "encoding/base64"
+
 	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
@@ -66,6 +68,23 @@ func encodeOctetString(value string, description string) *ber.Packet {
 		ber.TagOctetString,
 		value,
 		description)
+}
+
+func decodeBase64(base64 string) ([]byte, error) {
+	decoded, err := b64.StdEncoding.DecodeString(base64)
+	if err != nil {
+		return nil, err
+	}
+
+	return decoded, nil
+}
+
+func encodeOctetBinaryString(value []byte, description string) *ber.Packet {
+	binaryString := ber.Encode(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, nil, description)
+	binaryString.Value = value
+	binaryString.Data.Write(value)
+	binaryString.ByteValue = value
+	return binaryString
 }
 
 func encodeExtendedResponse(messageID int64, resultCode int64, name string, value string) *ber.Packet {
@@ -123,7 +142,14 @@ func encodeSearchResultEntry(messageID int64, values map[string][]string, object
 		al.AppendChild(encodeOctetString(k, "PartialAttributeType"))
 		vs := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSet, nil, "PartialAttributeValues")
 		for _, value := range v {
-			vs.AppendChild(encodeOctetString(value, "PartialAttributeValue"))
+			if k == "jpegPhoto" || k == "jpegphoto" {
+				jpeg, err := decodeBase64(value)
+				if err == nil {
+					vs.AppendChild(encodeOctetBinaryString(jpeg, "PartialAttributeValue"))
+				}
+			} else {
+				vs.AppendChild(encodeOctetString(value, "PartialAttributeValue"))
+			}
 		}
 		al.AppendChild(vs)
 		a.AppendChild(al)

@@ -170,6 +170,10 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		updatedUser["ssh_public_key"] = body.SSHPublicKey
 	}
 
+	if body.JPEGPhoto != "" {
+		updatedUser["jpeg_photo"] = body.JPEGPhoto
+	}
+
 	if body.Manager != nil {
 		if !manager {
 			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update manager status"}

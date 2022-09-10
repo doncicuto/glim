@@ -82,7 +82,7 @@ func TestGroupUpdate(t *testing.T) {
 			reqMethod:        http.MethodPut,
 			secret:           adminToken,
 			reqBodyJSON:      `{"members": "saul", "replace": true}`,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Devs","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Devs","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
 		},
 		{
 			name:             "can add a member",
@@ -91,7 +91,7 @@ func TestGroupUpdate(t *testing.T) {
 			reqMethod:        http.MethodPut,
 			secret:           adminToken,
 			reqBodyJSON:      `{"members": "kim"}`,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Devs","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Devs","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
 		},
 	}
 

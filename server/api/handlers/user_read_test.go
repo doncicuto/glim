@@ -15,7 +15,7 @@ func TestUserRead(t *testing.T) {
 	searchToken, _ := getUserTokens("search", h, e, settings)
 	plainUserToken, _ := getUserTokens("saul", h, e, settings)
 
-	everybodyInfo := `[{"uid":1,"username":"admin","name":"","firstname":"LDAP","lastname":"administrator","email":"","ssh_public_key":"","manager":true,"readonly":false,"locked":false},{"uid":2,"username":"search","name":"","firstname":"Read-Only","lastname":"Account","email":"","ssh_public_key":"","manager":false,"readonly":true,"locked":false},{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false}]`
+	everybodyInfo := `[{"uid":1,"username":"admin","name":"","firstname":"LDAP","lastname":"administrator","email":"","ssh_public_key":"","jpeg_photo":"","manager":true,"readonly":false,"locked":false},{"uid":2,"username":"search","name":"","firstname":"Read-Only","lastname":"Account","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":true,"locked":false},{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]`
 
 	// Test cases
 	testCases := []RestTestCase{
@@ -41,7 +41,7 @@ func TestUserRead(t *testing.T) {
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false}`,
+			expectedBodyJSON: `{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}`,
 		},
 		{
 			name:             "manager user can see a plainuser account info",
@@ -49,7 +49,7 @@ func TestUserRead(t *testing.T) {
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodGet,
 			secret:           searchToken,
-			expectedBodyJSON: `{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false}`,
+			expectedBodyJSON: `{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}`,
 		},
 		{
 			name:             "search user can see a plainuser account info",
@@ -57,7 +57,7 @@ func TestUserRead(t *testing.T) {
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodGet,
 			secret:           searchToken,
-			expectedBodyJSON: `{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","manager":false,"readonly":false,"locked":false}`,
+			expectedBodyJSON: `{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}`,
 		},
 		{
 			name:             "uid must be an integer",
