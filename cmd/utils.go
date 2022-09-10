@@ -18,7 +18,7 @@ package cmd
 
 import (
 	"bufio"
-	"encoding/base64"
+	b64 "encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -58,6 +58,6 @@ func JPEGToBase64(path string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	encoded := base64.StdEncoding.EncodeToString(content)
+	encoded := b64.StdEncoding.EncodeToString(content)
 	return &encoded, nil
 }

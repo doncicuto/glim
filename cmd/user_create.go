@@ -135,6 +135,18 @@ var newUserCmd = &cobra.Command{
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
 
+		// JpegPhoto
+		jpegPhoto := ""
+		jpegPhotoPath := viper.GetString("jpeg-photo")
+		if jpegPhotoPath != "" {
+			photo, err := JPEGToBase64(jpegPhotoPath)
+			if err != nil {
+				fmt.Printf("could not convert JPEG photo to Base64 - %v\n", err)
+				os.Exit(1)
+			}
+			jpegPhoto = *photo
+		}
+
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(models.JSONUserBody{
@@ -146,6 +158,7 @@ var newUserCmd = &cobra.Command{
 				Email:        viper.GetString("email"),
 				SSHPublicKey: viper.GetString("ssh-public-key"),
 				MemberOf:     viper.GetString("groups"),
+				JPEGPhoto:    jpegPhoto,
 				Manager:      &manager,
 				Readonly:     &readonly,
 				Locked:       &locked,
@@ -175,7 +188,7 @@ func init() {
 	newUserCmd.Flags().StringP("email", "e", "", "email")
 	newUserCmd.Flags().StringP("password", "p", "", "password")
 	newUserCmd.Flags().StringP("ssh-public-key", "k", "", "SSH Public Key")
-	newUserCmd.Flags().StringP("jpeg-photo", "j", "", "path to JPEG file")
+	newUserCmd.Flags().StringP("jpeg-photo", "j", "", "path to avatar file (jpg, png)")
 	newUserCmd.Flags().StringP("groups", "g", "", "comma-separated list of groups that we want the new user account to be a member of")
 	newUserCmd.Flags().Bool("password-stdin", false, "take the password from stdin")
 	newUserCmd.Flags().Bool("manager", false, "Glim manager account?")

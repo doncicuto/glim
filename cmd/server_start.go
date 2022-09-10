@@ -29,11 +29,11 @@ import (
 	"time"
 
 	"github.com/doncicuto/glim/server/kv/badgerdb"
+	"github.com/doncicuto/glim/server/ldap"
 	"github.com/doncicuto/glim/types"
 
 	"github.com/doncicuto/glim/server/api"
 	"github.com/doncicuto/glim/server/db"
-	"github.com/doncicuto/glim/server/ldap"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

@@ -114,6 +114,10 @@ func (h *Handler) SaveUser(c echo.Context) error {
 
 	u.SSHPublicKey = &body.SSHPublicKey
 
+	if body.JPEGPhoto != "" {
+		u.JPEGPhoto = &body.JPEGPhoto
+	}
+
 	if body.Manager != nil {
 		u.Manager = body.Manager
 	}

@@ -123,14 +123,14 @@ func userEntry(user models.User, attributes string, domain string) map[string][]
 	_, ok = attrs["jpegPhoto"]
 	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
 		if user.JPEGPhoto != nil {
-			values["jpegPhoto:"] = []string{*user.JPEGPhoto}
+			values["jpegPhoto"] = []string{*user.JPEGPhoto}
 		}
 	}
 
 	_, ok = attrs["jpegphoto"]
 	if attributes == "ALL" || ok || attrs["inetOrgPerson"] != "" || operational {
 		if user.JPEGPhoto != nil {
-			values["jpegphoto:"] = []string{*user.JPEGPhoto}
+			values["jpegphoto"] = []string{*user.JPEGPhoto}
 		}
 	}
 	_, ok = attrs["memberOf"]
