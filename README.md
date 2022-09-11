@@ -1,4 +1,3 @@
-
 # Glim
 
 Glim is a simple identity access management system that speaks some LDAP and is written in Go. Glim stands for Golang LDAP Identity Management 😄
@@ -134,7 +133,34 @@ Please store or write down this password to perform search queries in Glim.
 -----------------------------------------------------------------------------------
 ```
 
-Now, that we have a Glim server we can run Glim's CLI using a container. Before we can run our commands against our server, we must log in first and use a client certificate. For an easier use we'll use the directory that we created earlier to get access to our client certificate and to store the token needed to perform our operations against a Glim server. Also, we'll use the same network used by the glim container so every command runs as we were using localhost.
+Now that our server is running, we can run some commands but we must log in first:
+
+```bash
+docker exec -it glim /app/glim login
+Username: admin
+Password: 
+Login Succeeded
+```
+
+Ok, we can show our users using:
+
+```bash
+docker exec -it glim /app/glim user 
+UID    USERNAME        FULLNAME             EMAIL                GROUPS               MANAGER  READONLY LOCKED  
+1      admin           LDAP administrator                        none                 true     false    false   
+2      search          Read-Only Account                         none                 false    true     false
+```
+
+And create a new user and set the password:
+
+```bash
+docker exec -it glim /app/glim user create -u test -e test@example.org
+Password: 
+Confirm password: 
+User created
+```
+
+Alternatively we can run Glim's CLI using a container. We'll use the directory that we created earlier to get access to our client certificate and to store the token needed to perform our operations against a Glim server. Also, we'll use the same network used by the glim container so every command runs as we were using localhost.
 
 ```(bash)
 docker run -v /tmp/glim:/home/glim/.glim --rm -it --network container:glim sologitops/glim login
