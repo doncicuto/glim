@@ -24,24 +24,25 @@ import (
 
 //User - TODO comment
 type User struct {
-	ID           uint32    `gorm:"primary_key;auto_increment" json:"uid"`
-	Username     *string   `gorm:"size:64;not null;unique" json:"username"`
-	Name         *string   `gorm:"size:300" json:"name"`
-	GivenName    *string   `gorm:"size:150" json:"firstname"`
-	Surname      *string   `gorm:"size:150" json:"lastname"`
-	Email        *string   `gorm:"size:322" json:"email"`
-	Password     *string   `gorm:"size:60" json:"password"`
-	CreatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	CreatedBy    *string   `gorm:"size:500" json:"created_by"`
-	UpdatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	UpdatedBy    *string   `gorm:"size:500" json:"updated_by"`
-	Manager      *bool     `gorm:"default:false" json:"manager"`
-	Readonly     *bool     `gorm:"default:false" json:"readonly"`
-	MemberOf     []*Group  `gorm:"many2many:group_members"`
-	UUID         *string   `gorm:"size:36" json:"uuid"`
-	Locked       *bool     `gorm:"default:false" json:"locked"`
-	SSHPublicKey *string   `json:"ssh_public_key"`
-	JPEGPhoto    *string   `json:"jpeg_photo"`
+	ID           uint32    `gorm:"primary_key;auto_increment" json:"uid" csv:"uid"`
+	Username     *string   `gorm:"size:64;not null;unique" json:"username" csv:"username"`
+	Name         *string   `gorm:"size:300" json:"name" csv:"-"`
+	GivenName    *string   `gorm:"size:150" json:"firstname" csv:"firstname"`
+	Surname      *string   `gorm:"size:150" json:"lastname" csv:"lastname"`
+	Email        *string   `gorm:"size:322" json:"email" csv:"email"`
+	Password     *string   `gorm:"size:60" json:"password" csv:"password"`
+	CreatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at" csv:"-"`
+	CreatedBy    *string   `gorm:"size:500" json:"created_by" csv:"-"`
+	UpdatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at" csv:"-"`
+	UpdatedBy    *string   `gorm:"size:500" json:"updated_by" csv:"-"`
+	Manager      *bool     `gorm:"default:false" json:"manager" csv:"manager"`
+	Readonly     *bool     `gorm:"default:false" json:"readonly" csv:"readonly"`
+	Groups       *string   `csv:"groups"`
+	MemberOf     []*Group  `gorm:"many2many:group_members" csv:"-"`
+	UUID         *string   `gorm:"size:36" json:"uuid" csv:"-"`
+	Locked       *bool     `gorm:"default:false" json:"locked" csv:"locked"`
+	SSHPublicKey *string   `json:"ssh_public_key" csv:"ssh_public_key"`
+	JPEGPhoto    *string   `json:"jpeg_photo" csv:"jpeg_photo"`
 }
 
 // JSONUserBody - TODO comment
