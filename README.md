@@ -166,6 +166,38 @@ docker stop glim
 docker rm glim
 ```
 
+## Glim - Create or remove users using CSV files
+
+You can create users from a CSV file for easier management.
+
+```bash
+glim csv users create -f /tmp/test.csv 
+```
+
+If you want to create users you must use a CSV file with the following header row:
+
+```bash
+username,firstname,lastname,email,password,ssh_public_key,manager,readonly,locked,groups
+```
+
+Then add a row for each user that you want to create
+
+```bash
+username,firstname,lastname,email,password,ssh_public_key,manager,readonly,locked,groups
+"gumball","Gumball","Watterson","gumbal@example.org","test","",true,false,false,"devel"
+"anais","Anais","Watterson","anais@example.org",,,false,false,false,"devel,gitea-admins"
+```
+
+Don't use spaces before or after commas. You can set boolean values without quotes. Remember that you can use a string with group names separated by commas to set memberships. Use blanks between commas if you don't want to set those fields.
+
+If you want to remove users, use a file like the following example. If you want to specify the user id use a number, if you only want to use the username set it between double quotes and set 0 as the user id.
+
+```bash
+uid, username
+0,"gumbal"
+7,""
+```
+
 ## Glim user types (roles)
 
 Glim has the following roles:
