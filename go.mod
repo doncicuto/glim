@@ -12,6 +12,7 @@ require (
 	github.com/go-openapi/spec v0.20.6 // indirect
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/go-resty/resty/v2 v2.7.0
+	github.com/gocarina/gocsv v0.0.0-20220823132111-71f3a5cb2654 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/google/uuid v1.3.0
