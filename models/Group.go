@@ -22,15 +22,16 @@ import (
 
 //Group - TODO comment
 type Group struct {
-	ID          uint32    `gorm:"primary_key;auto_increment" json:"gid"`
-	Name        *string   `gorm:"size:100;unique;not null" json:"name"`
-	Description *string   `gorm:"size:255" json:"description"`
-	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	CreatedBy   *string   `gorm:"size:500" json:"created_by"`
-	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	UpdatedBy   *string   `gorm:"size:500" json:"updated_by"`
-	UUID        *string   `gorm:"size:36" json:"uuid"`
-	Members     []*User   `gorm:"many2many:group_members"`
+	ID           uint32    `gorm:"primary_key;auto_increment" json:"gid" csv:"gid"`
+	Name         *string   `gorm:"size:100;unique;not null" json:"name" csv:"name"`
+	Description  *string   `gorm:"size:255" json:"description" csv:"description"`
+	CreatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at" csv:"-"`
+	CreatedBy    *string   `gorm:"size:500" json:"created_by" csv:"-"`
+	UpdatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at" csv:"-"`
+	UpdatedBy    *string   `gorm:"size:500" json:"updated_by" csv:"-"`
+	UUID         *string   `gorm:"size:36" json:"uuid" csv:"-"`
+	Members      []*User   `gorm:"many2many:group_members" csv:"-"`
+	GroupMembers *string   `csv:"members"`
 }
 
 //GroupInfo - TODO comment

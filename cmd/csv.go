@@ -45,6 +45,25 @@ func readUsersFromCSV() []*models.User {
 	return users
 }
 
+func readGroupsFromCSV() []*models.Group {
+	// Read and open file
+	file := viper.GetString("file")
+	csvFile, err := os.Open(file)
+	if err != nil {
+		fmt.Println("can't open CSV file")
+		os.Exit(1)
+	}
+	defer csvFile.Close()
+
+	// Try to unmarshal CSV file usin gocsv
+	groups := []*models.Group{}
+	if err := gocsv.UnmarshalFile(csvFile, &groups); err != nil { // Load clients from file
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	return groups
+}
+
 // importCmd represents the import command
 var csvCmd = &cobra.Command{
 	Use:   "csv",
@@ -57,4 +76,5 @@ var csvCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(csvCmd)
 	csvCmd.AddCommand(csvUsersCmd)
+	csvCmd.AddCommand(csvGroupsCmd)
 }
