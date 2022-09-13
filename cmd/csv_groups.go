@@ -25,10 +25,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// csvUsersCmd represents the user command
-var csvUsersCmd = &cobra.Command{
-	Use:   "users",
-	Short: "Manage user accounts with CSV files",
+// csvGroupsCmd represents the user command
+var csvGroupsCmd = &cobra.Command{
+	Use:   "groups",
+	Short: "Manage groups with CSV files",
 	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
@@ -41,8 +41,8 @@ func init() {
 	}
 	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
 
-	csvUsersCmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	csvUsersCmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
-	csvUsersCmd.AddCommand(csvCreateUsersCmd)
-	csvUsersCmd.AddCommand(csvDeleteUsersCmd)
+	csvGroupsCmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	csvGroupsCmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	csvGroupsCmd.AddCommand(csvCreateGroupsCmd)
+	csvGroupsCmd.AddCommand(csvDeleteGroupsCmd)
 }

@@ -26,20 +26,20 @@ import (
 	"github.com/spf13/viper"
 )
 
-// csvDeleteUsersCmd - TODO comment
-var csvDeleteUsersCmd = &cobra.Command{
+// csvDeleteGroupsCmd - TODO comment
+var csvDeleteGroupsCmd = &cobra.Command{
 	Use:   "rm",
-	Short: "Remove users included in a CSV file",
+	Short: "Remove groups included in a CSV file",
 	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
 
 		// Read and open file
-		users := readUsersFromCSV()
+		groups := readGroupsFromCSV()
 
-		if len(users) == 0 {
-			fmt.Println("no users where found in CSV file")
+		if len(groups) == 0 {
+			fmt.Println("no groups where found in CSV file")
 			os.Exit(1)
 		}
 
@@ -59,20 +59,20 @@ var csvDeleteUsersCmd = &cobra.Command{
 
 		fmt.Println("")
 
-		for _, user := range users {
-			username := *user.Username
-			uid := user.ID
+		for _, group := range groups {
+			name := *group.Name
+			gid := group.ID
 
-			if username == "" && uid <= 0 {
-				fmt.Printf("UID %d: skipped, invalid username and uid\n", uid)
+			if name == "" && gid <= 0 {
+				fmt.Printf("GID %d: skipped, invalid group name and gid\n", gid)
 				continue
 			}
 
-			if username != "" {
-				endpoint := fmt.Sprintf("%s/v1/users/%s/uid", url, username)
+			if name != "" {
+				endpoint := fmt.Sprintf("%s/v1/groups/%s/gid", url, name)
 				resp, err := client.R().
 					SetHeader("Content-Type", "application/json").
-					SetResult(models.User{}).
+					SetResult(models.Group{}).
 					SetError(&types.APIError{}).
 					Get(endpoint)
 
@@ -82,21 +82,21 @@ var csvDeleteUsersCmd = &cobra.Command{
 				}
 
 				if resp.IsError() {
-					fmt.Printf("%s: skipped, %v\n", username, resp.Error().(*types.APIError).Message)
+					fmt.Printf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message)
 					continue
 				}
 
-				result := resp.Result().(*models.User)
+				result := resp.Result().(*models.Group)
 
-				if result.ID != uid && uid != 0 {
-					fmt.Printf("%s: skipped, username and uid found in CSV doesn't match\n", username)
+				if result.ID != gid && gid != 0 {
+					fmt.Printf("%s: skipped, group name and gid found in CSV doesn't match\n", name)
 					continue
 				}
-				uid = result.ID
+				gid = result.ID
 			}
 
 			// Delete using API
-			endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
+			endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 			resp, err := client.R().
 				SetHeader("Content-Type", "application/json").
 				SetError(&types.APIError{}).
@@ -108,20 +108,20 @@ var csvDeleteUsersCmd = &cobra.Command{
 			}
 
 			if resp.IsError() {
-				if username != "" {
-					fmt.Printf("%s: skipped, %v\n", username, resp.Error().(*types.APIError).Message)
+				if name != "" {
+					fmt.Printf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message)
 				} else {
-					fmt.Printf("UID %d: skipped, %v\n", uid, resp.Error().(*types.APIError).Message)
+					fmt.Printf("GID %d: skipped, %v\n", gid, resp.Error().(*types.APIError).Message)
 				}
 				continue
 			}
-			fmt.Printf("%s: successfully removed\n", username)
+			fmt.Printf("%s: successfully removed\n", name)
 		}
 		fmt.Printf("\nRemove from CSV finished!\n")
 	},
 }
 
 func init() {
-	csvDeleteUsersCmd.Flags().StringP("file", "f", "", "path to CSV file, use README to know more about the format")
-	csvDeleteUsersCmd.MarkFlagRequired("file")
+	csvDeleteGroupsCmd.Flags().StringP("file", "f", "", "path to CSV file, use README to know more about the format")
+	csvDeleteGroupsCmd.MarkFlagRequired("file")
 }
