@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.18-alpine as build
+FROM golang:1.19-alpine as build
 WORKDIR /go/src/glim
 RUN apk update && apk add --no-cache git gcc musl-dev
 COPY go.mod .
