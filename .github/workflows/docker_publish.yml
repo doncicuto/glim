@@ -24,11 +24,12 @@ jobs:
         with:
           script: |
             const tag = github.ref_name
-            core.setOutput('tag', tag)
+            const no_v = tag.replace('v', '')
+            core.setOutput('no_v', no_v)
       
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/glim:${{ steps.set_version.outputs.tag }} , ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/glim:${{ steps.set_version.outputs.no_v }} , ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:latest
