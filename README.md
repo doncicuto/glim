@@ -26,7 +26,7 @@ If you're looking for a full LDAP server replacement that fully understands sche
 - Have a simple REST API that you can use with your applications
 - Use a simple server for your automated tests...
 
-please try Glim and help me to improve it and visit the [wiki](https://github.com/doncicuto/glim/wiki) for more information about Glim.
+please try Glim and help me to improve it and visit the [wiki](https://github.com/doncicuto/glim/wiki) for more information about Glim (configuration examples, docker, advanced topics...)
 
 ## How does it work
 
