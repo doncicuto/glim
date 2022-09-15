@@ -413,9 +413,13 @@ See this [page](./docs/examples/openldap.md) for examples that I used to check G
 
    > Not currently. Glim cannot answer Root DSE requests or add/delete LDAP operations. Open a discussion if you find this feature useful so it can be added to the roadmap.
 
-3. Does Glim have a web user interface?
+3. Does Glim support anonymous bind?
 
-   > Not for now, but it's in the roadmap. A simple web management tool will be added thanks to Glim's REST API.
+   > Nope. Glim comes with a search user (readonly) that you can use to bind and search information
+
+4. Does Glim have a web user interface?
+
+   > Not for now, but open a discussion if you need a web management tool that will use Glim's REST API.
 
 ## Limitations / Caveats
 

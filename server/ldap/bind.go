@@ -62,6 +62,15 @@ func HandleBind(message *Message, settings types.LDAPSettings, remoteAddr string
 		return encodeBindResponse(id, err.Code, err.Msg), n, errors.New(err.Msg)
 	}
 
+	pass, err := bindPassword(p[2])
+	if err != nil {
+		return encodeBindResponse(id, err.Code, err.Msg), n, errors.New(err.Msg)
+	}
+
+	if n == "" && pass == "" {
+		return encodeBindResponse(id, InappropriateAuthentication, ""), n, fmt.Errorf("anonymous ldap bind is not available")
+	}
+
 	dn := strings.Split(n, ",")
 	if strings.HasPrefix(dn[0], "cn=") {
 		username = strings.TrimPrefix(dn[0], "cn=")
@@ -85,11 +94,6 @@ func HandleBind(message *Message, settings types.LDAPSettings, remoteAddr string
 		if domain != settings.Domain {
 			return encodeBindResponse(id, InvalidCredentials, ""), n, fmt.Errorf("wrong domain: %s", domain)
 		}
-	}
-
-	pass, err := bindPassword(p[2])
-	if err != nil {
-		return encodeBindResponse(id, err.Code, err.Msg), n, errors.New(err.Msg)
 	}
 
 	// DEBUG - TODO
