@@ -18,9 +18,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       
+      - name: Set Versions
+        uses: actions/github-script@v4
+        id: set_version
+        with:
+          script: |
+            const tag = github.ref_name
+            core.setOutput('tag', tag)
+      
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/glim:${{  github.ref_name }} , ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/glim:${{ steps.set_version.outputs.tag }} , ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:latest
