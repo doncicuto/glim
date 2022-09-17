@@ -34,6 +34,7 @@ require (
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	golang.org/x/tools v0.1.11 // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
+	gorm.io/driver/postgres v1.3.9 // indirect
 	gorm.io/driver/sqlite v1.3.4
-	gorm.io/gorm v1.23.6
+	gorm.io/gorm v1.23.7
 )

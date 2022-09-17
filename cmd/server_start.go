@@ -115,15 +115,69 @@ var serverStartCmd = &cobra.Command{
 		// Database
 		dbName := viper.GetString("db")
 		sqlLog := viper.GetBool("sql")
-		var dbInit = types.DBInit{
-			AdminPasswd:   viper.GetString("initial-admin-passwd"),
-			SearchPasswd:  viper.GetString("initial-search-passwd"),
-			Users:         viper.GetString("initial-users"),
-			DefaultPasswd: viper.GetString("initial-users-password"),
+		useSqlite := true
+
+		if viper.GetString("postgres-host") != "" {
+			useSqlite = false
+			dbName = viper.GetString("postgres-db")
 		}
+
+		postgresPort := viper.GetInt("postgres-port")
+
+		postgresSSLRootCa := viper.GetString("postgres-root-ca")
+		if postgresSSLRootCa != "" {
+			if _, err := os.Stat(postgresSSLRootCa); os.IsNotExist(err) {
+				if err != nil {
+					fmt.Printf("%s [Glim] ⇨ can't find PostgreSQL Root CA pem file. Exiting now...\n", time.Now().Format(time.RFC3339))
+					os.Exit(1)
+				}
+			}
+		}
+
+		postgresSSLClientCert := viper.GetString("postgres-client-cert")
+		if postgresSSLRootCa != "" {
+			if _, err := os.Stat(postgresSSLRootCa); os.IsNotExist(err) {
+				if err != nil {
+					fmt.Printf("%s [Glim] ⇨ can't find PostgreSQL client certificate file. Exiting now...\n", time.Now().Format(time.RFC3339))
+					os.Exit(1)
+				}
+			}
+		}
+
+		postgresSSLClientKey := viper.GetString("postgres-client-key")
+		if postgresSSLRootCa != "" {
+			if _, err := os.Stat(postgresSSLRootCa); os.IsNotExist(err) {
+				if err != nil {
+					fmt.Printf("%s [Glim] ⇨ can't find PostgreSQL client private key file. Exiting now...\n", time.Now().Format(time.RFC3339))
+					os.Exit(1)
+				}
+			}
+		}
+
+		if postgresPort <= 0 || postgresPort > 65535 {
+			fmt.Printf("%s [Glim] ⇨ wrong PostgreSQL port. Exiting now...\n", time.Now().Format(time.RFC3339))
+			os.Exit(1)
+		}
+
+		var dbInit = types.DBInit{
+			AdminPasswd:           viper.GetString("initial-admin-passwd"),
+			SearchPasswd:          viper.GetString("initial-search-passwd"),
+			Users:                 viper.GetString("initial-users"),
+			DefaultPasswd:         viper.GetString("initial-users-password"),
+			UseSqlite:             useSqlite,
+			PostgresHost:          viper.GetString("postgres-host"),
+			PostgresPort:          postgresPort,
+			PostgresDatabase:      viper.GetString("postgres-db"),
+			PostgresUser:          viper.GetString("postgres-user"),
+			PostgresPassword:      viper.GetString("postgres-password"),
+			PostgresSSLRootCA:     postgresSSLRootCa,
+			PostgresSSLClientCert: postgresSSLClientCert,
+			PostgresSSLClientKey:  postgresSSLClientKey,
+		}
+
 		database, err := db.Initialize(dbName, sqlLog, dbInit)
 		if err != nil {
-			fmt.Printf("%s [Glim] ⇨ could not connect to database. Exiting now...\n", time.Now().Format(time.RFC3339))
+			fmt.Printf("%s [Glim] ⇨ could not connect to database. %v. Exiting now...\n", time.Now().Format(time.RFC3339), err)
 			os.Exit(1)
 		}
 		defer func() {
@@ -230,7 +284,15 @@ func init() {
 	serverStartCmd.Flags().Int("ldap-size-limit", 500, "LDAP server maximum number of entries that should be returned from the search")
 	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
-	serverStartCmd.Flags().String("db", defaultDbPath, "path of the file containing Glim's database")
+	serverStartCmd.Flags().String("db", defaultDbPath, "path of the file containing SQLite Glim's database")
+	serverStartCmd.Flags().String("postgres-host", "", "PostgreSQL server address")
+	serverStartCmd.Flags().String("postgres-user", "postgres", "PostgreSQL user")
+	serverStartCmd.Flags().String("postgres-password", "", "PostgreSQL password")
+	serverStartCmd.Flags().String("postgres-db", "glim", "name for Glim's database to be stored in PostgreSQL")
+	serverStartCmd.Flags().String("postgres-root-ca", "", "path of the file containing PostgreSQL CA pem file")
+	serverStartCmd.Flags().String("postgres-client-cert", "", "path of the file containing PostgreSQL client certificate pem file")
+	serverStartCmd.Flags().String("postgres-client-key", "", "path of the file containing PostgreSQL client key file")
+	serverStartCmd.Flags().Int("postgres-port", 5432, "PostgreSQL server port")
 	serverStartCmd.Flags().String("api-secret", "", "API secret string to be used with JWT tokens")
 	serverStartCmd.Flags().Uint("access-token-expiry-time", 3600, "access token refresh expiry time in seconds")
 	serverStartCmd.Flags().Uint("refresh-token-expiry-time", 259200, "refresh token refresh expiry time in seconds")
