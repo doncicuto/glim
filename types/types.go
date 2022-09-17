@@ -78,10 +78,19 @@ type APIError struct {
 }
 
 type DBInit struct {
-	AdminPasswd   string
-	SearchPasswd  string
-	Users         string
-	DefaultPasswd string
+	UseSqlite             bool
+	PostgresHost          string
+	PostgresPort          int
+	PostgresUser          string
+	PostgresPassword      string
+	PostgresDatabase      string
+	PostgresSSLRootCA     string
+	PostgresSSLClientCert string
+	PostgresSSLClientKey  string
+	AdminPasswd           string
+	SearchPasswd          string
+	Users                 string
+	DefaultPasswd         string
 }
 
 type ErrorResponse struct {
