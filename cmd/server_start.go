@@ -117,12 +117,15 @@ var serverStartCmd = &cobra.Command{
 		sqlLog := viper.GetBool("sql")
 		useSqlite := true
 
+		postgresPort := viper.GetInt("postgres-port")
 		if viper.GetString("postgres-host") != "" {
 			useSqlite = false
 			dbName = viper.GetString("postgres-db")
+			if postgresPort <= 0 || postgresPort > 65535 {
+				fmt.Printf("%s [Glim] ⇨ wrong PostgreSQL port. Exiting now...\n", time.Now().Format(time.RFC3339))
+				os.Exit(1)
+			}
 		}
-
-		postgresPort := viper.GetInt("postgres-port")
 
 		postgresSSLRootCa := viper.GetString("postgres-root-ca")
 		if postgresSSLRootCa != "" {
@@ -152,11 +155,6 @@ var serverStartCmd = &cobra.Command{
 					os.Exit(1)
 				}
 			}
-		}
-
-		if postgresPort <= 0 || postgresPort > 65535 {
-			fmt.Printf("%s [Glim] ⇨ wrong PostgreSQL port. Exiting now...\n", time.Now().Format(time.RFC3339))
-			os.Exit(1)
 		}
 
 		var dbInit = types.DBInit{

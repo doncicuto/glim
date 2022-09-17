@@ -33,6 +33,7 @@ func newTestDatabase() (*gorm.DB, error) {
 		SearchPasswd:  "test",
 		Users:         "saul,kim,mike",
 		DefaultPasswd: "test",
+		UseSqlite:     true,
 	}
 	sqlLog := false
 	return db.Initialize("/tmp/test.db", sqlLog, dbInit)
