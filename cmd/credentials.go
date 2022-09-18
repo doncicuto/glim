@@ -59,7 +59,7 @@ func ReadCredentials() *types.Response {
 
 	f, err := os.Open(*tokenFile)
 	if err != nil {
-		fmt.Printf("Could not read file containing auth token. Please, log in again.")
+		fmt.Println("Could not read file containing auth token. Please, log in again")
 		os.Exit(1)
 	}
 	defer f.Close()
@@ -149,7 +149,7 @@ func AmIManager(token *types.Response) bool {
 
 	manager, ok := claims["manager"].(bool)
 	if !ok {
-		fmt.Printf("Could not parse access token. Please try to log in again\n")
+		fmt.Println("Could not parse access token. Please try to log in again")
 		os.Exit(1)
 	}
 
@@ -163,7 +163,7 @@ func AmIReadonly(token *types.Response) bool {
 
 	readonly, ok := claims["readonly"].(bool)
 	if !ok {
-		fmt.Printf("Could not parse access token. Please try to log in again\n")
+		fmt.Println("Could not parse access token. Please try to log in again")
 		os.Exit(1)
 	}
 
@@ -183,7 +183,7 @@ func WhichIsMyTokenUID(token *types.Response) float64 {
 	// Extract access token jti
 	uid, ok := claims["uid"].(float64)
 	if !ok {
-		fmt.Printf("Could not parse access token. Please try to log in again\n")
+		fmt.Println("Could not parse access token. Please try to log in again")
 		os.Exit(1)
 	}
 
