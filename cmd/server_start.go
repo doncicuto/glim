@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/doncicuto/glim/server/kv/badgerdb"
+	"github.com/doncicuto/glim/server/kv/redis"
 	"github.com/doncicuto/glim/server/ldap"
 	"github.com/doncicuto/glim/types"
 
@@ -184,13 +185,33 @@ var serverStartCmd = &cobra.Command{
 		fmt.Printf("%s [Glim] ⇨ connected to database...\n", time.Now().Format(time.RFC3339))
 
 		// Key-value store for JWT tokens storage
-		// TODO choose between BadgerDB or Redis
+		var blacklist types.Store
+
 		badgerKV := viper.GetString("badgerdb-store")
-		blacklist, err := badgerdb.NewBadgerStore(badgerKV)
-		if err != nil {
-			fmt.Printf("%s [Glim] ⇨ could not connect to Badger key-value store. Exiting now...\n", time.Now().Format(time.RFC3339))
-			os.Exit(1)
+		redisHost := viper.GetString("redis-host")
+
+		if redisHost != "" {
+			redisPort := viper.GetInt("redis-port")
+			if redisPort <= 0 || redisPort > 65535 {
+				fmt.Printf("%s [Glim] ⇨ wrong Redis port. Exiting now...\n", time.Now().Format(time.RFC3339))
+				os.Exit(1)
+			}
+			redisPassword := viper.GetString("redis-password")
+			redisDBIndex := viper.GetInt("redis-db-index")
+
+			blacklist, err = redis.NewRedisStore(redisHost, redisPort, redisPassword, redisDBIndex)
+			if err != nil {
+				fmt.Printf("%s [Glim] ⇨ could not operate with Redis store. Exiting now...\n", time.Now().Format(time.RFC3339))
+				os.Exit(1)
+			}
+		} else {
+			blacklist, err = badgerdb.NewBadgerStore(badgerKV)
+			if err != nil {
+				fmt.Printf("%s [Glim] ⇨ could not connect to Badger key-value store. Exiting now...\n", time.Now().Format(time.RFC3339))
+				os.Exit(1)
+			}
 		}
+
 		defer func() {
 			fmt.Printf("%s [Glim] ⇨ closing connection to key-value store...\n", time.Now().Format(time.RFC3339))
 			blacklist.Close()
@@ -276,34 +297,56 @@ func init() {
 	defaultCertKeyFilePath := filepath.Join(homeDir, ".glim", "server.key")
 	defaultDbPath := filepath.Join(homeDir, ".glim", "glim.db")
 
-	serverStartCmd.Flags().String("tlscert", defaultCertPEMFilePath, "TLS server certificate path")
-	serverStartCmd.Flags().String("tlskey", defaultCertKeyFilePath, "TLS server private key path")
+	// LDAP Server
 	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().Int("ldap-size-limit", 500, "LDAP server maximum number of entries that should be returned from the search")
+	serverStartCmd.Flags().String("ldap-domain", "example.org", "LDAP domain")
+
+	// REST API
 	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
+	serverStartCmd.Flags().String("api-secret", "", "API secret string to be used with JWT tokens")
+	serverStartCmd.Flags().Uint("access-token-expiry-time", 3600, "access token refresh expiry time in seconds")
+	serverStartCmd.Flags().Uint("refresh-token-expiry-time", 259200, "refresh token refresh expiry time in seconds")
+	serverStartCmd.Flags().Int("max-days-relogin", 7, "number of days that we can use refresh tokens without log in again")
+
+	// TLS
+	serverStartCmd.Flags().String("tlscert", defaultCertPEMFilePath, "TLS server certificate path")
+	serverStartCmd.Flags().String("tlskey", defaultCertKeyFilePath, "TLS server private key path")
+	serverStartCmd.Flags().String("organization", "Glim Fake Organization, Inc", "organization name for Glim's auto-generated certificates")
+	serverStartCmd.Flags().String("hosts", "127.0.0.1, localhost", "comma-separated list of hosts and IP addresses to be added to Glim's auto-generated certificate")
+	serverStartCmd.Flags().String("path", path, "filesystem path where Glim's auto-generated certificates and private keys files will be created")
+	serverStartCmd.Flags().Int("years", 1, "number of years that we want Glim's auto-generated to be valid.")
+
+	// Badger
 	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
+
+	// SQLite
 	serverStartCmd.Flags().String("db", defaultDbPath, "path of the file containing SQLite Glim's database")
+
+	// Postgres
 	serverStartCmd.Flags().String("postgres-host", "", "PostgreSQL server address")
+	serverStartCmd.Flags().Int("postgres-port", 5432, "PostgreSQL server port")
 	serverStartCmd.Flags().String("postgres-user", "postgres", "PostgreSQL user")
 	serverStartCmd.Flags().String("postgres-password", "", "PostgreSQL password")
 	serverStartCmd.Flags().String("postgres-db", "glim", "name for Glim's database to be stored in PostgreSQL")
 	serverStartCmd.Flags().String("postgres-root-ca", "", "path of the file containing PostgreSQL CA pem file")
 	serverStartCmd.Flags().String("postgres-client-cert", "", "path of the file containing PostgreSQL client certificate pem file")
 	serverStartCmd.Flags().String("postgres-client-key", "", "path of the file containing PostgreSQL client key file")
-	serverStartCmd.Flags().Int("postgres-port", 5432, "PostgreSQL server port")
-	serverStartCmd.Flags().String("api-secret", "", "API secret string to be used with JWT tokens")
-	serverStartCmd.Flags().Uint("access-token-expiry-time", 3600, "access token refresh expiry time in seconds")
-	serverStartCmd.Flags().Uint("refresh-token-expiry-time", 259200, "refresh token refresh expiry time in seconds")
-	serverStartCmd.Flags().Int("max-days-relogin", 7, "number of days that we can use refresh tokens without log in again")
-	serverStartCmd.Flags().String("ldap-domain", "example.org", "LDAP domain")
+
+	// Redis
+	serverStartCmd.Flags().String("redis-host", "", "Redis server address")
+	serverStartCmd.Flags().Int("redis-port", 6379, "Redis server port")
+	serverStartCmd.Flags().String("redis-password", "", "Redis password")
+	serverStartCmd.Flags().Int("redis-db-index", 0, "Redis db numeric index")
+
+	// Initial passwords, users...
 	serverStartCmd.Flags().String("initial-admin-passwd", "", "initial password for the admin account")
 	serverStartCmd.Flags().String("initial-search-passwd", "", "initial password for the search account")
-	serverStartCmd.Flags().Bool("sql", false, "enable SQL queries logging")
-	serverStartCmd.Flags().String("organization", "Glim Fake Organization, Inc", "organization name for Glim's auto-generated certificates")
-	serverStartCmd.Flags().String("hosts", "127.0.0.1, localhost", "comma-separated list of hosts and IP addresses to be added to Glim's auto-generated certificate")
-	serverStartCmd.Flags().String("path", path, "filesystem path where Glim's auto-generated certificates and private keys files will be created")
-	serverStartCmd.Flags().Int("years", 1, "number of years that we want Glim's auto-generated to be valid.")
 	serverStartCmd.Flags().String("initial-users", "", "comma-separated lists of usernames to be added when server starts")
 	serverStartCmd.Flags().String("initial-users-password", "glim", "default password for your initial users")
+
+	// Debug
+	serverStartCmd.Flags().Bool("sql", false, "enable SQL queries logging")
+
 	viper.BindPFlags(serverStartCmd.Flags())
 }

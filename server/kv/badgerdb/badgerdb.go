@@ -53,7 +53,7 @@ func NewBadgerStore(path string) (Store, error) {
 
 	db, err := badger.Open(options)
 	if err != nil {
-		log.Fatal(err)
+		return s, err
 	}
 
 	s.DB = db
