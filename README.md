@@ -19,12 +19,13 @@ The fact is that when using LDAP for authentication I've found that:
 
 Finally I decided to develop my own simple identity management system that can be used with LDAP bind operations for authentication purposes and stores my team users accounts and group information. I wanted that simple server to spoke enough LDAP for my authentication purposes.
 
-If you're looking for a full LDAP server replacement that fully understands schemas or complex search filters, please use the serious battle-tested staff, but if you want to:
+If you're looking for a full LDAP server replacement that fully understands schemas or complex search filters, please use the serious battle-tested staff, but if you want a server that can:
 
-- Use LDAP authentication with your applications
+- Answer LDAP authentication (bind) and search queries sent by your applications
+- Store your users and groups in a SQL database (Postgres or SQLite)
 - Manage your users with simple CLI commands
-- Have a simple REST API that you can use with your applications
-- Use a simple server for your automated tests...
+- Provide a simple REST API that you can use with your applications
+- Be used for your automated tests...
 
 please try Glim and help me to improve it and visit the [wiki](https://github.com/doncicuto/glim/wiki) for more information about Glim (configuration examples, docker, advanced topics...)
 
@@ -87,19 +88,23 @@ Could not find required CA pem file to validate authority
 
 ## FAQ
 
-1. Can I add or delete users or groups using LDIF files?
+1. Is Glim a proxy for LDAP requests that can be sent to LDAP backends?
+
+   > No. Glim stores users and groups in a SQL database (SQLite or Postgres).  
+
+2. Can I add or delete users or groups using LDIF files?
 
    > No. You can use Glim's CLI to manage your users and groups easier.
 
-2. Can I use phpLDAPadmin, Apache Directory Studio or other LDAP GUI tool?
+3. Can I use phpLDAPadmin, Apache Directory Studio or other LDAP GUI tool?
 
    > Not currently. Glim cannot answer Root DSE requests or add/delete LDAP operations. Open a discussion if you find this feature useful so it can be added to the roadmap.
 
-3. Does Glim support anonymous bind?
+4. Does Glim support anonymous bind?
 
    > Nope. Glim comes with a search user (readonly) that you can use to bind and search information
 
-4. Does Glim have a web user interface?
+5. Does Glim have a web user interface?
 
    > Not for now, but open a discussion if you need a web management tool that will use Glim's REST API.
 
