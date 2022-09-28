@@ -34,12 +34,17 @@ var csvDeleteUsersCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
+		// json output?
+		jsonOutput := viper.GetBool("json")
 
 		// Read and open file
-		users := readUsersFromCSV()
+		users := readUsersFromCSV(jsonOutput)
+
+		messages := []string{}
 
 		if len(users) == 0 {
-			fmt.Println("no users where found in CSV file")
+			error := "no users where found in CSV file"
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
@@ -57,14 +62,13 @@ var csvDeleteUsersCmd = &cobra.Command{
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
 
-		fmt.Println("")
-
 		for _, user := range users {
 			username := *user.Username
 			uid := user.ID
 
 			if username == "" && uid <= 0 {
-				fmt.Printf("UID %d: skipped, invalid username and uid\n", uid)
+				error := fmt.Sprintf("UID %d: skipped, invalid username and uid\n", uid)
+				messages = append(messages, error)
 				continue
 			}
 
@@ -77,19 +81,22 @@ var csvDeleteUsersCmd = &cobra.Command{
 					Get(endpoint)
 
 				if err != nil {
-					fmt.Printf("Error connecting with Glim: %v\n", err)
+					error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+					printError(error, jsonOutput)
 					os.Exit(1)
 				}
 
 				if resp.IsError() {
-					fmt.Printf("%s: skipped, %v\n", username, resp.Error().(*types.APIError).Message)
+					error := fmt.Sprintf("%s: skipped, %v\n", username, resp.Error().(*types.APIError).Message)
+					messages = append(messages, error)
 					continue
 				}
 
 				result := resp.Result().(*models.User)
 
 				if result.ID != uid && uid != 0 {
-					fmt.Printf("%s: skipped, username and uid found in CSV doesn't match\n", username)
+					error := fmt.Sprintf("%s: skipped, username and uid found in CSV doesn't match\n", username)
+					messages = append(messages, error)
 					continue
 				}
 				uid = result.ID
@@ -109,15 +116,24 @@ var csvDeleteUsersCmd = &cobra.Command{
 
 			if resp.IsError() {
 				if username != "" {
-					fmt.Printf("%s: skipped, %v\n", username, resp.Error().(*types.APIError).Message)
+					error := fmt.Sprintf("%s: skipped, %v\n", username, resp.Error().(*types.APIError).Message)
+					messages = append(messages, error)
 				} else {
-					fmt.Printf("UID %d: skipped, %v\n", uid, resp.Error().(*types.APIError).Message)
+					error := fmt.Sprintf("UID %d: skipped, %v\n", uid, resp.Error().(*types.APIError).Message)
+					messages = append(messages, error)
 				}
 				continue
 			}
-			fmt.Printf("%s: successfully removed\n", username)
+
+			message := fmt.Sprintf("%s: successfully removed\n", username)
+			messages = append(messages, message)
+
 		}
-		fmt.Printf("\nRemove from CSV finished!\n")
+
+		printCSVMessages(messages, jsonOutput)
+		if !jsonOutput {
+			fmt.Printf("\nRemove from CSV finished!\n")
+		}
 	},
 }
 

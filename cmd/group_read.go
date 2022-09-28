@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func getGIDFromGroupName(group string, url string) uint {
+func getGIDFromGroupName(group string, url string, jsonOutput bool) uint {
 	token := ReadCredentials()
 	if NeedsRefresh(token) {
 		Refresh(token.RefreshToken)
@@ -42,12 +42,14 @@ func getGIDFromGroupName(group string, url string) uint {
 		Get(endpoint)
 
 	if err != nil {
-		fmt.Printf("Error connecting with Glim: %v\n", err)
+		error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+		printError(error, jsonOutput)
 		os.Exit(1)
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		printError(error, jsonOutput)
 		os.Exit(1)
 	}
 
@@ -55,11 +57,11 @@ func getGIDFromGroupName(group string, url string) uint {
 	return uint(result.ID)
 }
 
-func getGroup(id uint) {
+func getGroup(id uint, jsonOutput bool) {
 	// Glim server URL
 	url := viper.GetString("server")
-
 	endpoint := fmt.Sprintf("%s/v1/groups/%d", url, id)
+
 	// Read credentials
 	token := ReadCredentials()
 
@@ -74,35 +76,43 @@ func getGroup(id uint) {
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetResult(models.Group{}).
+		SetResult(models.GroupInfo{}).
 		SetError(&types.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
-		fmt.Printf("Error connecting with Glim: %v\n", err)
+		error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+		printError(error, jsonOutput)
 		os.Exit(1)
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		printError(error, jsonOutput)
 		os.Exit(1)
 	}
 
-	result := resp.Result().(*models.Group)
-	fmt.Printf("%-15s %-100s\n", "Group:", *result.Name)
-	fmt.Printf("%-15s %-100d\n", " GID:", result.ID)
-	fmt.Printf("%-15s %-100s\n\n", " Description:", *result.Description)
+	result := resp.Result().(*models.GroupInfo)
 
-	fmt.Printf("%-15s\n", "Members:")
-	fmt.Printf("====\n")
-	for _, member := range result.Members {
-		fmt.Printf("%-15s %-100d\n", " UID:", member.ID)
-		fmt.Printf("%-15s %-100s\n", " Username:", *member.Username)
-		fmt.Printf("----\n")
+	if jsonOutput {
+		encodeGroupToJson(result)
+	} else {
+		fmt.Printf("%-15s %-100s\n", "Group:", result.Name)
+		fmt.Printf("%-15s %-100d\n", " GID:", result.ID)
+		fmt.Printf("%-15s %-100s\n\n", " Description:", result.Description)
+
+		fmt.Printf("%-15s\n", "Members:")
+		fmt.Printf("====\n")
+		for _, member := range result.Members {
+			fmt.Printf("%-15s %-100d\n", " UID:", member.ID)
+			fmt.Printf("%-15s %-100s\n", " Username:", member.Username)
+			fmt.Printf("----\n")
+		}
 	}
+
 }
 
-func getGroups() {
+func getGroups(jsonOutput bool) {
 	// Glim server URL
 	url := viper.GetString("server")
 
@@ -120,7 +130,7 @@ func getGroups() {
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetResult([]models.Group{}).
+		SetResult([]models.GroupInfo{}).
 		SetError(&types.APIError{}).
 		Get(endpoint)
 
@@ -134,48 +144,54 @@ func getGroups() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-6s %-20s %-35s %-50s\n",
-		"GID",
-		"GROUP",
-		"DESCRIPTION",
-		"MEMBERS",
-	)
+	results := resp.Result().(*[]models.GroupInfo)
+	if jsonOutput {
+		encodeGroupsToJson(results)
+	} else {
 
-	results := resp.Result().(*[]models.Group)
-	for _, result := range *results {
-		members := "none"
-		if len(result.Members) > 0 {
-			members = ""
-			for i, member := range result.Members {
-				if i == len(result.Members)-1 {
-					members += *member.Username
-				} else {
-					members += *member.Username + ", "
+		fmt.Printf("%-6s %-20s %-35s %-50s\n",
+			"GID",
+			"GROUP",
+			"DESCRIPTION",
+			"MEMBERS",
+		)
+
+		for _, result := range *results {
+			members := "none"
+			if len(result.Members) > 0 {
+				members = ""
+				for i, member := range result.Members {
+					if i == len(result.Members)-1 {
+						members += member.Username
+					} else {
+						members += member.Username + ", "
+					}
 				}
 			}
+			fmt.Printf("%-6d %-20s %-35s %-50s\n",
+				result.ID,
+				truncate(result.Name, 20),
+				truncate(result.Description, 35),
+				truncate(members, 50))
 		}
-		fmt.Printf("%-6d %-20s %-35s %-50s\n",
-			result.ID,
-			truncate(*result.Name, 20),
-			truncate(*result.Description, 35),
-			truncate(members, 50))
 	}
 }
 
 func GetGroupInfo() {
 	gid := viper.GetUint("gid")
 	group := viper.GetString("group")
+	jsonOutput := viper.GetBool("json")
 	if gid != 0 {
-		getGroup(gid)
+		getGroup(gid, jsonOutput)
 		os.Exit(0)
 	}
 	if group != "" {
 		url := viper.GetString("server")
-		gid = getGIDFromGroupName(group, url)
-		getGroup(gid)
+		gid = getGIDFromGroupName(group, url, jsonOutput)
+		getGroup(gid, jsonOutput)
 		os.Exit(0)
 	}
-	getGroups()
+	getGroups(jsonOutput)
 	os.Exit(0)
 }
 

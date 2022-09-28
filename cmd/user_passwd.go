@@ -49,22 +49,28 @@ var userPasswdCmd = &cobra.Command{
 			token = ReadCredentials()
 		}
 
+		// JSON output?
+		jsonOutput := viper.GetBool("json")
+
 		if uid == 0 {
 			if username != "" {
-				uid = getUIDFromUsername(username, url)
+				uid = getUIDFromUsername(username, url, jsonOutput)
 			} else {
 				uid = uint(WhichIsMyTokenUID(token))
 			}
 		}
 
 		if !AmIManager(token) && uint(WhichIsMyTokenUID(token)) != uid {
-			fmt.Println("Only users with manager role can change other users passwords")
+			error := "Only users with manager role can change other users passwords"
+			printError(error, jsonOutput)
+			os.Exit(1)
 		}
 
 		if uint(WhichIsMyTokenUID(token)) == uid {
 			oldPassword := prompter.Password("Old password")
 			if oldPassword == "" {
-				fmt.Println("Error password required")
+				error := "Error password required"
+				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 			passwdBody.OldPassword = oldPassword
@@ -79,12 +85,14 @@ var userPasswdCmd = &cobra.Command{
 			if !passwordStdin {
 				password = prompter.Password("New password")
 				if password == "" {
-					fmt.Println("Error password required")
+					error := "Error password required"
+					printError(error, jsonOutput)
 					os.Exit(1)
 				}
 				confirmPassword := prompter.Password("Confirm password")
 				if password != confirmPassword {
-					fmt.Println("Error passwords don't match")
+					error := "Error passwords don't match"
+					printError(error, jsonOutput)
 					os.Exit(1)
 				}
 			}

@@ -51,8 +51,12 @@ var updateUserCmd = &cobra.Command{
 		uid := viper.GetUint("uid")
 		username := viper.GetString("username")
 
+		// JSON output?
+		jsonOutput := viper.GetBool("json")
+
 		if uid == 0 && username == "" {
-			fmt.Println("you must specify either the user account id or a username")
+			error := "you must specify either the user account id or a username"
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
@@ -60,14 +64,15 @@ var updateUserCmd = &cobra.Command{
 		url := viper.GetString("server")
 
 		if uid == 0 && username != "" {
-			uid = getUIDFromUsername(username, url)
+			uid = getUIDFromUsername(username, url, jsonOutput)
 		}
 
 		// Validate email
 		email := viper.GetString("email")
 		if email != "" {
 			if _, err := mail.ParseAddress(email); err != nil {
-				fmt.Println("email should have a valid format")
+				error := "email should have a valid format"
+				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 		}
@@ -76,7 +81,8 @@ var updateUserCmd = &cobra.Command{
 		manager := viper.GetBool("manager")
 		readonly := viper.GetBool("readonly")
 		if manager && readonly {
-			fmt.Println("a Glim account cannot be both manager and readonly at the same time")
+			error := "a Glim account cannot be both manager and readonly at the same time"
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
@@ -84,7 +90,8 @@ var updateUserCmd = &cobra.Command{
 		replace := viper.GetBool("replace")
 		remove := viper.GetBool("remove")
 		if replace && remove {
-			fmt.Println("replace and remove flags are mutually exclusive")
+			error := "replace and remove flags are mutually exclusive"
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
@@ -93,7 +100,8 @@ var updateUserCmd = &cobra.Command{
 		if jpegPhotoPath != "" {
 			photo, err := JPEGToBase64(jpegPhotoPath)
 			if err != nil {
-				fmt.Printf("could not convert JPEG photo to Base64 - %v\n", err)
+				error := fmt.Sprintf("could not convert JPEG photo to Base64 - %v\n", err)
+				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 			jpegPhoto = *photo
@@ -151,16 +159,18 @@ var updateUserCmd = &cobra.Command{
 			Put(endpoint)
 
 		if err != nil {
-			fmt.Printf("Error connecting with Glim: %v\n", err)
+			error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
-		fmt.Println("User updated")
+		printMessage("User updated", jsonOutput)
 	},
 }
 

@@ -51,8 +51,11 @@ var deleteUserCmd = &cobra.Command{
 			token = ReadCredentials()
 		}
 
+		// JSON output?
+		jsonOutput := viper.GetBool("json")
+
 		if uid == 0 && username != "" {
-			uid = getUIDFromUsername(username, url)
+			uid = getUIDFromUsername(username, url, jsonOutput)
 		}
 
 		// Rest API authentication
@@ -64,16 +67,18 @@ var deleteUserCmd = &cobra.Command{
 			Delete(endpoint)
 
 		if err != nil {
-			fmt.Printf("Error connecting with Glim: %v\n", err)
+			error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
-		fmt.Println("User account deleted")
+		printMessage("User account deleted", jsonOutput)
 	},
 }
 

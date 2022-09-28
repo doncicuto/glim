@@ -39,11 +39,15 @@ var newUserCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
+		// json output?
+		jsonOutput := viper.GetBool("json")
+
 		// Validate email
 		email := viper.GetString("email")
 		if email != "" {
 			if _, err := mail.ParseAddress(email); err != nil {
-				fmt.Println("email should have a valid format")
+				error := "email should have a valid format"
+				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 		}
@@ -54,7 +58,8 @@ var newUserCmd = &cobra.Command{
 		readonly := viper.GetBool("readonly")
 
 		if manager && readonly {
-			fmt.Println("a Glim account cannot be both manager and readonly at the same time")
+			error := "a Glim account cannot be both manager and readonly at the same time"
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
@@ -72,12 +77,14 @@ var newUserCmd = &cobra.Command{
 		if password == "" && !passwordStdin && !locked {
 			password = prompter.Password("Password")
 			if password == "" {
-				fmt.Println("Error password required")
+				error := "Error password required"
+				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 			confirmPassword := prompter.Password("Confirm password")
 			if password != confirmPassword {
-				fmt.Println("Error passwords don't match")
+				error := "Error passwords don't match"
+				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 		} else {
@@ -86,19 +93,22 @@ var newUserCmd = &cobra.Command{
 				fmt.Println("WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
 
 			case password != "" && passwordStdin:
-				fmt.Println("--password and --password-stdin are mutually exclusive")
+				error := "--password and --password-stdin are mutually exclusive"
+				printError(error, jsonOutput)
 				os.Exit(1)
 
 			case passwordStdin:
 				// Reference: https://flaviocopes.com/go-shell-pipes/
 				info, err := os.Stdin.Stat()
 				if err != nil {
-					fmt.Println("Error reading from stdin")
+					error := "Error reading from stdin"
+					printError(error, jsonOutput)
 					os.Exit(1)
 				}
 
 				if info.Mode()&os.ModeCharDevice != 0 {
-					fmt.Println("Error expecting password from stdin using a pipe")
+					error := "Error expecting password from stdin using a pipe"
+					printError(error, jsonOutput)
 					os.Exit(1)
 				}
 
@@ -141,7 +151,8 @@ var newUserCmd = &cobra.Command{
 		if jpegPhotoPath != "" {
 			photo, err := JPEGToBase64(jpegPhotoPath)
 			if err != nil {
-				fmt.Printf("could not convert JPEG photo to Base64 - %v\n", err)
+				error := fmt.Sprintf("could not convert JPEG photo to Base64 - %v\n", err)
+				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 			jpegPhoto = *photo
@@ -167,16 +178,18 @@ var newUserCmd = &cobra.Command{
 			Post(endpoint)
 
 		if err != nil {
-			fmt.Printf("Error connecting with Glim: %v\n", err)
+			error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
-		fmt.Println("User created")
+		printMessage("User created", jsonOutput)
 	},
 }
 

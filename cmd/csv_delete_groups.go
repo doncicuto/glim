@@ -34,12 +34,16 @@ var csvDeleteGroupsCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
+		// json output?
+		jsonOutput := viper.GetBool("json")
+		messages := []string{}
 
 		// Read and open file
-		groups := readGroupsFromCSV()
+		groups := readGroupsFromCSV(jsonOutput)
 
 		if len(groups) == 0 {
-			fmt.Println("no groups where found in CSV file")
+			error := "no groups where found in CSV file"
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
@@ -57,14 +61,13 @@ var csvDeleteGroupsCmd = &cobra.Command{
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
 
-		fmt.Println("")
-
 		for _, group := range groups {
 			name := *group.Name
 			gid := group.ID
 
 			if name == "" && gid <= 0 {
-				fmt.Printf("GID %d: skipped, invalid group name and gid\n", gid)
+				error := fmt.Sprintf("GID %d: skipped, invalid group name and gid\n", gid)
+				messages = append(messages, error)
 				continue
 			}
 
@@ -77,19 +80,22 @@ var csvDeleteGroupsCmd = &cobra.Command{
 					Get(endpoint)
 
 				if err != nil {
-					fmt.Printf("Error connecting with Glim: %v\n", err)
+					error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+					printError(error, jsonOutput)
 					os.Exit(1)
 				}
 
 				if resp.IsError() {
-					fmt.Printf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message)
+					error := fmt.Sprintf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message)
+					messages = append(messages, error)
 					continue
 				}
 
 				result := resp.Result().(*models.Group)
 
 				if result.ID != gid && gid != 0 {
-					fmt.Printf("%s: skipped, group name and gid found in CSV doesn't match\n", name)
+					error := fmt.Sprintf("%s: skipped, group name and gid found in CSV doesn't match\n", name)
+					messages = append(messages, error)
 					continue
 				}
 				gid = result.ID
@@ -103,21 +109,30 @@ var csvDeleteGroupsCmd = &cobra.Command{
 				Delete(endpoint)
 
 			if err != nil {
-				fmt.Printf("Error connecting with Glim: %v\n", err)
+				error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 
 			if resp.IsError() {
 				if name != "" {
-					fmt.Printf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message)
+					error := fmt.Sprintf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message)
+					messages = append(messages, error)
 				} else {
-					fmt.Printf("GID %d: skipped, %v\n", gid, resp.Error().(*types.APIError).Message)
+					error := fmt.Sprintf("GID %d: skipped, %v\n", gid, resp.Error().(*types.APIError).Message)
+					messages = append(messages, error)
 				}
 				continue
 			}
-			fmt.Printf("%s: successfully removed\n", name)
+			message := fmt.Sprintf("%s: successfully removed\n", name)
+			messages = append(messages, message)
 		}
-		fmt.Printf("\nRemove from CSV finished!\n")
+
+		printCSVMessages(messages, jsonOutput)
+		if !jsonOutput {
+			fmt.Printf("\nRemove from CSV finished!\n")
+		}
+
 	},
 }
 
