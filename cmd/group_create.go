@@ -34,6 +34,8 @@ var newGroupCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
+		// json output?
+		jsonOutput := viper.GetBool("json")
 
 		// Glim server URL
 		url := viper.GetString("server")
@@ -61,16 +63,18 @@ var newGroupCmd = &cobra.Command{
 			Post(endpoint)
 
 		if err != nil {
-			fmt.Printf("Error connecting with Glim: %v\n", err)
+			error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
-		fmt.Println("Group created")
+		printMessage("Group created", jsonOutput)
 	},
 }
 

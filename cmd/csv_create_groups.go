@@ -34,12 +34,16 @@ var csvCreateGroupsCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
+		// json output?
+		jsonOutput := viper.GetBool("json")
+		messages := []string{}
 
 		// Read and open file
-		groups := readGroupsFromCSV()
+		groups := readGroupsFromCSV(jsonOutput)
 
 		if len(groups) == 0 {
-			fmt.Println("no groups where found in CSV file")
+			error := "no groups where found in CSV file"
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
@@ -58,8 +62,6 @@ var csvCreateGroupsCmd = &cobra.Command{
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
 
-		fmt.Println("")
-
 		for _, group := range groups {
 			name := *group.Name
 			resp, err := client.R().
@@ -73,18 +75,24 @@ var csvCreateGroupsCmd = &cobra.Command{
 				Post(endpoint)
 
 			if err != nil {
-				fmt.Printf("Error connecting with Glim: %v\n", err)
+				error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 
 			if resp.IsError() {
-				fmt.Printf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message)
+				error := fmt.Sprintf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message)
+				messages = append(messages, error)
 				continue
 			}
-			fmt.Printf("%s: successfully created\n", name)
+			message := fmt.Sprintf("%s: successfully created\n", name)
+			messages = append(messages, message)
 		}
 
-		fmt.Printf("\nCreate from CSV finished!\n")
+		printCSVMessages(messages, jsonOutput)
+		if !jsonOutput {
+			fmt.Printf("\nCreate from CSV finished!\n")
+		}
 	},
 }
 

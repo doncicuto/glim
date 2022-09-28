@@ -27,7 +27,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func getUIDFromUsername(username string, url string) uint {
+func getUIDFromUsername(username string, url string, jsonOutput bool) uint {
 	token := ReadCredentials()
 	if NeedsRefresh(token) {
 		Refresh(token.RefreshToken)
@@ -43,12 +43,14 @@ func getUIDFromUsername(username string, url string) uint {
 		Get(endpoint)
 
 	if err != nil {
-		fmt.Printf("Error connecting with Glim: %v\n", err)
+		error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+		printError(error, jsonOutput)
 		os.Exit(1)
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		printError(error, jsonOutput)
 		os.Exit(1)
 	}
 
@@ -56,7 +58,7 @@ func getUIDFromUsername(username string, url string) uint {
 	return uint(result.ID)
 }
 
-func getUser(id uint) {
+func getUser(id uint, jsonOutput bool) {
 	// Glim server URL
 	url := viper.GetString("server")
 	endpoint := fmt.Sprintf("%s/v1/users/%d", url, id)
@@ -79,38 +81,44 @@ func getUser(id uint) {
 		Get(endpoint)
 
 	if err != nil {
-		fmt.Printf("Error connecting with Glim: %v\n", err)
+		error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+		printError(error, jsonOutput)
 		os.Exit(1)
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		printError(error, jsonOutput)
 		os.Exit(1)
 	}
 
 	// memberOf := "none"
 	result := resp.Result().(*models.UserInfo)
 
-	fmt.Printf("\n%-15s %-100d\n", "UID:", result.ID)
-	fmt.Println("====")
-	fmt.Printf("%-15s %-100s\n", "Username:", result.Username)
-	fmt.Printf("%-15s %-100s\n", "Name:", strings.Join([]string{result.GivenName, result.Surname}, " "))
-	fmt.Printf("%-15s %-100s\n", "Email:", result.Email)
-	fmt.Printf("%-15s %-8v\n", "Manager:", result.Manager)
-	fmt.Printf("%-15s %-8v\n", "Read-Only:", result.Readonly)
-	fmt.Printf("%-15s %-8v\n", "Locked:", result.Locked)
-	fmt.Printf("%-15s %s\n", "SSH Public Key:", result.SSHPublicKey)
-	fmt.Printf("%-15s %s\n", "JPEG Photo:", truncate(result.JPEGPhoto, 100))
-	fmt.Println("----")
-	if len(result.MemberOf) > 0 {
-		fmt.Println("Member of: ")
-		for _, group := range result.MemberOf {
-			fmt.Printf(" * GID: %-4d Name: %-100s\n", group.ID, group.Name)
+	if jsonOutput {
+		encodeUserToJson(result)
+	} else {
+		fmt.Printf("\n%-15s %-100d\n", "UID:", result.ID)
+		fmt.Println("====")
+		fmt.Printf("%-15s %-100s\n", "Username:", result.Username)
+		fmt.Printf("%-15s %-100s\n", "Name:", strings.Join([]string{result.GivenName, result.Surname}, " "))
+		fmt.Printf("%-15s %-100s\n", "Email:", result.Email)
+		fmt.Printf("%-15s %-8v\n", "Manager:", result.Manager)
+		fmt.Printf("%-15s %-8v\n", "Read-Only:", result.Readonly)
+		fmt.Printf("%-15s %-8v\n", "Locked:", result.Locked)
+		fmt.Printf("%-15s %s\n", "SSH Public Key:", result.SSHPublicKey)
+		fmt.Printf("%-15s %s\n", "JPEG Photo:", truncate(result.JPEGPhoto, 100))
+		fmt.Println("----")
+		if len(result.MemberOf) > 0 {
+			fmt.Println("Member of: ")
+			for _, group := range result.MemberOf {
+				fmt.Printf(" * GID: %-4d Name: %-100s\n", group.ID, group.Name)
+			}
 		}
 	}
 }
 
-func getUsers() {
+func getUsers(jsonOutput bool) {
 	// Glim server URL
 	url := viper.GetString("server")
 
@@ -133,64 +141,72 @@ func getUsers() {
 		Get(endpoint)
 
 	if err != nil {
-		fmt.Printf("Error connecting with Glim: %v\n", err)
+		error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+		printError(error, jsonOutput)
 		os.Exit(1)
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+		printError(error, jsonOutput)
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-6s %-15s %-20s %-20s %-20s %-8s %-8s %-8s\n",
-		"UID",
-		"USERNAME",
-		"FULLNAME",
-		"EMAIL",
-		"GROUPS",
-		"MANAGER",
-		"READONLY",
-		"LOCKED",
-	)
-
 	results := resp.Result().(*[]models.UserInfo)
 
-	for _, result := range *results {
-		memberOf := "none"
-		groups := []string{}
-
-		for _, group := range result.MemberOf {
-			groups = append(groups, group.Name)
-		}
-
-		if len(groups) > 0 {
-			memberOf = strings.Join(groups, ",")
-		}
-
-		fmt.Printf("%-6d %-15s %-20s %-20s %-20s %-8v %-8v %-8v\n",
-			result.ID,
-			truncate(result.Username, 15),
-			truncate(strings.Join([]string{result.GivenName, result.Surname}, " "), 20),
-			truncate(result.Email, 20),
-			truncate(memberOf, 20),
-			result.Manager,
-			result.Readonly,
-			result.Locked,
+	if jsonOutput {
+		encodeUsersToJson(results)
+	} else {
+		fmt.Printf("%-6s %-15s %-20s %-20s %-20s %-8s %-8s %-8s\n",
+			"UID",
+			"USERNAME",
+			"FULLNAME",
+			"EMAIL",
+			"GROUPS",
+			"MANAGER",
+			"READONLY",
+			"LOCKED",
 		)
+
+		for _, result := range *results {
+			memberOf := "none"
+			groups := []string{}
+
+			for _, group := range result.MemberOf {
+				groups = append(groups, group.Name)
+			}
+
+			if len(groups) > 0 {
+				memberOf = strings.Join(groups, ",")
+			}
+
+			fmt.Printf("%-6d %-15s %-20s %-20s %-20s %-8v %-8v %-8v\n",
+				result.ID,
+				truncate(result.Username, 15),
+				truncate(strings.Join([]string{result.GivenName, result.Surname}, " "), 20),
+				truncate(result.Email, 20),
+				truncate(memberOf, 20),
+				result.Manager,
+				result.Readonly,
+				result.Locked,
+			)
+		}
 	}
+
 }
 
 func GetUserInfo() {
 	uid := viper.GetUint("uid")
 	username := viper.GetString("username")
+	jsonOutput := viper.GetBool("json")
 	if uid != 0 {
-		getUser(uid)
+		getUser(uid, jsonOutput)
 		os.Exit(0)
 	}
 	if username != "" {
 		url := viper.GetString("server")
-		uid = getUIDFromUsername(username, url)
-		getUser(uid)
+		uid = getUIDFromUsername(username, url, jsonOutput)
+		getUser(uid, jsonOutput)
 		os.Exit(0)
 	}
 
@@ -202,11 +218,11 @@ func GetUserInfo() {
 	}
 	if AmIPlainUser(token) {
 		uid = uint(WhichIsMyTokenUID(token))
-		getUser(uid)
+		getUser(uid, jsonOutput)
 		os.Exit(0)
 	}
 
-	getUsers()
+	getUsers(jsonOutput)
 }
 
 // ListUserCmd - TODO comment

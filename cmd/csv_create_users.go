@@ -36,12 +36,16 @@ var csvCreateUsersCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
+		// json output?
+		jsonOutput := viper.GetBool("json")
+		messages := []string{}
 
 		// Read and open file
-		users := readUsersFromCSV()
+		users := readUsersFromCSV(jsonOutput)
 
 		if len(users) == 0 {
-			fmt.Println("no users where found in CSV file")
+			error := "no users where found in CSV file"
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
@@ -60,15 +64,14 @@ var csvCreateUsersCmd = &cobra.Command{
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
 
-		fmt.Println("")
-
 		for _, user := range users {
 			username := *user.Username
 			// Validate email
 			email := *user.Email
 			if email != "" {
 				if _, err := mail.ParseAddress(email); err != nil {
-					fmt.Printf("%s: skipped, email should have a valid format\n", username)
+					error := fmt.Sprintf("%s: skipped, email should have a valid format\n", username)
+					messages = append(messages, error)
 					continue
 				}
 			}
@@ -76,7 +79,8 @@ var csvCreateUsersCmd = &cobra.Command{
 			manager := *user.Manager
 			readonly := *user.Readonly
 			if manager && readonly {
-				fmt.Printf("%s: skipped, cannot be both manager and readonly at the same time\n", username)
+				error := fmt.Sprintf("%s: skipped, cannot be both manager and readonly at the same time\n", username)
+				messages = append(messages, error)
 				continue
 			}
 
@@ -89,7 +93,8 @@ var csvCreateUsersCmd = &cobra.Command{
 			if jpegPhotoPath != "" {
 				photo, err := JPEGToBase64(jpegPhotoPath)
 				if err != nil {
-					fmt.Printf("%s: skipped, could not convert JPEG photo to Base64 %v\n", username, err)
+					error := fmt.Sprintf("%s: skipped, could not convert JPEG photo to Base64 %v\n", username, err)
+					messages = append(messages, error)
 					continue
 				}
 				jpegPhoto = *photo
@@ -115,18 +120,24 @@ var csvCreateUsersCmd = &cobra.Command{
 				Post(endpoint)
 
 			if err != nil {
-				fmt.Printf("Error connecting with Glim: %v\n", err)
+				error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 
 			if resp.IsError() {
-				fmt.Printf("%s: skipped, %v\n", username, resp.Error().(*types.APIError).Message)
+				error := fmt.Sprintf("%s: skipped, %v\n", username, resp.Error().(*types.APIError).Message)
+				messages = append(messages, error)
 				continue
 			}
-			fmt.Printf("%s: successfully created\n", username)
+			message := fmt.Sprintf("%s: successfully created\n", username)
+			messages = append(messages, message)
 		}
 
-		fmt.Printf("\nCreate from CSV finished!\n")
+		printCSVMessages(messages, jsonOutput)
+		if !jsonOutput {
+			fmt.Printf("\nCreate from CSV finished!\n")
+		}
 	},
 }
 

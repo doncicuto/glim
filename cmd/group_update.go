@@ -34,18 +34,22 @@ var updateGroupCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
+		// json output?
+		jsonOutput := viper.GetBool("json")
+
 		// Glim server URL
 		url := viper.GetString("server")
 		gid := viper.GetUint("gid")
 		group := viper.GetString("group")
 
 		if gid == 0 && group == "" {
-			fmt.Println("you must specify either the group id or name")
+			error := "you must specify either the group id or name"
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
 		if gid == 0 && group != "" {
-			gid = getGIDFromGroupName(group, url)
+			gid = getGIDFromGroupName(group, url, jsonOutput)
 		}
 
 		// Read credentials
@@ -72,16 +76,18 @@ var updateGroupCmd = &cobra.Command{
 			Put(endpoint)
 
 		if err != nil {
-			fmt.Printf("Error connecting with Glim: %v\n", err)
+			error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
-		fmt.Println("Group updated")
+		printMessage("Group updated", jsonOutput)
 	},
 }
 

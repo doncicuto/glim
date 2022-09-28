@@ -19,10 +19,12 @@ package cmd
 import (
 	"bufio"
 	b64 "encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 
+	"github.com/doncicuto/glim/models"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/viper"
 )
@@ -48,6 +50,14 @@ func RestClient(token string) *resty.Client {
 	return client
 }
 
+type JSONSuccessOutput struct {
+	Message string `json:"message"`
+}
+
+type JSONErrorOutput struct {
+	ErrorMessage string `json:"error"`
+}
+
 func JPEGToBase64(path string) (*string, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -60,4 +70,65 @@ func JPEGToBase64(path string) (*string, error) {
 	}
 	encoded := b64.StdEncoding.EncodeToString(content)
 	return &encoded, nil
+}
+
+func printError(errorMessage string, jsonOutput bool) {
+	if jsonOutput {
+		output := JSONErrorOutput{}
+		enc := json.NewEncoder(os.Stderr)
+
+		if errorMessage != "" {
+			output.ErrorMessage = errorMessage
+		}
+
+		enc.Encode(output)
+	} else {
+		fmt.Println(errorMessage)
+	}
+}
+
+func printMessage(message string, jsonOutput bool) {
+	if jsonOutput {
+		output := JSONSuccessOutput{}
+		enc := json.NewEncoder(os.Stdout)
+
+		if message != "" {
+			output.Message = message
+		}
+
+		enc.Encode(output)
+	} else {
+		fmt.Println(message)
+	}
+}
+
+func printCSVMessages(messages []string, jsonOutput bool) {
+	if jsonOutput {
+		enc := json.NewEncoder(os.Stdout)
+		enc.Encode(messages)
+	} else {
+		for _, message := range messages {
+			fmt.Print(message)
+		}
+	}
+}
+
+func encodeUserToJson(user *models.UserInfo) {
+	enc := json.NewEncoder(os.Stdout)
+	enc.Encode(user)
+}
+
+func encodeUsersToJson(users *[]models.UserInfo) {
+	enc := json.NewEncoder(os.Stdout)
+	enc.Encode(users)
+}
+
+func encodeGroupToJson(group *models.GroupInfo) {
+	enc := json.NewEncoder(os.Stdout)
+	enc.Encode(group)
+}
+
+func encodeGroupsToJson(groups *[]models.GroupInfo) {
+	enc := json.NewEncoder(os.Stdout)
+	enc.Encode(groups)
 }

@@ -40,6 +40,9 @@ var deleteGroupCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		// json output?
+		jsonOutput := viper.GetBool("json")
+
 		// Glim server URL
 		url := viper.GetString("server")
 
@@ -50,7 +53,7 @@ var deleteGroupCmd = &cobra.Command{
 		token := ReadCredentials()
 
 		if gid == 0 && group != "" {
-			gid = getGIDFromGroupName(group, url)
+			gid = getGIDFromGroupName(group, url, jsonOutput)
 		}
 
 		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
@@ -69,16 +72,18 @@ var deleteGroupCmd = &cobra.Command{
 			Delete(endpoint)
 
 		if err != nil {
-			fmt.Printf("Error connecting with Glim: %v\n", err)
+			error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
 		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
+			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
-		fmt.Println("Group deleted")
+		printMessage("Group deleted", jsonOutput)
 	},
 }
 
