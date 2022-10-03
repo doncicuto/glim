@@ -44,22 +44,26 @@ var deleteUserCmd = &cobra.Command{
 		uid := viper.GetUint("uid")
 		username := viper.GetString("username")
 
-		// Read credentials and check if token needs refresh
-		token := ReadCredentials()
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
+		// Get credentials
+		token, err := GetCredentials(url)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 		// JSON output?
 		jsonOutput := viper.GetBool("json")
 
+		client := RestClient(token.AccessToken)
 		if uid == 0 && username != "" {
-			uid = getUIDFromUsername(username, url, jsonOutput)
+			uid, err = getUIDFromUsername(client, username, url)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
 		}
 
 		// Rest API authentication
-		client := RestClient(token.AccessToken)
 		endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").

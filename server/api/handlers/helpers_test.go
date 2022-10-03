@@ -104,9 +104,9 @@ func getUserTokens(username string, h *Handler, e *echo.Echo, settings types.API
 	res := httptest.NewRecorder()
 	c := e.NewContext(req, res)
 	h.Login(c, settings)
-	response := types.Response{}
-	json.Unmarshal(res.Body.Bytes(), &response)
-	return response.AccessToken, response.RefreshToken
+	tokenAuth := types.TokenAuthentication{}
+	json.Unmarshal(res.Body.Bytes(), &tokenAuth)
+	return tokenAuth.AccessToken, tokenAuth.RefreshToken
 }
 
 func removeDatabase() {

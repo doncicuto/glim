@@ -39,6 +39,17 @@ var updateGroupCmd = &cobra.Command{
 
 		// Glim server URL
 		url := viper.GetString("server")
+
+		// Get credentials
+		token, err := GetCredentials(url)
+		if err != nil {
+			printError(err.Error(), jsonOutput)
+			os.Exit(1)
+		}
+
+		// Rest API authentication
+		client := RestClient(token.AccessToken)
+
 		gid := viper.GetUint("gid")
 		group := viper.GetString("group")
 
@@ -49,20 +60,14 @@ var updateGroupCmd = &cobra.Command{
 		}
 
 		if gid == 0 && group != "" {
-			gid = getGIDFromGroupName(group, url, jsonOutput)
+			gid, err = getGIDFromGroupName(client, group, url)
+			if err != nil {
+				printError(err.Error(), jsonOutput)
+				os.Exit(1)
+			}
 		}
 
-		// Read credentials
-		token := ReadCredentials()
 		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
-		// Check expiration
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
-		}
-
-		// Rest API authentication
-		client := RestClient(token.AccessToken)
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").

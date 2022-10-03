@@ -23,18 +23,12 @@ import (
 
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/types"
+	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func getUIDFromUsername(username string, url string, jsonOutput bool) uint {
-	token := ReadCredentials()
-	if NeedsRefresh(token) {
-		Refresh(token.RefreshToken)
-		token = ReadCredentials()
-	}
-
-	client := RestClient(token.AccessToken)
+func getUIDFromUsername(client *resty.Client, username string, url string) (uint, error) {
 	endpoint := fmt.Sprintf("%s/v1/users/%s/uid", url, username)
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -43,32 +37,27 @@ func getUIDFromUsername(username string, url string, jsonOutput bool) uint {
 		Get(endpoint)
 
 	if err != nil {
-		error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return 0, fmt.Errorf("error connecting with Glim: %v", err)
 	}
 
 	if resp.IsError() {
-		error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return 0, fmt.Errorf("error response from Glim: %v", resp.Error().(*types.APIError).Message)
 	}
 
 	result := resp.Result().(*models.UserID)
-	return uint(result.ID)
+	return uint(result.ID), nil
 }
 
 func getUser(id uint, jsonOutput bool) {
 	// Glim server URL
 	url := viper.GetString("server")
 	endpoint := fmt.Sprintf("%s/v1/users/%d", url, id)
-	// Read credentials
-	token := ReadCredentials()
 
-	// Check expiration
-	if NeedsRefresh(token) {
-		Refresh(token.RefreshToken)
-		token = ReadCredentials()
+	// Get credentials
+	token, err := GetCredentials(url)
+	if err != nil {
+		printError(err.Error(), jsonOutput)
+		os.Exit(1)
 	}
 
 	// Rest API authentication
@@ -121,14 +110,13 @@ func getUser(id uint, jsonOutput bool) {
 func getUsers(jsonOutput bool) {
 	// Glim server URL
 	url := viper.GetString("server")
-
-	// Read credentials
-	token := ReadCredentials()
 	endpoint := fmt.Sprintf("%s/v1/users", url)
-	// Check expiration
-	if NeedsRefresh(token) {
-		Refresh(token.RefreshToken)
-		token = ReadCredentials()
+
+	// Get credentials
+	token, err := GetCredentials(url)
+	if err != nil {
+		printError(err.Error(), jsonOutput)
+		os.Exit(1)
 	}
 
 	// Rest API authentication
@@ -196,6 +184,7 @@ func getUsers(jsonOutput bool) {
 }
 
 func GetUserInfo() {
+	url := viper.GetString("server")
 	uid := viper.GetUint("uid")
 	username := viper.GetString("username")
 	jsonOutput := viper.GetBool("json")
@@ -204,20 +193,37 @@ func GetUserInfo() {
 		os.Exit(0)
 	}
 	if username != "" {
-		url := viper.GetString("server")
-		uid = getUIDFromUsername(username, url, jsonOutput)
+		// Get credentials
+		token, err := GetCredentials(url)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		client := RestClient(token.AccessToken)
+		uid, err = getUIDFromUsername(client, username, url)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 		getUser(uid, jsonOutput)
 		os.Exit(0)
 	}
 
-	// Check expiration
-	token := ReadCredentials()
-	if NeedsRefresh(token) {
-		Refresh(token.RefreshToken)
-		token = ReadCredentials()
+	// Get credentials
+	token, err := GetCredentials(url)
+	if err != nil {
+		printError(err.Error(), jsonOutput)
+		os.Exit(1)
 	}
+
 	if AmIPlainUser(token) {
-		uid = uint(WhichIsMyTokenUID(token))
+		tokenUID, err := WhichIsMyTokenUID(token)
+		if err != nil {
+			printError(err.Error(), jsonOutput)
+			os.Exit(1)
+		}
+
+		uid = tokenUID
 		getUser(uid, jsonOutput)
 		os.Exit(0)
 	}

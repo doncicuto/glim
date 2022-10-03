@@ -34,6 +34,7 @@ var deleteGroupCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
+		url := viper.GetString("server")
 
 		confirm := prompter.YesNo("Do you really want to delete this group?", false)
 		if !confirm {
@@ -43,28 +44,26 @@ var deleteGroupCmd = &cobra.Command{
 		// json output?
 		jsonOutput := viper.GetBool("json")
 
-		// Glim server URL
-		url := viper.GetString("server")
-
-		// Read credentials
-		gid := viper.GetUint("gid")
-		group := viper.GetString("group")
-
-		token := ReadCredentials()
-
-		if gid == 0 && group != "" {
-			gid = getGIDFromGroupName(group, url, jsonOutput)
-		}
-
-		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
-		// Check expiration
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
+		// Get credentials
+		token, err := GetCredentials(url)
+		if err != nil {
+			printError(err.Error(), jsonOutput)
+			os.Exit(1)
 		}
 
 		// Rest API authentication
 		client := RestClient(token.AccessToken)
+
+		gid := viper.GetUint("gid")
+		group := viper.GetString("group")
+		if gid == 0 && group != "" {
+			gid, err = getGIDFromGroupName(client, group, url)
+			if err != nil {
+				printError(err.Error(), jsonOutput)
+				os.Exit(1)
+			}
+		}
+		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").

@@ -42,31 +42,42 @@ var userPasswdCmd = &cobra.Command{
 		uid := viper.GetUint("uid")
 		username := viper.GetString("username")
 
-		// Check expiration
-		token := ReadCredentials()
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
+		// Get credentials
+		token, err := GetCredentials(url)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 		// JSON output?
 		jsonOutput := viper.GetBool("json")
 
+		tokenUID, err := WhichIsMyTokenUID(token)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		client := RestClient(token.AccessToken)
 		if uid == 0 {
 			if username != "" {
-				uid = getUIDFromUsername(username, url, jsonOutput)
+				uid, err = getUIDFromUsername(client, username, url)
+				if err != nil {
+					fmt.Println(err)
+					os.Exit(1)
+				}
 			} else {
-				uid = uint(WhichIsMyTokenUID(token))
+				uid = tokenUID
 			}
 		}
 
-		if !AmIManager(token) && uint(WhichIsMyTokenUID(token)) != uid {
+		if !AmIManager(token) && tokenUID != uid {
 			error := "Only users with manager role can change other users passwords"
 			printError(error, jsonOutput)
 			os.Exit(1)
 		}
 
-		if uint(WhichIsMyTokenUID(token)) == uid {
+		if tokenUID == uid {
 			oldPassword := prompter.Password("Old password")
 			if oldPassword == "" {
 				error := "Error password required"
@@ -100,8 +111,6 @@ var userPasswdCmd = &cobra.Command{
 
 		passwdBody.Password = password
 
-		// Rest API authentication
-		client := RestClient(token.AccessToken)
 		endpoint := fmt.Sprintf("%s/v1/users/%d/passwd", url, uid)
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").

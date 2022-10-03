@@ -46,6 +46,8 @@ definitions:
         type: string
       firstname:
         type: string
+      jpeg_photo:
+        type: string
       lastname:
         type: string
       locked:
@@ -80,6 +82,8 @@ definitions:
         type: string
       firstname:
         type: string
+      jpeg_photo:
+        type: string
       lastname:
         type: string
       locked:
@@ -113,7 +117,7 @@ definitions:
       username:
         type: string
     type: object
-  types.Response:
+  types.TokenAuthentication:
     properties:
       access_token:
         type: string
@@ -490,7 +494,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/types.TokenAuthentication'
         "400":
           description: Bad Request
           schema:
@@ -555,7 +559,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/types.TokenAuthentication'
         "400":
           description: Bad Request
           schema:

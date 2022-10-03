@@ -32,19 +32,15 @@ var logoutCmd = &cobra.Command{
 	Short: "Log out from a Glim server",
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(_ *cobra.Command, _ []string) {
-		var token *types.Response
-
-		// Read token from file
-		token = ReadCredentials()
-
-		// Check expiration
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
-		}
-
-		// Glim server URL
+		var token *types.TokenAuthentication
 		url := viper.GetString("server")
+
+		// Get credentials
+		token, err := GetCredentials(url)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 
 		// Logout
 		client := RestClient("")
@@ -66,7 +62,11 @@ var logoutCmd = &cobra.Command{
 		}
 
 		// Remove credentials file
-		DeleteCredentials()
+		err = DeleteCredentials()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 
 		fmt.Println("Removing login credentials")
 	},

@@ -124,7 +124,7 @@ var loginCmd = &cobra.Command{
 			fmt.Printf("%v", err)
 		}
 
-		f, err := os.OpenFile(*tokenFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+		f, err := os.OpenFile(tokenFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 		if err != nil {
 			fmt.Printf("Could not create file to store auth token: %v\n", err)
 		}

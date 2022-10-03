@@ -51,12 +51,11 @@ var csvDeleteUsersCmd = &cobra.Command{
 		// Glim server URL
 		url := viper.GetString("server")
 
-		// Read credentials
-		token := ReadCredentials()
-		// Check expiration
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
+		// Get credentials
+		token, err := GetCredentials(url)
+		if err != nil {
+			printError(err.Error(), jsonOutput)
+			os.Exit(1)
 		}
 
 		// Rest API authentication

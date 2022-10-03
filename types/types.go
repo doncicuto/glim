@@ -28,8 +28,8 @@ type Tokens struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// Response - TODO comment
-type Response struct {
+// TokenAuthentication - TODO comment
+type TokenAuthentication struct {
 	TokenType string  `json:"token_type"`
 	ExpiresIn float64 `json:"expires_in"`
 	ExpiresOn int64   `json:"expires_on"`

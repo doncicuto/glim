@@ -36,23 +36,22 @@ var updateUserCmd = &cobra.Command{
 		viper.BindPFlags(cmd.Flags())
 	},
 	Run: func(_ *cobra.Command, _ []string) {
-
 		var trueValue = true
 		var falseValue = false
 
-		// Read credentials and check expiration
-		token := ReadCredentials()
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
+		url := viper.GetString("server")
+		jsonOutput := viper.GetBool("json")
+
+		// Get credentials
+		token, err := GetCredentials(url)
+		if err != nil {
+			printError(err.Error(), jsonOutput)
+			os.Exit(1)
 		}
 
 		// Get uid and username
 		uid := viper.GetUint("uid")
 		username := viper.GetString("username")
-
-		// JSON output?
-		jsonOutput := viper.GetBool("json")
 
 		if uid == 0 && username == "" {
 			error := "you must specify either the user account id or a username"
@@ -60,11 +59,13 @@ var updateUserCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Glim server URL
-		url := viper.GetString("server")
-
+		client := RestClient(token.AccessToken)
 		if uid == 0 && username != "" {
-			uid = getUIDFromUsername(username, url, jsonOutput)
+			uid, err = getUIDFromUsername(client, username, url)
+			if err != nil {
+				printError(err.Error(), jsonOutput)
+				os.Exit(1)
+			}
 		}
 
 		// Validate email
@@ -150,7 +151,6 @@ var updateUserCmd = &cobra.Command{
 		}
 
 		// Rest API authentication
-		client := RestClient(token.AccessToken)
 		endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").

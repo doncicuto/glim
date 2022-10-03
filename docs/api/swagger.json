@@ -544,7 +544,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/types.TokenAuthentication"
                         }
                     },
                     "400": {
@@ -596,7 +596,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/types.TokenAuthentication"
                         }
                     },
                     "400": {
@@ -1162,6 +1162,9 @@
                 "firstname": {
                     "type": "string"
                 },
+                "jpeg_photo": {
+                    "type": "string"
+                },
                 "lastname": {
                     "type": "string"
                 },
@@ -1212,6 +1215,9 @@
                     "type": "string"
                 },
                 "firstname": {
+                    "type": "string"
+                },
+                "jpeg_photo": {
                     "type": "string"
                 },
                 "lastname": {
@@ -1265,7 +1271,7 @@
                 }
             }
         },
-        "types.Response": {
+        "types.TokenAuthentication": {
             "type": "object",
             "properties": {
                 "access_token": {

@@ -22,18 +22,12 @@ import (
 
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/types"
+	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func getGIDFromGroupName(group string, url string, jsonOutput bool) uint {
-	token := ReadCredentials()
-	if NeedsRefresh(token) {
-		Refresh(token.RefreshToken)
-		token = ReadCredentials()
-	}
-
-	client := RestClient(token.AccessToken)
+func getGIDFromGroupName(client *resty.Client, group string, url string) (uint, error) {
 	endpoint := fmt.Sprintf("%s/v1/groups/%s/gid", url, group)
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -42,19 +36,15 @@ func getGIDFromGroupName(group string, url string, jsonOutput bool) uint {
 		Get(endpoint)
 
 	if err != nil {
-		error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return 0, fmt.Errorf("error connecting with Glim: %v", err)
 	}
 
 	if resp.IsError() {
-		error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return 0, fmt.Errorf("error response from Glim: %v", resp.Error().(*types.APIError).Message)
 	}
 
 	result := resp.Result().(*models.GroupID)
-	return uint(result.ID)
+	return uint(result.ID), nil
 }
 
 func getGroup(id uint, jsonOutput bool) {
@@ -62,13 +52,11 @@ func getGroup(id uint, jsonOutput bool) {
 	url := viper.GetString("server")
 	endpoint := fmt.Sprintf("%s/v1/groups/%d", url, id)
 
-	// Read credentials
-	token := ReadCredentials()
-
-	// Check expiration
-	if NeedsRefresh(token) {
-		Refresh(token.RefreshToken)
-		token = ReadCredentials()
+	// Get credentials
+	token, err := GetCredentials(url)
+	if err != nil {
+		printError(err.Error(), jsonOutput)
+		os.Exit(1)
 	}
 
 	// Rest API authentication
@@ -115,14 +103,13 @@ func getGroup(id uint, jsonOutput bool) {
 func getGroups(jsonOutput bool) {
 	// Glim server URL
 	url := viper.GetString("server")
-
-	// Read credentials
-	token := ReadCredentials()
 	endpoint := fmt.Sprintf("%s/v1/groups", url)
-	// Check expiration
-	if NeedsRefresh(token) {
-		Refresh(token.RefreshToken)
-		token = ReadCredentials()
+
+	// Get credentials
+	token, err := GetCredentials(url)
+	if err != nil {
+		printError(err.Error(), jsonOutput)
+		os.Exit(1)
 	}
 
 	// Rest API authentication
@@ -187,7 +174,19 @@ func GetGroupInfo() {
 	}
 	if group != "" {
 		url := viper.GetString("server")
-		gid = getGIDFromGroupName(group, url, jsonOutput)
+		// Get credentials
+		token, err := GetCredentials(url)
+		if err != nil {
+			printError(err.Error(), jsonOutput)
+			os.Exit(1)
+		}
+
+		client := RestClient(token.AccessToken)
+		gid, err = getGIDFromGroupName(client, group, url)
+		if err != nil {
+			printError(err.Error(), jsonOutput)
+			os.Exit(1)
+		}
 		getGroup(gid, jsonOutput)
 		os.Exit(0)
 	}

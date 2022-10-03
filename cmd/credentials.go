@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -25,11 +26,13 @@ import (
 
 	"github.com/doncicuto/glim/types"
 	"github.com/golang-jwt/jwt"
-	"github.com/spf13/viper"
 )
 
-// AuthTokenPath - TODO comment
-func AuthTokenPath() (*string, error) {
+/*
+AuthTokenPath gets the path where Glim's JWT access token is stored
+Returns a string containing the file path inside user's home directory
+*/
+func AuthTokenPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Printf("Could not get your home directory: %v\n", err)
@@ -39,59 +42,61 @@ func AuthTokenPath() (*string, error) {
 	if _, err := os.Stat(glimPath); os.IsNotExist(err) {
 		err = os.MkdirAll(glimPath, 0700)
 		if err != nil {
-			return nil, fmt.Errorf("could not create .glim in your home directory: %v", err)
+			return "", fmt.Errorf("could not create .glim in your home directory: %v", err)
 		}
 	}
 
 	tokenPath := fmt.Sprintf("%s/accessToken.json", glimPath)
-	return &tokenPath, nil
+	return tokenPath, nil
 }
 
-// ReadCredentials - TODO comment
-func ReadCredentials() *types.Response {
-	var token types.Response
+/*
+readCredentials read and parse token stored in path retrieved from AuthTokenPath
+Returns a pointer to the token or error
+*/
+func readCredentials() (*types.TokenAuthentication, error) {
+	var token types.TokenAuthentication
 
 	tokenFile, err := AuthTokenPath()
 	if err != nil {
-		fmt.Printf("%v", err)
-		os.Exit(1)
+		return nil, err
 	}
 
-	f, err := os.Open(*tokenFile)
+	f, err := os.Open(tokenFile)
 	if err != nil {
-		fmt.Println("Could not read file containing auth token. Please, log in again")
-		os.Exit(1)
+		return nil, errors.New("could not read file containing auth token. Please, log in again")
 	}
 	defer f.Close()
 
 	byteValue, _ := ioutil.ReadAll(f)
 	if err := json.Unmarshal(byteValue, &token); err != nil {
-		fmt.Printf("Could not get credentials from stored file %v", err)
-		os.Exit(1)
+		return nil, errors.New("could not get credentials from stored file")
 	}
 
-	return &token
+	return &token, nil
 }
 
-// DeleteCredentials - TODO comment
-func DeleteCredentials() {
+/*
+DeleteCredentials deletes the file containing credentials
+*/
+
+func DeleteCredentials() error {
 	tokenFile, err := AuthTokenPath()
 	if err != nil {
-		fmt.Printf("%v", err)
-		os.Exit(1)
+		return err
 	}
 
-	if err := os.Remove(*tokenFile); err != nil {
-		fmt.Printf("%v", err)
-		os.Exit(1)
+	if err := os.Remove(tokenFile); err != nil {
+		return err
 	}
+	return nil
 }
 
-// Refresh - TODO comment
-func Refresh(rt string) {
-	// Glim server URL
-	url := viper.GetString("server")
-
+/*
+refresh contact Glim REST API to retrieve new access and refresh tokens
+refresh needs the server's REST API url address and current refresh token string
+*/
+func refresh(url string, rt string) (*types.TokenAuthentication, error) {
 	// Rest API authentication
 	client := RestClient(rt)
 
@@ -105,45 +110,67 @@ func Refresh(rt string) {
 		Post(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
 	if err != nil {
-		fmt.Printf("Error connecting with Glim: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("error connecting with Glim: %v", err)
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-		os.Exit(1)
+		return nil, fmt.Errorf("error response from Glim: %v", resp.Error().(*types.APIError).Message)
 	}
-
 	// Authenticated, let's store tokens in $HOME/.glim/accessToken.json
 	tokenFile, err := AuthTokenPath()
 	if err != nil {
-		fmt.Printf("Could not guess auth token path: %v", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("could not guess auth token path")
 	}
 
-	f, err := os.OpenFile(*tokenFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	f, err := os.OpenFile(tokenFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		fmt.Printf("Could not create file to store auth token: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("could not create file to store auth token")
 	}
 	defer f.Close()
 
 	if _, err := f.WriteString(resp.String()); err != nil {
-		fmt.Printf("Could not store credentials in our local fs: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("could not store credentials in our local fs")
 	}
+	token, err := readCredentials()
+	return token, err
 }
 
-// NeedsRefresh - TODO comment
-func NeedsRefresh(token *types.Response) bool {
+/*
+GetCredentials parses file with token and get new tokens if refresh
+is needed
+*/
+func GetCredentials(url string) (*types.TokenAuthentication, error) {
+	// Read credentials from file
+	token, err := readCredentials()
+	if err != nil {
+		return nil, err
+	}
+
+	// Check expiration and get new token
+	if NeedsRefresh(token) {
+		token, err = refresh(url, token.RefreshToken)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return token, nil
+}
+
+/*
+NeedsRefresh check if token needs to be refreshed
+*/
+func NeedsRefresh(token *types.TokenAuthentication) bool {
 	// Check expiration
 	now := time.Now()
 	expiration := time.Unix(token.ExpiresOn, 0)
 	return expiration.Before(now)
 }
 
-// AmIManager - TODO comment
-func AmIManager(token *types.Response) bool {
+/*
+AmIManager parses access token and checks if admin property is set to true
+*/
+func AmIManager(token *types.TokenAuthentication) bool {
 	claims := make(jwt.MapClaims)
 	jwt.ParseWithClaims(token.AccessToken, claims, nil)
 
@@ -156,8 +183,10 @@ func AmIManager(token *types.Response) bool {
 	return manager
 }
 
-// AmIReadonly - TODO comment
-func AmIReadonly(token *types.Response) bool {
+/*
+AmIReadonly parses access token and checks if readonly property is set to true
+*/
+func AmIReadonly(token *types.TokenAuthentication) bool {
 	claims := make(jwt.MapClaims)
 	jwt.ParseWithClaims(token.AccessToken, claims, nil)
 
@@ -170,22 +199,26 @@ func AmIReadonly(token *types.Response) bool {
 	return readonly
 }
 
-// AmIManager - TODO comment
-func AmIPlainUser(token *types.Response) bool {
+/*
+AmIPlainUser parses access token and checks if manager and/or readonly properties are set to true
+A plain user has both manager and readonly properties set to false
+*/
+func AmIPlainUser(token *types.TokenAuthentication) bool {
 	return !AmIManager(token) && !AmIReadonly(token)
 }
 
-// WhichIsMyTokenUID - TODO comment
-func WhichIsMyTokenUID(token *types.Response) float64 {
+/*
+WhichIsMyTokenUID parses access token and gets uid claim/property
+*/
+func WhichIsMyTokenUID(token *types.TokenAuthentication) (uint, error) {
 	claims := make(jwt.MapClaims)
 	jwt.ParseWithClaims(token.AccessToken, claims, nil)
 
 	// Extract access token jti
 	uid, ok := claims["uid"].(float64)
 	if !ok {
-		fmt.Println("Could not parse access token. Please try to log in again")
-		os.Exit(1)
+		return 0, fmt.Errorf("could not parse access token. Please try to log in again")
 	}
 
-	return uid
+	return uint(uid), nil
 }
