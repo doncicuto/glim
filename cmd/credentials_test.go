@@ -93,11 +93,11 @@ func TestRefresh(t *testing.T) {
 	// Prepare test databases and echo testing server
 	e := testSetup(t)
 	defer testCleanUp()
-	url := "http://127.0.0.1:1323"
+	url := "http://127.0.0.1:50002"
 
 	// Launch testing server
 	go func() {
-		e.Start(":1323")
+		e.Start(":50002")
 	}()
 
 	// Get token path
