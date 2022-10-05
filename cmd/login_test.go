@@ -18,7 +18,6 @@ func TestLoginCmd(t *testing.T) {
 	}()
 
 	cmd := NewLoginCmd()
-	b := bytes.NewBufferString("")
 
 	t.Run("can't connect with server", func(t *testing.T) {
 		cmd.SetArgs([]string{"--server", "http://127.0.0.1:1923", "--username", "admin", "--password", "tess"})
@@ -45,6 +44,7 @@ func TestLoginCmd(t *testing.T) {
 	})
 
 	t.Run("login successful", func(t *testing.T) {
+		b := bytes.NewBufferString("")
 		cmd.SetOut(b)
 		cmd.SetArgs([]string{"--server", "http://127.0.0.1:51005", "--username", "admin", "--password", "test"})
 		err := cmd.Execute()
