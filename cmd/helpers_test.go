@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"bytes"
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -11,6 +13,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
@@ -79,4 +83,33 @@ func removeDatabase() {
 
 func removeKV() {
 	os.RemoveAll("/tmp/kv")
+}
+
+type CmdTestCase struct {
+	name           string
+	cmd            *cobra.Command
+	args           []string
+	successMessage string
+	errorMessage   string
+}
+
+func runTests(t *testing.T, tc CmdTestCase) {
+	t.Run(tc.name, func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		cmd := tc.cmd
+		cmd.SetOut(b)
+		cmd.SetArgs(tc.args)
+		err := cmd.Execute()
+		if err != nil {
+			assert.Equal(t, tc.errorMessage, err.Error())
+		} else {
+			if tc.successMessage != "" {
+				out, err := ioutil.ReadAll(b)
+				if err != nil {
+					t.Fatal(err)
+				}
+				assert.Equal(t, tc.successMessage, string(out))
+			}
+		}
+	})
 }

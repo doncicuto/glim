@@ -26,6 +26,7 @@ import (
 
 	"github.com/doncicuto/glim/models"
 	"github.com/go-resty/resty/v2"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -99,6 +100,21 @@ func printMessage(message string, jsonOutput bool) {
 		enc.Encode(output)
 	} else {
 		fmt.Println(message)
+	}
+}
+
+func printCmdMessage(cmd *cobra.Command, message string, jsonOutput bool) {
+	if jsonOutput {
+		output := JSONSuccessOutput{}
+		enc := json.NewEncoder(cmd.OutOrStdout())
+
+		if message != "" {
+			output.Message = message
+		}
+
+		enc.Encode(output)
+	} else {
+		fmt.Fprintf(cmd.OutOrStdout(), "%s\n", message)
 	}
 }
 

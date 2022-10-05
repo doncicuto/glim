@@ -17,18 +17,8 @@ func TestLogoutCmd(t *testing.T) {
 		e.Start(":51006")
 	}()
 
-	loginCmd := NewLoginCmd()
-	logoutCmd := NewLogoutCmd()
-
-	t.Run("can't connect with server", func(t *testing.T) {
-		loginCmd.SetArgs([]string{"--server", "http://127.0.0.1:1923", "--username", "admin", "--password", "test"})
-		err := loginCmd.Execute()
-		if err != nil {
-			assert.Contains(t, err.Error(), "can't connect with Glim")
-		}
-	})
-
 	t.Run("login successful", func(t *testing.T) {
+		loginCmd := NewLoginCmd()
 		b := bytes.NewBufferString("")
 		loginCmd.SetOut(b)
 		loginCmd.SetArgs([]string{"--server", "http://127.0.0.1:51006", "--username", "admin", "--password", "test"})
@@ -43,6 +33,7 @@ func TestLogoutCmd(t *testing.T) {
 	})
 
 	t.Run("logout successful", func(t *testing.T) {
+		logoutCmd := NewLogoutCmd()
 		b := bytes.NewBufferString("")
 		logoutCmd.SetOut(b)
 		logoutCmd.SetArgs([]string{"--server", "http://127.0.0.1:51006"})
