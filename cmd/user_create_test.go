@@ -13,6 +13,8 @@ func TestUserCreateCmd(t *testing.T) {
 		e.Start(":51007")
 	}()
 
+	waitForTestServer(t, ":51007")
+
 	testCases := []CmdTestCase{
 		{
 			name:           "login successful",
@@ -41,6 +43,13 @@ func TestUserCreateCmd(t *testing.T) {
 			args:           []string{"--server", "http://127.0.0.1:51007", "--username", "test", "--password", "test"},
 			errorMessage:   "",
 			successMessage: "User created\n",
+		},
+		{
+			name:           "user already exists",
+			cmd:            NewUserCmd(),
+			args:           []string{"--server", "http://127.0.0.1:51007", "--username", "test", "--password", "test"},
+			errorMessage:   "user already exists",
+			successMessage: "",
 		},
 	}
 

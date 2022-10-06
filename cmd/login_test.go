@@ -17,6 +17,8 @@ func TestLoginCmd(t *testing.T) {
 		e.Start(":51005")
 	}()
 
+	waitForTestServer(t, ":51005")
+
 	cmd := NewLoginCmd()
 
 	t.Run("can't connect with server", func(t *testing.T) {

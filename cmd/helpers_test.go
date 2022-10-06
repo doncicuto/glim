@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
+	"github.com/antelman107/net-wait-go/wait"
 	"github.com/doncicuto/glim/server/api/handlers"
 	"github.com/doncicuto/glim/server/db"
 	"github.com/doncicuto/glim/server/kv/badgerdb"
@@ -91,6 +93,19 @@ type CmdTestCase struct {
 	args           []string
 	successMessage string
 	errorMessage   string
+}
+
+func waitForTestServer(t *testing.T, address string) {
+	if !wait.New(
+		wait.WithProto("tcp"),
+		wait.WithWait(200*time.Millisecond),
+		wait.WithBreak(50*time.Millisecond),
+		wait.WithDeadline(5*time.Second),
+		wait.WithDebug(true),
+	).Do([]string{address}) {
+		t.Fatal("test server is not available")
+		return
+	}
 }
 
 func runTests(t *testing.T, tc CmdTestCase) {

@@ -100,6 +100,8 @@ func TestRefresh(t *testing.T) {
 		e.Start(":50002")
 	}()
 
+	waitForTestServer(t, ":50002")
+
 	// Get token path
 	tokenPath, err := AuthTokenPath()
 	if err != nil {

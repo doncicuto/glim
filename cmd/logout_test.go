@@ -17,6 +17,8 @@ func TestLogoutCmd(t *testing.T) {
 		e.Start(":51006")
 	}()
 
+	waitForTestServer(t, ":51006")
+
 	t.Run("login successful", func(t *testing.T) {
 		loginCmd := NewLoginCmd()
 		b := bytes.NewBufferString("")
