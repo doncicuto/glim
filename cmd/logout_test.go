@@ -20,7 +20,7 @@ func TestLogoutCmd(t *testing.T) {
 	waitForTestServer(t, ":51006")
 
 	t.Run("login successful", func(t *testing.T) {
-		loginCmd := NewLoginCmd()
+		loginCmd := LoginCmd()
 		b := bytes.NewBufferString("")
 		loginCmd.SetOut(b)
 		loginCmd.SetArgs([]string{"--server", "http://127.0.0.1:51006", "--username", "admin", "--password", "test"})
@@ -35,7 +35,7 @@ func TestLogoutCmd(t *testing.T) {
 	})
 
 	t.Run("logout successful", func(t *testing.T) {
-		logoutCmd := NewLogoutCmd()
+		logoutCmd := LogoutCmd()
 		b := bytes.NewBufferString("")
 		logoutCmd.SetOut(b)
 		logoutCmd.SetArgs([]string{"--server", "http://127.0.0.1:51006"})

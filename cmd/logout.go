@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewLogoutCmd() *cobra.Command {
+func LogoutCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "logout [flags] [SERVER]",
@@ -83,6 +83,6 @@ func NewLogoutCmd() *cobra.Command {
 }
 
 func init() {
-	logoutCmd := NewLogoutCmd()
+	logoutCmd := LogoutCmd()
 	rootCmd.AddCommand(logoutCmd)
 }

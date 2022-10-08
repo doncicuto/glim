@@ -37,11 +37,11 @@ func getUIDFromUsername(client *resty.Client, username string, url string) (uint
 		Get(endpoint)
 
 	if err != nil {
-		return 0, fmt.Errorf("error connecting with Glim: %v", err)
+		return 0, fmt.Errorf("can't connect with Glim: %v", err)
 	}
 
 	if resp.IsError() {
-		return 0, fmt.Errorf("error response from Glim: %v", resp.Error().(*types.APIError).Message)
+		return 0, fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
 	}
 
 	result := resp.Result().(*models.UserID)

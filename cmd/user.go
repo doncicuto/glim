@@ -52,7 +52,7 @@ func init() {
 	userCmd.AddCommand(NewUserCmd())
 	userCmd.AddCommand(updateUserCmd)
 	userCmd.AddCommand(DeleteUserCmd())
-	userCmd.AddCommand(userPasswdCmd)
+	userCmd.AddCommand(UserPasswdCmd())
 	userCmd.Flags().UintP("uid", "i", 0, "user account id")
 	userCmd.Flags().StringP("username", "u", "", "username")
 }

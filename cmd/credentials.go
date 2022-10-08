@@ -110,11 +110,11 @@ func refresh(url string, rt string) (*types.TokenAuthentication, error) {
 		Post(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
 	if err != nil {
-		return nil, fmt.Errorf("error connecting with Glim: %v", err)
+		return nil, fmt.Errorf("can't connect with Glim: %v", err)
 	}
 
 	if resp.IsError() {
-		return nil, fmt.Errorf("error response from Glim: %v", resp.Error().(*types.APIError).Message)
+		return nil, fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
 	}
 	// Authenticated, let's store tokens in $HOME/.glim/accessToken.json
 	tokenFile, err := AuthTokenPath()

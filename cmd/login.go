@@ -32,18 +32,21 @@ import (
 )
 
 /*
-NewLoginCmd
+LoginCmd
 */
-func NewLoginCmd() *cobra.Command {
+func LoginCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "login",
 		Short: `Log in to a Glim Server`,
-		Args:  cobra.MaximumNArgs(1),
+		PreRun: func(cmd *cobra.Command, _ []string) {
+			viper.BindPFlags(cmd.Flags())
+		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 
 			username := viper.GetString("username")
 			password := viper.GetString("password")
+			fmt.Println("username", username, "password", password)
 			passwordStdin := viper.GetBool("password-stdin")
 
 			if username == "" {
@@ -148,13 +151,11 @@ func NewLoginCmd() *cobra.Command {
 	cmd.Flags().StringP("username", "u", "", "Username")
 	cmd.Flags().StringP("password", "p", "", "Password")
 	cmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
-	viper.BindPFlags(cmd.Flags())
+
 	return cmd
 }
 
-// loginCmd represents the login command
-var loginCmd = NewLoginCmd()
-
 func init() {
+	loginCmd := LoginCmd()
 	rootCmd.AddCommand(loginCmd)
 }

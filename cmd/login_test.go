@@ -19,7 +19,7 @@ func TestLoginCmd(t *testing.T) {
 
 	waitForTestServer(t, ":51005")
 
-	cmd := NewLoginCmd()
+	cmd := LoginCmd()
 
 	t.Run("can't connect with server", func(t *testing.T) {
 		cmd.SetArgs([]string{"--server", "http://127.0.0.1:1923", "--username", "admin", "--password", "tess"})

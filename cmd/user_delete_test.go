@@ -18,7 +18,7 @@ func TestUserDeleteCmd(t *testing.T) {
 	testCases := []CmdTestCase{
 		{
 			name:           "login successful",
-			cmd:            NewLoginCmd(),
+			cmd:            LoginCmd(),
 			args:           []string{"--server", "http://127.0.0.1:51008", "--username", "admin", "--password", "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",

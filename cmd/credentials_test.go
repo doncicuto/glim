@@ -108,19 +108,11 @@ func TestRefresh(t *testing.T) {
 		t.Fatalf("could not get AuthTokenPath - %v", err)
 	}
 
-	t.Run("can't contact with invalid server", func(t *testing.T) {
-		os.Remove(tokenPath)
-		_, err := refresh("127.0.0.1:1393", "")
-		if err != nil {
-			assert.Contains(t, err.Error(), "error connecting with Glim")
-		}
-	})
-
 	t.Run("token is empty", func(t *testing.T) {
 		os.Remove(tokenPath)
 		_, err := refresh(url, "")
 		if err != nil {
-			assert.Contains(t, err.Error(), "error response from Glim: could not parse token, you may have to log in again")
+			assert.Contains(t, err.Error(), "could not parse token, you may have to log in again")
 		}
 	})
 
@@ -128,7 +120,7 @@ func TestRefresh(t *testing.T) {
 		os.Remove(tokenPath)
 		_, err := refresh(url, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOGE1NDM4ZTItMTIxYy00M2U2LWFlZjUtMTU4OWIxMTk2YTBmIiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoyNzcxNTMyODIzLCJpYXQiOjE2NTE1MzI4MjMsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6ImQ5OGQ0YTA2LTYyOGMtNGNjZC05M2YxLWY5NjNhNmQ0YWU0OSIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.T7FIZembax4xD3zozT_9fbEeWsPbJAmG4VkLFl1Fsmk")
 		if err != nil {
-			assert.Contains(t, err.Error(), "error response from Glim: refresh token usage without log in exceeded")
+			assert.Contains(t, err.Error(), "refresh token usage without log in exceeded")
 		}
 	})
 
@@ -136,7 +128,7 @@ func TestRefresh(t *testing.T) {
 		os.Remove(tokenPath)
 		token, err := refresh(url, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.ssYmxVciETD6LIKVfK_43Ka0Q79TAE4fdbNpjO-TpvA")
 		if err != nil {
-			assert.Contains(t, err.Error(), "error response from Glim: refresh token usage without log in exceeded")
+			assert.Contains(t, err.Error(), "refresh token usage without log in exceeded")
 		} else {
 			assert.NotNil(t, token)
 		}
@@ -146,7 +138,7 @@ func TestRefresh(t *testing.T) {
 		os.Remove(tokenPath)
 		token, err := refresh(url, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.ssYmxVciETD6LIKVfK_43Ka0Q79TAE4fdbNpjO-TpvA")
 		if err != nil {
-			assert.Contains(t, err.Error(), "error response from Glim: token no longer valid")
+			assert.Contains(t, err.Error(), "token no longer valid")
 		} else {
 			assert.NotNil(t, token)
 		}

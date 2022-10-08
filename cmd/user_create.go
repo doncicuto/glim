@@ -39,6 +39,7 @@ func NewUserCmd() *cobra.Command {
 		Use:   "create",
 		Short: "Create a Glim user account",
 		PreRun: func(cmd *cobra.Command, _ []string) {
+
 			viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
