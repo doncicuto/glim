@@ -39,7 +39,6 @@ func NewUserCmd() *cobra.Command {
 		Use:   "create",
 		Short: "Create a Glim user account",
 		PreRun: func(cmd *cobra.Command, _ []string) {
-
 			viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -126,8 +125,7 @@ func NewUserCmd() *cobra.Command {
 			// Get credentials
 			token, err := GetCredentials(url)
 			if err != nil {
-				printError(err.Error(), jsonOutput)
-				os.Exit(1)
+				return err
 			}
 
 			// Rest API authentication

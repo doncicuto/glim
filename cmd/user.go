@@ -32,8 +32,8 @@ var userCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, _ []string) {
 		viper.BindPFlags(cmd.Flags())
 	},
-	Run: func(_ *cobra.Command, _ []string) {
-		GetUserInfo()
+	RunE: func(cmd *cobra.Command, _ []string) error {
+		return GetUserInfo(cmd)
 	},
 }
 
@@ -48,7 +48,7 @@ func init() {
 	userCmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
 	userCmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 	userCmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
-	userCmd.AddCommand(listUserCmd)
+	userCmd.AddCommand(ListUserCmd())
 	userCmd.AddCommand(NewUserCmd())
 	userCmd.AddCommand(updateUserCmd)
 	userCmd.AddCommand(DeleteUserCmd())

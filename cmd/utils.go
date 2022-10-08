@@ -129,13 +129,13 @@ func printCSVMessages(messages []string, jsonOutput bool) {
 	}
 }
 
-func encodeUserToJson(user *models.UserInfo) {
-	enc := json.NewEncoder(os.Stdout)
+func encodeUserToJson(cmd *cobra.Command, user *models.UserInfo) {
+	enc := json.NewEncoder(cmd.OutOrStdout())
 	enc.Encode(user)
 }
 
-func encodeUsersToJson(users *[]models.UserInfo) {
-	enc := json.NewEncoder(os.Stdout)
+func encodeUsersToJson(cmd *cobra.Command, users *[]models.UserInfo) {
+	enc := json.NewEncoder(cmd.OutOrStdout())
 	enc.Encode(users)
 }
 

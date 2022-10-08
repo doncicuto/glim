@@ -46,7 +46,6 @@ func LoginCmd() *cobra.Command {
 
 			username := viper.GetString("username")
 			password := viper.GetString("password")
-			fmt.Println("username", username, "password", password)
 			passwordStdin := viper.GetBool("password-stdin")
 
 			if username == "" {
