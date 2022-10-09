@@ -88,21 +88,6 @@ func printError(errorMessage string, jsonOutput bool) {
 	}
 }
 
-func printMessage(message string, jsonOutput bool) {
-	if jsonOutput {
-		output := JSONSuccessOutput{}
-		enc := json.NewEncoder(os.Stdout)
-
-		if message != "" {
-			output.Message = message
-		}
-
-		enc.Encode(output)
-	} else {
-		fmt.Println(message)
-	}
-}
-
 func printCmdMessage(cmd *cobra.Command, message string, jsonOutput bool) {
 	if jsonOutput {
 		output := JSONSuccessOutput{}

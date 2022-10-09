@@ -50,7 +50,7 @@ func init() {
 	groupCmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
 	groupCmd.AddCommand(ListGroupCmd())
 	groupCmd.AddCommand(NewGroupCmd())
-	groupCmd.AddCommand(updateGroupCmd)
+	groupCmd.AddCommand(UpdateGroupCmd())
 	groupCmd.AddCommand(DeleteGroupCmd())
 	groupCmd.Flags().UintP("gid", "i", 0, "group id")
 	groupCmd.Flags().StringP("group", "g", "", "group name")
