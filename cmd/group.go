@@ -51,7 +51,7 @@ func init() {
 	groupCmd.AddCommand(ListGroupCmd())
 	groupCmd.AddCommand(NewGroupCmd())
 	groupCmd.AddCommand(updateGroupCmd)
-	groupCmd.AddCommand(deleteGroupCmd)
+	groupCmd.AddCommand(DeleteGroupCmd())
 	groupCmd.Flags().UintP("gid", "i", 0, "group id")
 	groupCmd.Flags().StringP("group", "g", "", "group name")
 }
