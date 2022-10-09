@@ -139,12 +139,12 @@ func encodeUsersToJson(cmd *cobra.Command, users *[]models.UserInfo) {
 	enc.Encode(users)
 }
 
-func encodeGroupToJson(group *models.GroupInfo) {
-	enc := json.NewEncoder(os.Stdout)
+func encodeGroupToJson(cmd *cobra.Command, group *models.GroupInfo) {
+	enc := json.NewEncoder(cmd.OutOrStdout())
 	enc.Encode(group)
 }
 
-func encodeGroupsToJson(groups *[]models.GroupInfo) {
-	enc := json.NewEncoder(os.Stdout)
+func encodeGroupsToJson(cmd *cobra.Command, groups *[]models.GroupInfo) {
+	enc := json.NewEncoder(cmd.OutOrStderr())
 	enc.Encode(groups)
 }
