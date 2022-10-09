@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/mail"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/doncicuto/glim/models"
@@ -28,119 +29,127 @@ import (
 	"github.com/spf13/viper"
 )
 
-// csvCreateUsersCmd - TODO comment
-var csvCreateUsersCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create users from a CSV file",
-	PreRun: func(cmd *cobra.Command, _ []string) {
-		viper.BindPFlags(cmd.Flags())
-	},
-	Run: func(_ *cobra.Command, _ []string) {
-		// json output?
-		jsonOutput := viper.GetBool("json")
-		messages := []string{}
+func CsvCreateUsersCmd() *cobra.Command {
 
-		// Read and open file
-		users := readUsersFromCSV(jsonOutput)
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create users from a CSV file",
+		PreRun: func(cmd *cobra.Command, _ []string) {
+			viper.BindPFlags(cmd.Flags())
+		},
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			// json output?
+			jsonOutput := viper.GetBool("json")
+			messages := []string{}
 
-		if len(users) == 0 {
-			error := "no users where found in CSV file"
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+			// Read and open file
+			users := readUsersFromCSV(jsonOutput)
 
-		// Glim server URL
-		url := viper.GetString("server")
-		endpoint := fmt.Sprintf("%s/v1/users", url)
-
-		// Get credentials
-		token, err := GetCredentials(url)
-		if err != nil {
-			printError(err.Error(), jsonOutput)
-			os.Exit(1)
-		}
-
-		// Rest API authentication
-		client := RestClient(token.AccessToken)
-
-		for _, user := range users {
-			username := *user.Username
-			// Validate email
-			email := *user.Email
-			if email != "" {
-				if _, err := mail.ParseAddress(email); err != nil {
-					error := fmt.Sprintf("%s: skipped, email should have a valid format\n", username)
-					messages = append(messages, error)
-					continue
-				}
-			}
-			// Check if both manager and readonly has been set
-			manager := *user.Manager
-			readonly := *user.Readonly
-			if manager && readonly {
-				error := fmt.Sprintf("%s: skipped, cannot be both manager and readonly at the same time\n", username)
-				messages = append(messages, error)
-				continue
-			}
-
-			password := *user.Password
-			locked := *user.Locked || password == ""
-
-			// JpegPhoto
-			jpegPhoto := ""
-			jpegPhotoPath := *user.JPEGPhoto
-			if jpegPhotoPath != "" {
-				photo, err := JPEGToBase64(jpegPhotoPath)
-				if err != nil {
-					error := fmt.Sprintf("%s: skipped, could not convert JPEG photo to Base64 %v\n", username, err)
-					messages = append(messages, error)
-					continue
-				}
-				jpegPhoto = *photo
-			}
-
-			resp, err := client.R().
-				SetHeader("Content-Type", "application/json").
-				SetBody(models.JSONUserBody{
-					Username:     username,
-					Password:     password,
-					Name:         strings.Join([]string{*user.GivenName, *user.Surname}, " "),
-					GivenName:    *user.GivenName,
-					Surname:      *user.Surname,
-					Email:        *user.Email,
-					SSHPublicKey: *user.SSHPublicKey,
-					MemberOf:     *user.Groups,
-					JPEGPhoto:    jpegPhoto,
-					Manager:      &manager,
-					Readonly:     &readonly,
-					Locked:       &locked,
-				}).
-				SetError(&types.APIError{}).
-				Post(endpoint)
-
-			if err != nil {
-				error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
+			if len(users) == 0 {
+				error := "no users where found in CSV file"
 				printError(error, jsonOutput)
 				os.Exit(1)
 			}
 
-			if resp.IsError() {
-				error := fmt.Sprintf("%s: skipped, %v\n", username, resp.Error().(*types.APIError).Message)
-				messages = append(messages, error)
-				continue
+			// Glim server URL
+			url := viper.GetString("server")
+			endpoint := fmt.Sprintf("%s/v1/users", url)
+
+			// Get credentials
+			token, err := GetCredentials(url)
+			if err != nil {
+				printError(err.Error(), jsonOutput)
+				os.Exit(1)
 			}
-			message := fmt.Sprintf("%s: successfully created\n", username)
-			messages = append(messages, message)
-		}
 
-		printCSVMessages(messages, jsonOutput)
-		if !jsonOutput {
-			fmt.Printf("\nCreate from CSV finished!\n")
-		}
-	},
-}
+			// Rest API authentication
+			client := RestClient(token.AccessToken)
 
-func init() {
-	csvCreateUsersCmd.Flags().StringP("file", "f", "", "path to CSV file, use README to know more about the format")
-	csvCreateUsersCmd.MarkFlagRequired("file")
+			for _, user := range users {
+				username := *user.Username
+				// Validate email
+				email := *user.Email
+				if email != "" {
+					if _, err := mail.ParseAddress(email); err != nil {
+						error := fmt.Sprintf("%s: skipped, email should have a valid format\n", username)
+						messages = append(messages, error)
+						continue
+					}
+				}
+				// Check if both manager and readonly has been set
+				manager := *user.Manager
+				readonly := *user.Readonly
+				if manager && readonly {
+					error := fmt.Sprintf("%s: skipped, cannot be both manager and readonly at the same time\n", username)
+					messages = append(messages, error)
+					continue
+				}
+
+				password := *user.Password
+				locked := *user.Locked || password == ""
+
+				// JpegPhoto
+				jpegPhoto := ""
+				jpegPhotoPath := *user.JPEGPhoto
+				if jpegPhotoPath != "" {
+					photo, err := JPEGToBase64(jpegPhotoPath)
+					if err != nil {
+						error := fmt.Sprintf("%s: skipped, could not convert JPEG photo to Base64 %v\n", username, err)
+						messages = append(messages, error)
+						continue
+					}
+					jpegPhoto = *photo
+				}
+
+				resp, err := client.R().
+					SetHeader("Content-Type", "application/json").
+					SetBody(models.JSONUserBody{
+						Username:     username,
+						Password:     password,
+						Name:         strings.Join([]string{*user.GivenName, *user.Surname}, " "),
+						GivenName:    *user.GivenName,
+						Surname:      *user.Surname,
+						Email:        *user.Email,
+						SSHPublicKey: *user.SSHPublicKey,
+						MemberOf:     *user.Groups,
+						JPEGPhoto:    jpegPhoto,
+						Manager:      &manager,
+						Readonly:     &readonly,
+						Locked:       &locked,
+					}).
+					SetError(&types.APIError{}).
+					Post(endpoint)
+
+				if err != nil {
+					return fmt.Errorf("can't connect with Glim: %v", err)
+				}
+
+				if resp.IsError() {
+					messages = append(messages, fmt.Sprintf("%s: skipped, %v", username, resp.Error().(*types.APIError).Message))
+					continue
+				}
+				messages = append(messages, fmt.Sprintf("%s: successfully created", username))
+			}
+
+			printCSVMessages(cmd, messages, jsonOutput)
+			if !jsonOutput {
+				printCmdMessage(cmd, "Create from CSV finished!", jsonOutput)
+			}
+
+			return nil
+		},
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
+	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+	cmd.Flags().StringP("file", "f", "", "path to CSV file, use README to know more about the format")
+	cmd.MarkFlagRequired("file")
+	return cmd
 }

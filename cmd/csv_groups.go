@@ -44,6 +44,6 @@ func init() {
 	csvGroupsCmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
 	csvGroupsCmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 	csvGroupsCmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
-	csvGroupsCmd.AddCommand(csvCreateGroupsCmd)
-	csvGroupsCmd.AddCommand(csvDeleteGroupsCmd)
+	csvGroupsCmd.AddCommand(CsvCreateGroupsCmd())
+	csvGroupsCmd.AddCommand(CsvDeleteGroupsCmd())
 }

@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/types"
@@ -26,116 +27,116 @@ import (
 	"github.com/spf13/viper"
 )
 
-// csvDeleteGroupsCmd - TODO comment
-var csvDeleteGroupsCmd = &cobra.Command{
-	Use:   "rm",
-	Short: "Remove groups included in a CSV file",
-	PreRun: func(cmd *cobra.Command, _ []string) {
-		viper.BindPFlags(cmd.Flags())
-	},
-	Run: func(_ *cobra.Command, _ []string) {
-		// json output?
-		jsonOutput := viper.GetBool("json")
-		messages := []string{}
+func CsvDeleteGroupsCmd() *cobra.Command {
 
-		// Read and open file
-		groups := readGroupsFromCSV(jsonOutput)
+	cmd := &cobra.Command{
+		Use:   "rm",
+		Short: "Remove groups included in a CSV file",
+		PreRun: func(cmd *cobra.Command, _ []string) {
+			viper.BindPFlags(cmd.Flags())
+		},
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			// json output?
+			jsonOutput := viper.GetBool("json")
+			messages := []string{}
 
-		if len(groups) == 0 {
-			error := "no groups where found in CSV file"
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+			// Read and open file
+			groups := readGroupsFromCSV(jsonOutput)
 
-		// Glim server URL
-		url := viper.GetString("server")
-
-		// Get credentials
-		token, err := GetCredentials(url)
-		if err != nil {
-			printError(err.Error(), jsonOutput)
-			os.Exit(1)
-		}
-
-		// Rest API authentication
-		client := RestClient(token.AccessToken)
-
-		for _, group := range groups {
-			name := *group.Name
-			gid := group.ID
-
-			if name == "" && gid <= 0 {
-				error := fmt.Sprintf("GID %d: skipped, invalid group name and gid\n", gid)
-				messages = append(messages, error)
-				continue
+			if len(groups) == 0 {
+				return fmt.Errorf("no groups where found in CSV file")
 			}
 
-			if name != "" {
-				endpoint := fmt.Sprintf("%s/v1/groups/%s/gid", url, name)
-				resp, err := client.R().
-					SetHeader("Content-Type", "application/json").
-					SetResult(models.Group{}).
-					SetError(&types.APIError{}).
-					Get(endpoint)
+			// Glim server URL
+			url := viper.GetString("server")
 
-				if err != nil {
-					error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
-					printError(error, jsonOutput)
-					os.Exit(1)
-				}
-
-				if resp.IsError() {
-					error := fmt.Sprintf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message)
-					messages = append(messages, error)
-					continue
-				}
-
-				result := resp.Result().(*models.Group)
-
-				if result.ID != gid && gid != 0 {
-					error := fmt.Sprintf("%s: skipped, group name and gid found in CSV doesn't match\n", name)
-					messages = append(messages, error)
-					continue
-				}
-				gid = result.ID
-			}
-
-			// Delete using API
-			endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
-			resp, err := client.R().
-				SetHeader("Content-Type", "application/json").
-				SetError(&types.APIError{}).
-				Delete(endpoint)
-
+			// Get credentials
+			token, err := GetCredentials(url)
 			if err != nil {
-				error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
-				printError(error, jsonOutput)
+				printError(err.Error(), jsonOutput)
 				os.Exit(1)
 			}
 
-			if resp.IsError() {
-				if name != "" {
-					error := fmt.Sprintf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message)
-					messages = append(messages, error)
-				} else {
-					error := fmt.Sprintf("GID %d: skipped, %v\n", gid, resp.Error().(*types.APIError).Message)
-					messages = append(messages, error)
+			// Rest API authentication
+			client := RestClient(token.AccessToken)
+
+			for _, group := range groups {
+				name := *group.Name
+				gid := group.ID
+
+				if name == "" && gid <= 0 {
+					messages = append(messages, fmt.Sprintf("GID %d: skipped, invalid group name and gid\n", gid))
+					continue
 				}
-				continue
+
+				if name != "" {
+					endpoint := fmt.Sprintf("%s/v1/groups/%s/gid", url, name)
+					resp, err := client.R().
+						SetHeader("Content-Type", "application/json").
+						SetResult(models.Group{}).
+						SetError(&types.APIError{}).
+						Get(endpoint)
+
+					if err != nil {
+						return fmt.Errorf("can't connect with Glim: %v", err)
+					}
+
+					if resp.IsError() {
+						messages = append(messages, fmt.Sprintf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message))
+						continue
+					}
+
+					result := resp.Result().(*models.Group)
+
+					if result.ID != gid && gid != 0 {
+						messages = append(messages, fmt.Sprintf("%s: skipped, group name and gid found in CSV doesn't match\n", name))
+						continue
+					}
+					gid = result.ID
+				}
+
+				// Delete using API
+				endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
+				resp, err := client.R().
+					SetHeader("Content-Type", "application/json").
+					SetError(&types.APIError{}).
+					Delete(endpoint)
+
+				if err != nil {
+					return fmt.Errorf("can't connect with Glim: %v", err)
+				}
+
+				if resp.IsError() {
+					if name != "" {
+						messages = append(messages, fmt.Sprintf("%s: skipped, %v", name, resp.Error().(*types.APIError).Message))
+					} else {
+						messages = append(messages, fmt.Sprintf("GID %d: skipped, %v", gid, resp.Error().(*types.APIError).Message))
+					}
+					continue
+				}
+				message := fmt.Sprintf("%s: successfully removed\n", name)
+				messages = append(messages, message)
 			}
-			message := fmt.Sprintf("%s: successfully removed\n", name)
-			messages = append(messages, message)
-		}
 
-		printCSVMessages(messages, jsonOutput)
-		if !jsonOutput {
-			fmt.Printf("\nRemove from CSV finished!\n")
-		}
+			printCSVMessages(cmd, messages, jsonOutput)
+			if !jsonOutput {
+				printCmdMessage(cmd, "Remove from CSV finished!", jsonOutput)
+			}
 
-	},
-}
+			return nil
+		},
+	}
 
-func init() {
-	csvDeleteGroupsCmd.Flags().StringP("file", "f", "", "path to CSV file, use README to know more about the format")
-	csvDeleteGroupsCmd.MarkFlagRequired("file")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
+	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+	cmd.Flags().StringP("file", "f", "", "path to CSV file, use README to know more about the format")
+	cmd.MarkFlagRequired("file")
+	return cmd
 }

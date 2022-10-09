@@ -103,13 +103,13 @@ func printCmdMessage(cmd *cobra.Command, message string, jsonOutput bool) {
 	}
 }
 
-func printCSVMessages(messages []string, jsonOutput bool) {
+func printCSVMessages(cmd *cobra.Command, messages []string, jsonOutput bool) {
 	if jsonOutput {
-		enc := json.NewEncoder(os.Stdout)
+		enc := json.NewEncoder(cmd.OutOrStdout())
 		enc.Encode(messages)
 	} else {
 		for _, message := range messages {
-			fmt.Print(message)
+			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", message)
 		}
 	}
 }
