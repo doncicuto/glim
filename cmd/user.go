@@ -50,7 +50,7 @@ func init() {
 	userCmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
 	userCmd.AddCommand(ListUserCmd())
 	userCmd.AddCommand(NewUserCmd())
-	userCmd.AddCommand(updateUserCmd)
+	userCmd.AddCommand(UpdateUserCmd())
 	userCmd.AddCommand(DeleteUserCmd())
 	userCmd.AddCommand(UserPasswdCmd())
 	userCmd.Flags().UintP("uid", "i", 0, "user account id")
