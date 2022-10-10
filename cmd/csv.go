@@ -43,24 +43,21 @@ func readUsersFromCSV(jsonOutput bool) ([]*models.User, error) {
 	return users, nil
 }
 
-func readGroupsFromCSV(jsonOutput bool) []*models.Group {
+func readGroupsFromCSV(jsonOutput bool) ([]*models.Group, error) {
 	// Read and open file
 	file := viper.GetString("file")
 	csvFile, err := os.Open(file)
 	if err != nil {
-		error := "can't open CSV file"
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return nil, fmt.Errorf("can't open CSV file")
 	}
 	defer csvFile.Close()
 
 	// Try to unmarshal CSV file usin gocsv
 	groups := []*models.Group{}
 	if err := gocsv.UnmarshalFile(csvFile, &groups); err != nil { // Load clients from file
-		printError(err.Error(), jsonOutput)
-		os.Exit(1)
+		return nil, err
 	}
-	return groups
+	return groups, nil
 }
 
 // importCmd represents the import command

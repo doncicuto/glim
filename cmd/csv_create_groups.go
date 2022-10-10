@@ -40,7 +40,10 @@ func CsvCreateGroupsCmd() *cobra.Command {
 			messages := []string{}
 
 			// Read and open file
-			groups := readGroupsFromCSV(jsonOutput)
+			groups, err := readGroupsFromCSV(jsonOutput)
+			if err != nil {
+				return err
+			}
 
 			if len(groups) == 0 {
 				return fmt.Errorf("no groups where found in CSV file")
