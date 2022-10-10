@@ -43,12 +43,13 @@ func CsvCreateUsersCmd() *cobra.Command {
 			messages := []string{}
 
 			// Read and open file
-			users := readUsersFromCSV(jsonOutput)
+			users, err := readUsersFromCSV(jsonOutput)
+			if err != nil {
+				return err
+			}
 
 			if len(users) == 0 {
-				error := "no users where found in CSV file"
-				printError(error, jsonOutput)
-				os.Exit(1)
+				return fmt.Errorf("no users where found in CSV file")
 			}
 
 			// Glim server URL
@@ -58,8 +59,7 @@ func CsvCreateUsersCmd() *cobra.Command {
 			// Get credentials
 			token, err := GetCredentials(url)
 			if err != nil {
-				printError(err.Error(), jsonOutput)
-				os.Exit(1)
+				return err
 			}
 
 			// Rest API authentication
@@ -71,8 +71,7 @@ func CsvCreateUsersCmd() *cobra.Command {
 				email := *user.Email
 				if email != "" {
 					if _, err := mail.ParseAddress(email); err != nil {
-						error := fmt.Sprintf("%s: skipped, email should have a valid format\n", username)
-						messages = append(messages, error)
+						messages = append(messages, fmt.Sprintf("%s: skipped, email should have a valid format\n", username))
 						continue
 					}
 				}
@@ -80,8 +79,7 @@ func CsvCreateUsersCmd() *cobra.Command {
 				manager := *user.Manager
 				readonly := *user.Readonly
 				if manager && readonly {
-					error := fmt.Sprintf("%s: skipped, cannot be both manager and readonly at the same time\n", username)
-					messages = append(messages, error)
+					messages = append(messages, fmt.Sprintf("%s: skipped, cannot be both manager and readonly at the same time\n", username))
 					continue
 				}
 
@@ -94,8 +92,7 @@ func CsvCreateUsersCmd() *cobra.Command {
 				if jpegPhotoPath != "" {
 					photo, err := JPEGToBase64(jpegPhotoPath)
 					if err != nil {
-						error := fmt.Sprintf("%s: skipped, could not convert JPEG photo to Base64 %v\n", username, err)
-						messages = append(messages, error)
+						messages = append(messages, fmt.Sprintf("%s: skipped, could not convert JPEG photo to Base64 %v\n", username, err))
 						continue
 					}
 					jpegPhoto = *photo

@@ -133,16 +133,6 @@ func TestRefresh(t *testing.T) {
 			assert.NotNil(t, token)
 		}
 	})
-
-	t.Run("refreshed token is in blacklist", func(t *testing.T) {
-		os.Remove(tokenPath)
-		token, err := refresh(url, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.ssYmxVciETD6LIKVfK_43Ka0Q79TAE4fdbNpjO-TpvA")
-		if err != nil {
-			assert.Contains(t, err.Error(), "token no longer valid")
-		} else {
-			assert.NotNil(t, token)
-		}
-	})
 }
 
 func TestNeedsRefresh(t *testing.T) {
