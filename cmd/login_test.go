@@ -5,12 +5,14 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLoginCmd(t *testing.T) {
-	e := testSetup(t)
-	defer testCleanUp()
+	kvPath := uuid.New()
+	e := testSetup(t, kvPath.String())
+	defer testCleanUp(kvPath.String())
 
 	// Launch testing server
 	go func() {

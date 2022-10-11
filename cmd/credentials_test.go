@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/doncicuto/glim/types"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -91,8 +92,9 @@ func TestDeleteCredentials(t *testing.T) {
 
 func TestRefresh(t *testing.T) {
 	// Prepare test databases and echo testing server
-	e := testSetup(t)
-	defer testCleanUp()
+	kvPath := uuid.New()
+	e := testSetup(t, kvPath.String())
+	defer testCleanUp(kvPath.String())
 	url := "http://127.0.0.1:50002"
 
 	// Launch testing server

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -32,8 +33,8 @@ func newTestDatabase() (*gorm.DB, error) {
 	return db.Initialize("/tmp/test.db", sqlLog, dbInit)
 }
 
-func newTestKV() (badgerdb.Store, error) {
-	return badgerdb.NewBadgerStore("/tmp/kv")
+func newTestKV(kvPath string) (badgerdb.Store, error) {
+	return badgerdb.NewBadgerStore(fmt.Sprintf("/tmp/%s", kvPath))
 }
 
 func testSettings(db *gorm.DB, kv types.Store) types.APISettings {
@@ -50,7 +51,7 @@ func testSettings(db *gorm.DB, kv types.Store) types.APISettings {
 	}
 }
 
-func testSetup(t *testing.T) *echo.Echo {
+func testSetup(t *testing.T, kvPath string) *echo.Echo {
 	// New SQLite test database
 	db, err := newTestDatabase()
 	if err != nil {
@@ -58,7 +59,7 @@ func testSetup(t *testing.T) *echo.Echo {
 	}
 
 	// New BadgerDB test key-value storage
-	kv, err := newTestKV()
+	kv, err := newTestKV(kvPath)
 	if err != nil {
 		t.Fatalf("could not initialize kv - %v", err)
 	}
@@ -74,17 +75,17 @@ func testSetup(t *testing.T) *echo.Echo {
 	return e
 }
 
-func testCleanUp() {
+func testCleanUp(kvPath string) {
 	removeDatabase()
-	removeKV()
+	removeKV(kvPath)
 }
 
 func removeDatabase() {
 	os.Remove("/tmp/test.db")
 }
 
-func removeKV() {
-	os.RemoveAll("/tmp/kv")
+func removeKV(kvPath string) {
+	os.RemoveAll(fmt.Sprintf("/tmp/%s", kvPath))
 }
 
 type CmdTestCase struct {

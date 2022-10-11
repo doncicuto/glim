@@ -3,6 +3,8 @@ package cmd
 import (
 	"os"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func prepareTestFiles() error {
@@ -95,8 +97,9 @@ func deleteTestingFiles() {
 
 func TestCsvCreateUsers(t *testing.T) {
 	// Prepare test databases and echo testing server
-	e := testSetup(t)
-	defer testCleanUp()
+	kvPath := uuid.New()
+	e := testSetup(t, kvPath.String())
+	defer testCleanUp(kvPath.String())
 
 	err := prepareTestFiles()
 	if err != nil {

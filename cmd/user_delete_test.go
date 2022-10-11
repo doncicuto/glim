@@ -2,11 +2,14 @@ package cmd
 
 import (
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func TestUserDeleteCmd(t *testing.T) {
-	e := testSetup(t)
-	defer testCleanUp()
+	kvPath := uuid.New()
+	e := testSetup(t, kvPath.String())
+	defer testCleanUp(kvPath.String())
 
 	// Launch testing server
 	go func() {
