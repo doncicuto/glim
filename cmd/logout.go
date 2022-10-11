@@ -26,60 +26,63 @@ import (
 	"github.com/spf13/viper"
 )
 
-// logoutCmd represents the logout command
-var logoutCmd = &cobra.Command{
-	Use:   "logout [flags] [SERVER]",
-	Short: "Log out from a Glim server",
-	Args:  cobra.MaximumNArgs(1),
-	Run: func(_ *cobra.Command, _ []string) {
-		var token *types.Response
+func LogoutCmd() *cobra.Command {
 
-		// Read token from file
-		token = ReadCredentials()
+	cmd := &cobra.Command{
+		Use:   "logout [flags] [SERVER]",
+		Short: "Log out from a Glim server",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			var token *types.TokenAuthentication
+			url := viper.GetString("server")
 
-		// Check expiration
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
-		}
+			// Get credentials
+			token, err := GetCredentials(url)
+			if err != nil {
+				return err
+			}
 
-		// Glim server URL
-		url := viper.GetString("server")
+			// Logout
+			client := RestClient("")
 
-		// Logout
-		client := RestClient("")
+			resp, err := client.R().
+				SetHeader("Content-Type", "application/json").
+				SetBody(fmt.Sprintf(`{"refresh_token":"%s"}`, token.RefreshToken)).
+				SetError(&types.APIError{}).
+				Delete(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
-		resp, err := client.R().
-			SetHeader("Content-Type", "application/json").
-			SetBody(fmt.Sprintf(`{"refresh_token":"%s"}`, token.RefreshToken)).
-			SetError(&types.APIError{}).
-			Delete(fmt.Sprintf("%s/v1/login/refresh_token", url))
+			if err != nil {
+				return fmt.Errorf("can't connect with Glim: %v", err)
+			}
 
-		if err != nil {
-			fmt.Printf("Error connecting with Glim: %v\n", err)
-			os.Exit(1)
-		}
+			if resp.IsError() {
+				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+			}
 
-		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-			os.Exit(1)
-		}
+			// Remove credentials file
+			err = DeleteCredentials()
+			if err != nil {
+				return err
+			}
 
-		// Remove credentials file
-		DeleteCredentials()
+			fmt.Fprintf(cmd.OutOrStdout(), "Removing login credentials\n")
+			return nil
+		},
+	}
 
-		fmt.Println("Removing login credentials")
-	},
-}
-
-func init() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Printf("Could not get your home directory: %v\n", err)
 	}
 	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
 
+	cmd.Flags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.Flags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+
+	return cmd
+}
+
+func init() {
+	logoutCmd := LogoutCmd()
 	rootCmd.AddCommand(logoutCmd)
-	logoutCmd.Flags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	logoutCmd.Flags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 }

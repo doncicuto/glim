@@ -26,6 +26,7 @@ import (
 
 	"github.com/doncicuto/glim/models"
 	"github.com/go-resty/resty/v2"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -87,10 +88,10 @@ func printError(errorMessage string, jsonOutput bool) {
 	}
 }
 
-func printMessage(message string, jsonOutput bool) {
+func printCmdMessage(cmd *cobra.Command, message string, jsonOutput bool) {
 	if jsonOutput {
 		output := JSONSuccessOutput{}
-		enc := json.NewEncoder(os.Stdout)
+		enc := json.NewEncoder(cmd.OutOrStdout())
 
 		if message != "" {
 			output.Message = message
@@ -98,37 +99,37 @@ func printMessage(message string, jsonOutput bool) {
 
 		enc.Encode(output)
 	} else {
-		fmt.Println(message)
+		fmt.Fprintf(cmd.OutOrStdout(), "%s\n", message)
 	}
 }
 
-func printCSVMessages(messages []string, jsonOutput bool) {
+func printCSVMessages(cmd *cobra.Command, messages []string, jsonOutput bool) {
 	if jsonOutput {
-		enc := json.NewEncoder(os.Stdout)
+		enc := json.NewEncoder(cmd.OutOrStdout())
 		enc.Encode(messages)
 	} else {
 		for _, message := range messages {
-			fmt.Print(message)
+			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", message)
 		}
 	}
 }
 
-func encodeUserToJson(user *models.UserInfo) {
-	enc := json.NewEncoder(os.Stdout)
+func encodeUserToJson(cmd *cobra.Command, user *models.UserInfo) {
+	enc := json.NewEncoder(cmd.OutOrStdout())
 	enc.Encode(user)
 }
 
-func encodeUsersToJson(users *[]models.UserInfo) {
-	enc := json.NewEncoder(os.Stdout)
+func encodeUsersToJson(cmd *cobra.Command, users *[]models.UserInfo) {
+	enc := json.NewEncoder(cmd.OutOrStdout())
 	enc.Encode(users)
 }
 
-func encodeGroupToJson(group *models.GroupInfo) {
-	enc := json.NewEncoder(os.Stdout)
+func encodeGroupToJson(cmd *cobra.Command, group *models.GroupInfo) {
+	enc := json.NewEncoder(cmd.OutOrStdout())
 	enc.Encode(group)
 }
 
-func encodeGroupsToJson(groups *[]models.GroupInfo) {
-	enc := json.NewEncoder(os.Stdout)
+func encodeGroupsToJson(cmd *cobra.Command, groups *[]models.GroupInfo) {
+	enc := json.NewEncoder(cmd.OutOrStderr())
 	enc.Encode(groups)
 }

@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/Songmu/prompter"
 	"github.com/doncicuto/glim/types"
@@ -26,68 +27,77 @@ import (
 	"github.com/spf13/viper"
 )
 
-// DeleteGroupCmd - TODO comment
-var deleteGroupCmd = &cobra.Command{
-	Use:   "rm",
-	Short: "Remove a Glim group",
-	PreRun: func(cmd *cobra.Command, _ []string) {
-		viper.BindPFlags(cmd.Flags())
-	},
-	Run: func(_ *cobra.Command, _ []string) {
+func DeleteGroupCmd() *cobra.Command {
 
-		confirm := prompter.YesNo("Do you really want to delete this group?", false)
-		if !confirm {
-			os.Exit(1)
-		}
+	cmd := &cobra.Command{
+		Use:   "rm",
+		Short: "Remove a Glim group",
+		PreRun: func(cmd *cobra.Command, _ []string) {
+			viper.BindPFlags(cmd.Flags())
+		},
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			url := viper.GetString("server")
+			force := viper.GetBool("force")
 
-		// json output?
-		jsonOutput := viper.GetBool("json")
+			if !force {
+				confirm := prompter.YesNo("Do you really want to delete this group?", false)
+				if !confirm {
+					return fmt.Errorf("ok, group wasn't deleted")
+				}
+			}
 
-		// Glim server URL
-		url := viper.GetString("server")
+			// json output?
+			jsonOutput := viper.GetBool("json")
 
-		// Read credentials
-		gid := viper.GetUint("gid")
-		group := viper.GetString("group")
+			// Get credentials
+			token, err := GetCredentials(url)
+			if err != nil {
+				return err
+			}
 
-		token := ReadCredentials()
+			// Rest API authentication
+			client := RestClient(token.AccessToken)
 
-		if gid == 0 && group != "" {
-			gid = getGIDFromGroupName(group, url, jsonOutput)
-		}
+			gid := viper.GetUint("gid")
+			group := viper.GetString("group")
+			if gid == 0 && group != "" {
+				gid, err = getGIDFromGroupName(client, group, url)
+				if err != nil {
+					return err
+				}
+			}
+			endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 
-		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
-		// Check expiration
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
-		}
+			resp, err := client.R().
+				SetHeader("Content-Type", "application/json").
+				SetError(&types.APIError{}).
+				Delete(endpoint)
 
-		// Rest API authentication
-		client := RestClient(token.AccessToken)
+			if err != nil {
+				return fmt.Errorf("can't connect with Glim: %v", err)
+			}
 
-		resp, err := client.R().
-			SetHeader("Content-Type", "application/json").
-			SetError(&types.APIError{}).
-			Delete(endpoint)
+			if resp.IsError() {
+				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+			}
 
-		if err != nil {
-			error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+			printCmdMessage(cmd, "Group deleted", jsonOutput)
+			return nil
+		},
+	}
 
-		if resp.IsError() {
-			error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
 
-		printMessage("Group deleted", jsonOutput)
-	},
-}
+	cmd.Flags().UintP("gid", "i", 0, "group id")
+	cmd.Flags().StringP("group", "g", "", "group name")
+	cmd.Flags().BoolP("force", "f", false, "force delete and don't ask for confirmation")
+	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
 
-func init() {
-	deleteGroupCmd.Flags().UintP("gid", "i", 0, "group id")
-	deleteGroupCmd.Flags().StringP("group", "g", "", "group name")
+	return cmd
 }

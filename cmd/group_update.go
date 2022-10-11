@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/types"
@@ -26,75 +27,82 @@ import (
 	"github.com/spf13/viper"
 )
 
-// newGroupCmd - TODO comment
-var updateGroupCmd = &cobra.Command{
-	Use:   "update",
-	Short: "Update a Glim group",
-	PreRun: func(cmd *cobra.Command, _ []string) {
-		viper.BindPFlags(cmd.Flags())
-	},
-	Run: func(_ *cobra.Command, _ []string) {
-		// json output?
-		jsonOutput := viper.GetBool("json")
+func UpdateGroupCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update",
+		Short: "Update a Glim group",
+		PreRun: func(cmd *cobra.Command, _ []string) {
+			viper.BindPFlags(cmd.Flags())
+		},
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			// json output?
+			jsonOutput := viper.GetBool("json")
 
-		// Glim server URL
-		url := viper.GetString("server")
-		gid := viper.GetUint("gid")
-		group := viper.GetString("group")
+			// Glim server URL
+			url := viper.GetString("server")
 
-		if gid == 0 && group == "" {
-			error := "you must specify either the group id or name"
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+			// Get credentials
+			token, err := GetCredentials(url)
+			if err != nil {
+				return err
+			}
 
-		if gid == 0 && group != "" {
-			gid = getGIDFromGroupName(group, url, jsonOutput)
-		}
+			// Rest API authentication
+			client := RestClient(token.AccessToken)
 
-		// Read credentials
-		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
-		// Check expiration
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
-		}
+			gid := viper.GetUint("gid")
+			group := viper.GetString("group")
 
-		// Rest API authentication
-		client := RestClient(token.AccessToken)
+			if gid == 0 && group == "" {
+				return fmt.Errorf("you must specify either the group id or name")
+			}
 
-		resp, err := client.R().
-			SetHeader("Content-Type", "application/json").
-			SetBody(models.JSONGroupBody{
-				Name:           viper.GetString("group"),
-				Description:    viper.GetString("description"),
-				Members:        viper.GetString("members"),
-				ReplaceMembers: viper.GetBool("replace"),
-			}).
-			SetError(&types.APIError{}).
-			Put(endpoint)
+			if gid == 0 && group != "" {
+				gid, err = getGIDFromGroupName(client, group, url)
+				if err != nil {
+					return err
+				}
+			}
 
-		if err != nil {
-			error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+			endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 
-		if resp.IsError() {
-			error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+			resp, err := client.R().
+				SetHeader("Content-Type", "application/json").
+				SetBody(models.JSONGroupBody{
+					Name:           viper.GetString("group"),
+					Description:    viper.GetString("description"),
+					Members:        viper.GetString("members"),
+					ReplaceMembers: viper.GetBool("replace"),
+				}).
+				SetError(&types.APIError{}).
+				Put(endpoint)
 
-		printMessage("Group updated", jsonOutput)
-	},
-}
+			if err != nil {
+				return fmt.Errorf("can't connect with Glim: %v", err)
+			}
 
-func init() {
-	updateGroupCmd.Flags().UintP("gid", "i", 0, "group id")
-	updateGroupCmd.Flags().StringP("group", "g", "", "our group name")
-	updateGroupCmd.Flags().StringP("description", "d", "", "our group description")
-	updateGroupCmd.Flags().StringP("members", "m", "", "comma-separated list of usernames e.g: admin,tux")
-	updateGroupCmd.Flags().Bool("replace", false, "Replace group members with those specified with -m. Usernames are appended to members by default")
+			if resp.IsError() {
+				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+			}
+
+			printCmdMessage(cmd, "Group updated", jsonOutput)
+			return nil
+		},
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
+	cmd.Flags().UintP("gid", "i", 0, "group id")
+	cmd.Flags().StringP("group", "g", "", "our group name")
+	cmd.Flags().StringP("description", "d", "", "our group description")
+	cmd.Flags().StringP("members", "m", "", "comma-separated list of usernames e.g: admin,tux")
+	cmd.Flags().Bool("replace", false, "Replace group members with those specified with -m. Usernames are appended to members by default")
+	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+	return cmd
 }

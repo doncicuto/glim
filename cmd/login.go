@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -30,128 +31,130 @@ import (
 	"github.com/spf13/viper"
 )
 
-// loginCmd represents the login command
-var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: `Log in to a Glim Server`,
-	Args:  cobra.MaximumNArgs(1),
-	Run: func(cmd *cobra.Command, _ []string) {
+/*
+LoginCmd
+*/
+func LoginCmd() *cobra.Command {
 
-		username := viper.GetString("username")
-		password := viper.GetString("password")
-		passwordStdin := viper.GetBool("password-stdin")
+	cmd := &cobra.Command{
+		Use:   "login",
+		Short: `Log in to a Glim Server`,
+		PreRun: func(cmd *cobra.Command, _ []string) {
+			viper.BindPFlags(cmd.Flags())
+		},
+		RunE: func(cmd *cobra.Command, _ []string) error {
 
-		if username == "" {
-			username = prompter.Prompt("Username", "")
+			username := viper.GetString("username")
+			password := viper.GetString("password")
+			passwordStdin := viper.GetBool("password-stdin")
+
 			if username == "" {
-				fmt.Println("Error non-null username required")
-				os.Exit(1)
-			}
-		}
-
-		if !cmd.Flags().Changed("password") {
-			if !passwordStdin {
-				password = prompter.Password("Password")
-				if password == "" {
-					fmt.Println("Error password required")
-					os.Exit(1)
+				username = prompter.Prompt("Username", "")
+				if username == "" {
+					return errors.New("non-null username required")
 				}
 			}
-		} else {
-			fmt.Println("WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
-		}
 
-		if passwordStdin {
-			if password != "" {
-				fmt.Println("--password and --password-stdin are mutually exclusive")
-				os.Exit(1)
-			} else {
-				// Reference: https://flaviocopes.com/go-shell-pipes/
-				info, err := os.Stdin.Stat()
-				if err != nil {
-					fmt.Println("Error reading from stdin")
-					os.Exit(1)
-				}
-
-				if info.Mode()&os.ModeCharDevice != 0 {
-					fmt.Println("Error expecting password from stdin using a pipe")
-					os.Exit(1)
-				}
-
-				reader := bufio.NewReader(os.Stdin)
-				var output []rune
-
-				for {
-					input, _, err := reader.ReadRune()
-					if err != nil && err == io.EOF {
-						break
+			if !cmd.Flags().Changed("password") {
+				if !passwordStdin {
+					password = prompter.Password("Password")
+					if password == "" {
+						return errors.New("password required")
 					}
-					output = append(output, input)
 				}
-
-				password = strings.TrimSuffix(string(output), "\n")
+			} else {
+				fmt.Println("WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
 			}
-		}
 
-		// Glim server URL
-		url := viper.GetString("server")
+			if passwordStdin {
+				if password != "" {
+					return errors.New("--password and --password-stdin are mutually exclusive")
+				} else {
+					// Reference: https://flaviocopes.com/go-shell-pipes/
+					info, err := os.Stdin.Stat()
+					if err != nil {
+						return errors.New("can't read from stdin")
+					}
 
-		// Rest API authentication
-		client := RestClient("")
+					if info.Mode()&os.ModeCharDevice != 0 {
+						return errors.New("expecting password from stdin using a pipe")
+					}
 
-		resp, err := client.R().
-			SetHeader("Content-Type", "application/json").
-			SetBody(types.Credentials{
-				Username: username,
-				Password: password,
-			}).
-			SetError(&types.APIError{}).
-			Post(fmt.Sprintf("%s/v1/login", url))
+					reader := bufio.NewReader(os.Stdin)
+					var output []rune
 
-		if err != nil {
-			fmt.Printf("Error connecting with Glim: %v\n", err)
-			os.Exit(1)
-		}
+					for {
+						input, _, err := reader.ReadRune()
+						if err != nil && err == io.EOF {
+							break
+						}
+						output = append(output, input)
+					}
 
-		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-			os.Exit(1)
-		}
+					password = strings.TrimSuffix(string(output), "\n")
+				}
+			}
 
-		// Authenticated, let's store tokens in $HOME/.glim/accessToken.json
-		tokenFile, err := AuthTokenPath()
-		if err != nil {
-			fmt.Printf("%v", err)
-		}
+			// Glim server URL
+			url := viper.GetString("server")
 
-		f, err := os.OpenFile(*tokenFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-		if err != nil {
-			fmt.Printf("Could not create file to store auth token: %v\n", err)
-		}
-		defer f.Close()
+			// Rest API authentication
+			client := RestClient("")
 
-		if _, err := f.WriteString(resp.String()); err != nil {
-			fmt.Printf("Could not store credentials in our local fs: %v\n", err)
-		}
+			resp, err := client.R().
+				SetHeader("Content-Type", "application/json").
+				SetBody(types.Credentials{
+					Username: username,
+					Password: password,
+				}).
+				SetError(&types.APIError{}).
+				Post(fmt.Sprintf("%s/v1/login", url))
 
-		fmt.Println("Login Succeeded")
-	},
-}
+			if err != nil {
+				return fmt.Errorf("can't connect with Glim: %v", err)
+			}
 
-func init() {
+			if resp.IsError() {
+				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+			}
+
+			// Authenticated, let's store tokens in $HOME/.glim/accessToken.json
+			tokenFile, err := AuthTokenPath()
+			if err != nil {
+				return fmt.Errorf("%v", err)
+			}
+
+			f, err := os.OpenFile(tokenFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+			if err != nil {
+				return fmt.Errorf("could not create file to store auth token: %v", err)
+			}
+			defer f.Close()
+
+			if _, err := f.WriteString(resp.String()); err != nil {
+				return fmt.Errorf("could not store credentials in our local fs: %v", err)
+			}
+
+			fmt.Fprintf(cmd.OutOrStdout(), "Login succeeded\n")
+			return nil
+		},
+	}
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
+		fmt.Printf("could not get your home directory: %v\n", err)
 	}
 	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
 
-	rootCmd.AddCommand(loginCmd)
-	loginCmd.Flags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	loginCmd.Flags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
-	loginCmd.Flags().StringP("username", "u", "", "Username")
-	loginCmd.Flags().StringP("password", "p", "", "Password")
-	loginCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
+	cmd.Flags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.Flags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	cmd.Flags().StringP("username", "u", "", "Username")
+	cmd.Flags().StringP("password", "p", "", "Password")
+	cmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
 
-	viper.BindPFlags(loginCmd.Flags())
+	return cmd
+}
+
+func init() {
+	loginCmd := LoginCmd()
+	rootCmd.AddCommand(loginCmd)
 }

@@ -22,6 +22,7 @@ import (
 	"io"
 	"net/mail"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/Songmu/prompter"
@@ -32,182 +33,171 @@ import (
 )
 
 // NewUserCmd - TODO comment
-var newUserCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a Glim user account",
-	PreRun: func(cmd *cobra.Command, _ []string) {
-		viper.BindPFlags(cmd.Flags())
-	},
-	Run: func(_ *cobra.Command, _ []string) {
-		// json output?
-		jsonOutput := viper.GetBool("json")
+func NewUserCmd() *cobra.Command {
 
-		// Validate email
-		email := viper.GetString("email")
-		if email != "" {
-			if _, err := mail.ParseAddress(email); err != nil {
-				error := "email should have a valid format"
-				printError(error, jsonOutput)
-				os.Exit(1)
-			}
-		}
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a Glim user account",
+		PreRun: func(cmd *cobra.Command, _ []string) {
+			viper.BindPFlags(cmd.Flags())
+		},
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			// json output?
+			jsonOutput := viper.GetBool("json")
 
-		// Check if both manager and readonly has been set
-
-		manager := viper.GetBool("manager")
-		readonly := viper.GetBool("readonly")
-
-		if manager && readonly {
-			error := "a Glim account cannot be both manager and readonly at the same time"
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
-
-		plainuser := viper.GetBool("plainuser")
-		if plainuser {
-			manager = false
-			readonly = false
-		}
-
-		// Prompt for password if needed
-		password := viper.GetString("password")
-		passwordStdin := viper.GetBool("password-stdin")
-		locked := viper.GetBool("lock")
-
-		if password == "" && !passwordStdin && !locked {
-			password = prompter.Password("Password")
-			if password == "" {
-				error := "Error password required"
-				printError(error, jsonOutput)
-				os.Exit(1)
-			}
-			confirmPassword := prompter.Password("Confirm password")
-			if password != confirmPassword {
-				error := "Error passwords don't match"
-				printError(error, jsonOutput)
-				os.Exit(1)
-			}
-		} else {
-			switch {
-			case password != "" && !passwordStdin:
-				fmt.Println("WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
-
-			case password != "" && passwordStdin:
-				error := "--password and --password-stdin are mutually exclusive"
-				printError(error, jsonOutput)
-				os.Exit(1)
-
-			case passwordStdin:
-				// Reference: https://flaviocopes.com/go-shell-pipes/
-				info, err := os.Stdin.Stat()
-				if err != nil {
-					error := "Error reading from stdin"
-					printError(error, jsonOutput)
-					os.Exit(1)
+			// Validate email
+			email := viper.GetString("email")
+			if email != "" {
+				if _, err := mail.ParseAddress(email); err != nil {
+					return fmt.Errorf("email should have a valid format")
 				}
+			}
 
-				if info.Mode()&os.ModeCharDevice != 0 {
-					error := "Error expecting password from stdin using a pipe"
-					printError(error, jsonOutput)
-					os.Exit(1)
-				}
+			// Check if both manager and readonly has been set
+			manager := viper.GetBool("manager")
+			readonly := viper.GetBool("readonly")
 
-				reader := bufio.NewReader(os.Stdin)
-				var output []rune
+			if manager && readonly {
+				return fmt.Errorf("a Glim account cannot be both manager and readonly at the same time")
+			}
 
-				for {
-					input, _, err := reader.ReadRune()
-					if err != nil && err == io.EOF {
-						break
-					}
-					output = append(output, input)
-				}
+			plainuser := viper.GetBool("plainuser")
+			if plainuser {
+				manager = false
+				readonly = false
+			}
 
-				password = strings.TrimSuffix(string(output), "\n")
+			// Prompt for password if needed
+			password := viper.GetString("password")
+			passwordStdin := viper.GetBool("password-stdin")
+			locked := viper.GetBool("lock")
+
+			if password == "" && !passwordStdin && !locked {
+				password = prompter.Password("Password")
 				if password == "" {
-					locked = true
+					return fmt.Errorf("password required")
+				}
+				confirmPassword := prompter.Password("Confirm password")
+				if password != confirmPassword {
+					return fmt.Errorf("passwords don't match")
+				}
+			} else {
+				switch {
+				case password != "" && !passwordStdin:
+					fmt.Println("WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
+
+				case password != "" && passwordStdin:
+					return fmt.Errorf("--password and --password-stdin are mutually exclusive")
+
+				case passwordStdin:
+					// Reference: https://flaviocopes.com/go-shell-pipes/
+					info, err := os.Stdin.Stat()
+					if err != nil {
+						return fmt.Errorf("can't read from stdin")
+					}
+
+					if info.Mode()&os.ModeCharDevice != 0 {
+						return fmt.Errorf("expecting password from stdin using a pipe")
+					}
+
+					reader := bufio.NewReader(os.Stdin)
+					var output []rune
+
+					for {
+						input, _, err := reader.ReadRune()
+						if err != nil && err == io.EOF {
+							break
+						}
+						output = append(output, input)
+					}
+
+					password = strings.TrimSuffix(string(output), "\n")
+					if password == "" {
+						locked = true
+					}
 				}
 			}
-		}
 
-		// Glim server URL
-		url := viper.GetString("server")
+			// Glim server URL
+			url := viper.GetString("server")
+			endpoint := fmt.Sprintf("%s/v1/users", url)
 
-		// Read credentials
-		token := ReadCredentials()
-		endpoint := fmt.Sprintf("%s/v1/users", url)
-		// Check expiration
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
-		}
-
-		// Rest API authentication
-		client := RestClient(token.AccessToken)
-
-		// JpegPhoto
-		jpegPhoto := ""
-		jpegPhotoPath := viper.GetString("jpeg-photo")
-		if jpegPhotoPath != "" {
-			photo, err := JPEGToBase64(jpegPhotoPath)
+			// Get credentials
+			token, err := GetCredentials(url)
 			if err != nil {
-				error := fmt.Sprintf("could not convert JPEG photo to Base64 - %v\n", err)
-				printError(error, jsonOutput)
-				os.Exit(1)
+				return err
 			}
-			jpegPhoto = *photo
-		}
 
-		resp, err := client.R().
-			SetHeader("Content-Type", "application/json").
-			SetBody(models.JSONUserBody{
-				Username:     viper.GetString("username"),
-				Password:     password,
-				Name:         strings.Join([]string{viper.GetString("firstname"), viper.GetString("lastname")}, " "),
-				GivenName:    viper.GetString("firstname"),
-				Surname:      viper.GetString("lastname"),
-				Email:        viper.GetString("email"),
-				SSHPublicKey: viper.GetString("ssh-public-key"),
-				MemberOf:     viper.GetString("groups"),
-				JPEGPhoto:    jpegPhoto,
-				Manager:      &manager,
-				Readonly:     &readonly,
-				Locked:       &locked,
-			}).
-			SetError(&types.APIError{}).
-			Post(endpoint)
+			// Rest API authentication
+			client := RestClient(token.AccessToken)
 
-		if err != nil {
-			error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+			// JpegPhoto
+			jpegPhoto := ""
+			jpegPhotoPath := viper.GetString("jpeg-photo")
+			if jpegPhotoPath != "" {
+				photo, err := JPEGToBase64(jpegPhotoPath)
+				if err != nil {
+					return fmt.Errorf("could not convert JPEG photo to Base64 - %v", err)
+				}
+				jpegPhoto = *photo
+			}
 
-		if resp.IsError() {
-			error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+			resp, err := client.R().
+				SetHeader("Content-Type", "application/json").
+				SetBody(models.JSONUserBody{
+					Username:     viper.GetString("username"),
+					Password:     password,
+					Name:         strings.Join([]string{viper.GetString("firstname"), viper.GetString("lastname")}, " "),
+					GivenName:    viper.GetString("firstname"),
+					Surname:      viper.GetString("lastname"),
+					Email:        viper.GetString("email"),
+					SSHPublicKey: viper.GetString("ssh-public-key"),
+					MemberOf:     viper.GetString("groups"),
+					JPEGPhoto:    jpegPhoto,
+					Manager:      &manager,
+					Readonly:     &readonly,
+					Locked:       &locked,
+				}).
+				SetError(&types.APIError{}).
+				Post(endpoint)
 
-		printMessage("User created", jsonOutput)
-	},
-}
+			if err != nil {
+				return fmt.Errorf("can't connect with Glim: %v", err)
+			}
 
-func init() {
-	// newUserCmd.Flags().UintP("uid", "i", 0, "User account id")
-	newUserCmd.Flags().StringP("username", "u", "", "username")
-	newUserCmd.Flags().StringP("firstname", "f", "", "first name")
-	newUserCmd.Flags().StringP("lastname", "l", "", "last name")
-	newUserCmd.Flags().StringP("email", "e", "", "email")
-	newUserCmd.Flags().StringP("password", "p", "", "password")
-	newUserCmd.Flags().StringP("ssh-public-key", "k", "", "SSH Public Key")
-	newUserCmd.Flags().StringP("jpeg-photo", "j", "", "path to avatar file (jpg, png)")
-	newUserCmd.Flags().StringP("groups", "g", "", "comma-separated list of groups that we want the new user account to be a member of")
-	newUserCmd.Flags().Bool("password-stdin", false, "take the password from stdin")
-	newUserCmd.Flags().Bool("manager", false, "Glim manager account?")
-	newUserCmd.Flags().Bool("readonly", false, "Glim readonly account?")
-	newUserCmd.Flags().Bool("plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
-	newUserCmd.Flags().Bool("lock", false, "lock account (no password will be set, user cannot log in)")
-	newUserCmd.Flags().Bool("unlock", false, "unlock account (can log in)")
-	newUserCmd.MarkFlagRequired("username")
+			if resp.IsError() {
+				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+			}
+
+			printCmdMessage(cmd, "User created", jsonOutput)
+			return nil
+		},
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
+	cmd.Flags().StringP("username", "u", "", "username")
+	cmd.Flags().StringP("firstname", "f", "", "first name")
+	cmd.Flags().StringP("lastname", "l", "", "last name")
+	cmd.Flags().StringP("email", "e", "", "email")
+	cmd.Flags().StringP("password", "p", "", "password")
+	cmd.Flags().StringP("ssh-public-key", "k", "", "SSH Public Key")
+	cmd.Flags().StringP("jpeg-photo", "j", "", "path to avatar file (jpg, png)")
+	cmd.Flags().StringP("groups", "g", "", "comma-separated list of groups that we want the new user account to be a member of")
+	cmd.Flags().Bool("password-stdin", false, "take the password from stdin")
+	cmd.Flags().Bool("manager", false, "Glim manager account?")
+	cmd.Flags().Bool("readonly", false, "Glim readonly account?")
+	cmd.Flags().Bool("plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
+	cmd.Flags().Bool("lock", false, "lock account (no password will be set, user cannot log in)")
+	cmd.Flags().Bool("unlock", false, "unlock account (can log in)")
+	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+	cmd.MarkFlagRequired("username")
+
+	return cmd
 }

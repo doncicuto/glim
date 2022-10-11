@@ -35,7 +35,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        tokens  body types.Tokens  true  "Access and Refresh JWT tokens"
-// @Success      200  {object}  types.Response
+// @Success      200  {object}  types.TokenAuthentication
 // @Failure			 400  {object} types.ErrorResponse
 // @Failure			 401  {object} types.ErrorResponse
 // @Failure 	   500  {object} types.ErrorResponse
@@ -187,12 +187,12 @@ func (h *Handler) Refresh(c echo.Context, settings types.APISettings) error {
 	}
 
 	// Create response with access and refresh tokens
-	response := types.Response{}
-	response.AccessToken = at
-	response.RefreshToken = rt
-	response.TokenType = "Bearer"
-	response.ExpiresIn = atExpiresIn.Seconds()
-	response.ExpiresOn = atExpiresOn
+	tokenAuth := types.TokenAuthentication{}
+	tokenAuth.AccessToken = at
+	tokenAuth.RefreshToken = rt
+	tokenAuth.TokenType = "Bearer"
+	tokenAuth.ExpiresIn = atExpiresIn.Seconds()
+	tokenAuth.ExpiresOn = atExpiresOn
 
-	return c.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusOK, tokenAuth)
 }

@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/types"
@@ -29,103 +30,114 @@ import (
 )
 
 // NewUserCmd - TODO comment
-var userPasswdCmd = &cobra.Command{
-	Use:   "passwd",
-	Short: "Change a Glim user account password",
-	PreRun: func(cmd *cobra.Command, _ []string) {
-		viper.BindPFlags(cmd.Flags())
-	},
-	Run: func(_ *cobra.Command, _ []string) {
-		passwdBody := models.JSONPasswdBody{}
+func UserPasswdCmd() *cobra.Command {
 
-		url := viper.GetString("server")
-		uid := viper.GetUint("uid")
-		username := viper.GetString("username")
+	cmd := &cobra.Command{
+		Use:   "passwd",
+		Short: "Change a Glim user account password",
+		PreRun: func(cmd *cobra.Command, _ []string) {
 
-		// Check expiration
-		token := ReadCredentials()
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
-		}
+		},
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			passwdBody := models.JSONPasswdBody{}
 
-		// JSON output?
-		jsonOutput := viper.GetBool("json")
+			url := viper.GetString("server")
+			uid := viper.GetUint("uid")
+			username := viper.GetString("username")
 
-		if uid == 0 {
-			if username != "" {
-				uid = getUIDFromUsername(username, url, jsonOutput)
+			// Get credentials
+			token, err := GetCredentials(url)
+			if err != nil {
+				return err
+			}
+
+			// JSON output?
+			jsonOutput := viper.GetBool("json")
+
+			tokenUID, err := WhichIsMyTokenUID(token)
+			if err != nil {
+				return err
+			}
+
+			client := RestClient(token.AccessToken)
+			if uid == 0 {
+				if username != "" {
+					uid, err = getUIDFromUsername(client, username, url)
+					if err != nil {
+						return fmt.Errorf("only users with manager role can change other users passwords")
+					}
+				} else {
+					uid = tokenUID
+				}
+			}
+
+			// fmt.Println(!AmIManager(token), tokenUID, uid)
+			if !AmIManager(token) && tokenUID != uid {
+				return fmt.Errorf("only users with manager role can change other users passwords")
+			}
+
+			if tokenUID == uid {
+				oldPassword := prompter.Password("Old password")
+				if oldPassword == "" {
+					return fmt.Errorf("password required")
+				}
+				passwdBody.OldPassword = oldPassword
+			}
+
+			password := viper.GetString("password")
+
+			if password != "" {
+				fmt.Println("WARNING! Using --password via the CLI is insecure.")
 			} else {
-				uid = uint(WhichIsMyTokenUID(token))
-			}
-		}
-
-		if !AmIManager(token) && uint(WhichIsMyTokenUID(token)) != uid {
-			error := "Only users with manager role can change other users passwords"
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
-
-		if uint(WhichIsMyTokenUID(token)) == uid {
-			oldPassword := prompter.Password("Old password")
-			if oldPassword == "" {
-				error := "Error password required"
-				printError(error, jsonOutput)
-				os.Exit(1)
-			}
-			passwdBody.OldPassword = oldPassword
-		}
-
-		password := viper.GetString("password")
-
-		if password != "" {
-			fmt.Println("WARNING! Using --password via the CLI is insecure.")
-		} else {
-			passwordStdin := viper.GetBool("passwd-stdin")
-			if !passwordStdin {
-				password = prompter.Password("New password")
-				if password == "" {
-					error := "Error password required"
-					printError(error, jsonOutput)
-					os.Exit(1)
-				}
-				confirmPassword := prompter.Password("Confirm password")
-				if password != confirmPassword {
-					error := "Error passwords don't match"
-					printError(error, jsonOutput)
-					os.Exit(1)
+				passwordStdin := viper.GetBool("passwd-stdin")
+				if !passwordStdin {
+					password = prompter.Password("New password")
+					if password == "" {
+						return fmt.Errorf("password required")
+					}
+					confirmPassword := prompter.Password("Confirm password")
+					if password != confirmPassword {
+						return fmt.Errorf("passwords don't match")
+					}
 				}
 			}
-		}
 
-		passwdBody.Password = password
+			passwdBody.Password = password
 
-		// Rest API authentication
-		client := RestClient(token.AccessToken)
-		endpoint := fmt.Sprintf("%s/v1/users/%d/passwd", url, uid)
-		resp, err := client.R().
-			SetHeader("Content-Type", "application/json").
-			SetBody(passwdBody).
-			SetError(&types.APIError{}).
-			Post(endpoint)
+			endpoint := fmt.Sprintf("%s/v1/users/%d/passwd", url, uid)
+			resp, err := client.R().
+				SetHeader("Content-Type", "application/json").
+				SetBody(passwdBody).
+				SetError(&types.APIError{}).
+				Post(endpoint)
 
-		if err != nil {
-			fmt.Printf("Error connecting with Glim: %v\n", err)
-			os.Exit(1)
-		}
+			if err != nil {
+				return fmt.Errorf("can't connect with Glim: %v", err)
+			}
 
-		if resp.IsError() {
-			fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-			os.Exit(1)
-		}
+			if resp.IsError() {
+				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+			}
 
-		fmt.Println("Password changed")
-	},
-}
+			printCmdMessage(cmd, "Password changed", jsonOutput)
+			return nil
+		},
+	}
 
-func init() {
-	userPasswdCmd.Flags().UintP("uid", "i", 0, "User account id")
-	userPasswdCmd.Flags().StringP("username", "u", "", "username")
-	userPasswdCmd.Flags().StringP("password", "p", "", "New user password")
-	userPasswdCmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
+	cmd.Flags().UintP("uid", "i", 0, "User account id")
+	cmd.Flags().StringP("username", "u", "", "username")
+	cmd.Flags().StringP("password", "p", "", "New user password")
+	cmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
+	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+	viper.BindPFlags(cmd.Flags())
+
+	return cmd
 }

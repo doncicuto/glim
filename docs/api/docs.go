@@ -556,7 +556,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/types.TokenAuthentication"
                         }
                     },
                     "400": {
@@ -608,7 +608,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/types.TokenAuthentication"
                         }
                     },
                     "400": {
@@ -1174,6 +1174,9 @@ const docTemplate = `{
                 "firstname": {
                     "type": "string"
                 },
+                "jpeg_photo": {
+                    "type": "string"
+                },
                 "lastname": {
                     "type": "string"
                 },
@@ -1224,6 +1227,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "firstname": {
+                    "type": "string"
+                },
+                "jpeg_photo": {
                     "type": "string"
                 },
                 "lastname": {
@@ -1277,7 +1283,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.Response": {
+        "types.TokenAuthentication": {
             "type": "object",
             "properties": {
                 "access_token": {

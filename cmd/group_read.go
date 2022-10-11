@@ -19,21 +19,16 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/types"
+	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func getGIDFromGroupName(group string, url string, jsonOutput bool) uint {
-	token := ReadCredentials()
-	if NeedsRefresh(token) {
-		Refresh(token.RefreshToken)
-		token = ReadCredentials()
-	}
-
-	client := RestClient(token.AccessToken)
+func getGIDFromGroupName(client *resty.Client, group string, url string) (uint, error) {
 	endpoint := fmt.Sprintf("%s/v1/groups/%s/gid", url, group)
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -42,33 +37,26 @@ func getGIDFromGroupName(group string, url string, jsonOutput bool) uint {
 		Get(endpoint)
 
 	if err != nil {
-		error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return 0, fmt.Errorf("can't connect with Glim: %v", err)
 	}
 
 	if resp.IsError() {
-		error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return 0, fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
 	}
 
 	result := resp.Result().(*models.GroupID)
-	return uint(result.ID)
+	return uint(result.ID), nil
 }
 
-func getGroup(id uint, jsonOutput bool) {
+func getGroup(cmd *cobra.Command, id uint, jsonOutput bool) error {
 	// Glim server URL
 	url := viper.GetString("server")
 	endpoint := fmt.Sprintf("%s/v1/groups/%d", url, id)
 
-	// Read credentials
-	token := ReadCredentials()
-
-	// Check expiration
-	if NeedsRefresh(token) {
-		Refresh(token.RefreshToken)
-		token = ReadCredentials()
+	// Get credentials
+	token, err := GetCredentials(url)
+	if err != nil {
+		return err
 	}
 
 	// Rest API authentication
@@ -81,48 +69,41 @@ func getGroup(id uint, jsonOutput bool) {
 		Get(endpoint)
 
 	if err != nil {
-		error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return fmt.Errorf("can't connect with Glim: %v", err)
 	}
-
 	if resp.IsError() {
-		error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
 	}
 
 	result := resp.Result().(*models.GroupInfo)
 
 	if jsonOutput {
-		encodeGroupToJson(result)
+		encodeGroupToJson(cmd, result)
 	} else {
-		fmt.Printf("%-15s %-100s\n", "Group:", result.Name)
-		fmt.Printf("%-15s %-100d\n", " GID:", result.ID)
-		fmt.Printf("%-15s %-100s\n\n", " Description:", result.Description)
+		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n", "Group:", result.Name)
+		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100d\n", " GID:", result.ID)
+		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n\n", " Description:", result.Description)
 
-		fmt.Printf("%-15s\n", "Members:")
-		fmt.Printf("====\n")
+		fmt.Fprintf(cmd.OutOrStdout(), "%-15s\n", "Members:")
+		fmt.Fprintf(cmd.OutOrStdout(), "====\n")
 		for _, member := range result.Members {
-			fmt.Printf("%-15s %-100d\n", " UID:", member.ID)
-			fmt.Printf("%-15s %-100s\n", " Username:", member.Username)
-			fmt.Printf("----\n")
+			fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100d\n", " UID:", member.ID)
+			fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n", " Username:", member.Username)
+			fmt.Fprintf(cmd.OutOrStdout(), "----\n")
 		}
 	}
-
+	return nil
 }
 
-func getGroups(jsonOutput bool) {
+func getGroups(cmd *cobra.Command, jsonOutput bool) error {
 	// Glim server URL
 	url := viper.GetString("server")
-
-	// Read credentials
-	token := ReadCredentials()
 	endpoint := fmt.Sprintf("%s/v1/groups", url)
-	// Check expiration
-	if NeedsRefresh(token) {
-		Refresh(token.RefreshToken)
-		token = ReadCredentials()
+
+	// Get credentials
+	token, err := GetCredentials(url)
+	if err != nil {
+		return err
 	}
 
 	// Rest API authentication
@@ -135,21 +116,19 @@ func getGroups(jsonOutput bool) {
 		Get(endpoint)
 
 	if err != nil {
-		fmt.Printf("Error connecting with Glim: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("can't connect with Glim: %v", err)
 	}
 
 	if resp.IsError() {
-		fmt.Printf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-		os.Exit(1)
+		return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
 	}
 
 	results := resp.Result().(*[]models.GroupInfo)
 	if jsonOutput {
-		encodeGroupsToJson(results)
+		encodeGroupsToJson(cmd, results)
 	} else {
 
-		fmt.Printf("%-6s %-20s %-35s %-50s\n",
+		fmt.Fprintf(cmd.OutOrStdout(), "%-6s %-20s %-35s %-50s\n",
 			"GID",
 			"GROUP",
 			"DESCRIPTION",
@@ -168,46 +147,79 @@ func getGroups(jsonOutput bool) {
 					}
 				}
 			}
-			fmt.Printf("%-6d %-20s %-35s %-50s\n",
+			fmt.Fprintf(cmd.OutOrStdout(), "%-6d %-20s %-35s %-50s\n",
 				result.ID,
 				truncate(result.Name, 20),
 				truncate(result.Description, 35),
 				truncate(members, 50))
 		}
 	}
+	return nil
 }
 
-func GetGroupInfo() {
+func GetGroupInfo(cmd *cobra.Command) error {
 	gid := viper.GetUint("gid")
 	group := viper.GetString("group")
 	jsonOutput := viper.GetBool("json")
 	if gid != 0 {
-		getGroup(gid, jsonOutput)
-		os.Exit(0)
+		if err := getGroup(cmd, gid, jsonOutput); err != nil {
+			return err
+		}
+		return nil
 	}
 	if group != "" {
 		url := viper.GetString("server")
-		gid = getGIDFromGroupName(group, url, jsonOutput)
-		getGroup(gid, jsonOutput)
-		os.Exit(0)
+		// Get credentials
+		token, err := GetCredentials(url)
+		if err != nil {
+			return err
+		}
+
+		client := RestClient(token.AccessToken)
+		gid, err = getGIDFromGroupName(client, group, url)
+		if err != nil {
+			return err
+		}
+		if err := getGroup(cmd, gid, jsonOutput); err != nil {
+			return err
+		}
+		return nil
 	}
-	getGroups(jsonOutput)
-	os.Exit(0)
+	if err := getGroups(cmd, jsonOutput); err != nil {
+		return err
+	}
+	return nil
 }
 
 // ListGroupCmd - TODO comment
-var listGroupCmd = &cobra.Command{
-	Use:   "ls",
-	Short: "List Glim groups",
-	PreRun: func(cmd *cobra.Command, _ []string) {
-		viper.BindPFlags(cmd.Flags())
-	},
-	Run: func(_ *cobra.Command, _ []string) {
-		GetGroupInfo()
-	},
+func ListGroupCmd() *cobra.Command {
+
+	cmd := &cobra.Command{
+		Use:   "ls",
+		Short: "List Glim groups",
+		PreRun: func(cmd *cobra.Command, _ []string) {
+			viper.BindPFlags(cmd.Flags())
+		},
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return GetGroupInfo(cmd)
+		},
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
+	cmd.Flags().UintP("gid", "i", 0, "group id")
+	cmd.Flags().StringP("group", "g", "", "group name")
+	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+
+	return cmd
 }
 
 func init() {
-	listGroupCmd.Flags().UintP("gid", "i", 0, "group id")
-	listGroupCmd.Flags().StringP("group", "g", "", "group name")
+
 }

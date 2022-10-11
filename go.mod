@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/Songmu/prompter v0.5.1
+	github.com/antelman107/net-wait-go v0.0.0-20220211074630-12d8a944b87d // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dchest/validator v0.0.0-20191217151620-8e45250f2371
 	github.com/dgraph-io/badger v1.6.2

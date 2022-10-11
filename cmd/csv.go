@@ -17,6 +17,7 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/doncicuto/glim/models"
@@ -25,44 +26,38 @@ import (
 	"github.com/spf13/viper"
 )
 
-func readUsersFromCSV(jsonOutput bool) []*models.User {
+func readUsersFromCSV(jsonOutput bool) ([]*models.User, error) {
 	// Read and open file
 	file := viper.GetString("file")
 	csvFile, err := os.Open(file)
 	if err != nil {
-		error := "can't open CSV file"
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return nil, fmt.Errorf("can't open CSV file")
 	}
 	defer csvFile.Close()
 
 	// Try to unmarshal CSV file usin gocsv
 	users := []*models.User{}
 	if err := gocsv.UnmarshalFile(csvFile, &users); err != nil { // Load clients from file
-		printError(err.Error(), jsonOutput)
-		os.Exit(1)
+		return nil, err
 	}
-	return users
+	return users, nil
 }
 
-func readGroupsFromCSV(jsonOutput bool) []*models.Group {
+func readGroupsFromCSV(jsonOutput bool) ([]*models.Group, error) {
 	// Read and open file
 	file := viper.GetString("file")
 	csvFile, err := os.Open(file)
 	if err != nil {
-		error := "can't open CSV file"
-		printError(error, jsonOutput)
-		os.Exit(1)
+		return nil, fmt.Errorf("can't open CSV file")
 	}
 	defer csvFile.Close()
 
 	// Try to unmarshal CSV file usin gocsv
 	groups := []*models.Group{}
 	if err := gocsv.UnmarshalFile(csvFile, &groups); err != nil { // Load clients from file
-		printError(err.Error(), jsonOutput)
-		os.Exit(1)
+		return nil, err
 	}
-	return groups
+	return groups, nil
 }
 
 // importCmd represents the import command

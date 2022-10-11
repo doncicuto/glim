@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/Songmu/prompter"
 	"github.com/doncicuto/glim/types"
@@ -27,62 +28,76 @@ import (
 )
 
 // DeleteUserCmd - TODO comment
-var deleteUserCmd = &cobra.Command{
-	Use:   "rm",
-	Short: "Remove a Glim user account",
-	PreRun: func(cmd *cobra.Command, _ []string) {
-		viper.BindPFlags(cmd.Flags())
-	},
-	Run: func(_ *cobra.Command, _ []string) {
+func DeleteUserCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "rm",
+		Short: "Remove a Glim user account",
+		PreRun: func(cmd *cobra.Command, _ []string) {
+			viper.BindPFlags(cmd.Flags())
+		},
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			force := viper.GetBool("force")
 
-		confirm := prompter.YesNo("Do you really want to delete this user?", false)
-		if !confirm {
-			os.Exit(1)
-		}
+			if !force {
+				confirm := prompter.YesNo("Do you really want to delete this user?", false)
+				if !confirm {
+					return fmt.Errorf("ok, user wasn't deleted")
+				}
+			}
 
-		url := viper.GetString("server")
-		uid := viper.GetUint("uid")
-		username := viper.GetString("username")
+			url := viper.GetString("server")
+			uid := viper.GetUint("uid")
+			username := viper.GetString("username")
 
-		// Read credentials and check if token needs refresh
-		token := ReadCredentials()
-		if NeedsRefresh(token) {
-			Refresh(token.RefreshToken)
-			token = ReadCredentials()
-		}
+			// Get credentials
+			token, err := GetCredentials(url)
+			if err != nil {
+				return err
+			}
 
-		// JSON output?
-		jsonOutput := viper.GetBool("json")
+			// JSON output?
+			jsonOutput := viper.GetBool("json")
 
-		if uid == 0 && username != "" {
-			uid = getUIDFromUsername(username, url, jsonOutput)
-		}
+			client := RestClient(token.AccessToken)
+			if uid == 0 && username != "" {
+				uid, err = getUIDFromUsername(client, username, url)
+				if err != nil {
+					return err
+				}
+			}
 
-		// Rest API authentication
-		client := RestClient(token.AccessToken)
-		endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
-		resp, err := client.R().
-			SetHeader("Content-Type", "application/json").
-			SetError(&types.APIError{}).
-			Delete(endpoint)
+			// Rest API authentication
+			endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
+			resp, err := client.R().
+				SetHeader("Content-Type", "application/json").
+				SetError(&types.APIError{}).
+				Delete(endpoint)
 
-		if err != nil {
-			error := fmt.Sprintf("Error connecting with Glim: %v\n", err)
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+			if err != nil {
+				return fmt.Errorf("can't connect with Glim: %v", err)
+			}
 
-		if resp.IsError() {
-			error := fmt.Sprintf("Error response from Glim: %v\n", resp.Error().(*types.APIError).Message)
-			printError(error, jsonOutput)
-			os.Exit(1)
-		}
+			if resp.IsError() {
+				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+			}
 
-		printMessage("User account deleted", jsonOutput)
-	},
-}
+			printCmdMessage(cmd, "User account deleted", jsonOutput)
+			return nil
+		},
+	}
 
-func init() {
-	deleteUserCmd.Flags().UintP("uid", "i", 0, "user account id")
-	deleteUserCmd.Flags().StringP("username", "u", "", "username")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("Could not get your home directory: %v\n", err)
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+
+	cmd.Flags().UintP("uid", "i", 0, "user account id")
+	cmd.Flags().StringP("username", "u", "", "username")
+	cmd.Flags().BoolP("force", "f", false, "force delete and don't ask for confirmation")
+	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+
+	return cmd
 }
