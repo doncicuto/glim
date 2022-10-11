@@ -10,9 +10,9 @@ import (
 )
 
 func TestLogoutCmd(t *testing.T) {
-	kvPath := uuid.New()
-	e := testSetup(t, kvPath.String())
-	defer testCleanUp(kvPath.String())
+	dbPath := uuid.New()
+	e := testSetup(t, dbPath.String())
+	defer testCleanUp(dbPath.String())
 
 	// Launch testing server
 	go func() {

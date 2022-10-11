@@ -21,7 +21,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func newTestDatabase() (*gorm.DB, error) {
+func newTestDatabase(dbPath string) (*gorm.DB, error) {
 	var dbInit = types.DBInit{
 		AdminPasswd:   "test",
 		SearchPasswd:  "test",
@@ -30,11 +30,11 @@ func newTestDatabase() (*gorm.DB, error) {
 		UseSqlite:     true,
 	}
 	sqlLog := false
-	return db.Initialize("/tmp/test.db", sqlLog, dbInit)
+	return db.Initialize(fmt.Sprintf("/tmp/%s.db", dbPath), sqlLog, dbInit)
 }
 
-func newTestKV(kvPath string) (badgerdb.Store, error) {
-	return badgerdb.NewBadgerStore(fmt.Sprintf("/tmp/%s", kvPath))
+func newTestKV(dbPath string) (badgerdb.Store, error) {
+	return badgerdb.NewBadgerStore(fmt.Sprintf("/tmp/%s", dbPath))
 }
 
 func testSettings(db *gorm.DB, kv types.Store) types.APISettings {
@@ -51,15 +51,15 @@ func testSettings(db *gorm.DB, kv types.Store) types.APISettings {
 	}
 }
 
-func testSetup(t *testing.T, kvPath string) *echo.Echo {
+func testSetup(t *testing.T, dbPath string) *echo.Echo {
 	// New SQLite test database
-	db, err := newTestDatabase()
+	db, err := newTestDatabase(dbPath)
 	if err != nil {
 		t.Fatalf("could not initialize db - %v", err)
 	}
 
 	// New BadgerDB test key-value storage
-	kv, err := newTestKV(kvPath)
+	kv, err := newTestKV(dbPath)
 	if err != nil {
 		t.Fatalf("could not initialize kv - %v", err)
 	}
@@ -75,17 +75,17 @@ func testSetup(t *testing.T, kvPath string) *echo.Echo {
 	return e
 }
 
-func testCleanUp(kvPath string) {
-	removeDatabase()
-	removeKV(kvPath)
+func testCleanUp(dbPath string) {
+	removeDatabase(dbPath)
+	removeKV(dbPath)
 }
 
-func removeDatabase() {
-	os.Remove("/tmp/test.db")
+func removeDatabase(dbPath string) {
+	os.Remove(fmt.Sprintf("/tmp/%s.db", dbPath))
 }
 
-func removeKV(kvPath string) {
-	os.RemoveAll(fmt.Sprintf("/tmp/%s", kvPath))
+func removeKV(dbPath string) {
+	os.RemoveAll(fmt.Sprintf("/tmp/%s", dbPath))
 }
 
 type CmdTestCase struct {

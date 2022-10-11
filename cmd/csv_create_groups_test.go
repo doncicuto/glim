@@ -89,9 +89,9 @@ func deleteGroupTestingFiles() {
 
 func TestCsvCreateGroups(t *testing.T) {
 	// Prepare test databases and echo testing server
-	kvPath := uuid.New()
-	e := testSetup(t, kvPath.String())
-	defer testCleanUp(kvPath.String())
+	dbPath := uuid.New()
+	e := testSetup(t, dbPath.String())
+	defer testCleanUp(dbPath.String())
 
 	err := prepareGroupTestFiles()
 	if err != nil {
