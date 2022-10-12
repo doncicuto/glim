@@ -29,6 +29,45 @@ If you're looking for a full LDAP server replacement that fully understands sche
 
 please try Glim and help me to improve it and visit the [wiki](https://github.com/doncicuto/glim/wiki) for more information about Glim (configuration examples, docker, advanced topics...)
 
+## Try it with Docker 🐋
+
+Please, visit the [wiki section](https://github.com/doncicuto/glim/wiki/Docker) about Docker, but in a nutshell follow these steps to run Glim with Docker:
+
+1. Create a temp folder: `mkdir /tmp/glim`
+
+2. Run a server using the following command: `docker run -e GLIM_API_SECRET="yourapisecret" -v /tmp/glim:/home/glim/.glim  --name glim -p 1323:1323 -p 1636:1636 -d sologitops/glim`
+
+3. Check your logs and see the passwords that have been generated automatically:
+
+```bash
+docker logs -f glim
+
+...
+------------------------------------- WARNING -------------------------------------
+A new user with manager permissions has been created:
+- Username: admin
+- Password Dg9FXUkrs6aOTqhMkKLW3ESvmsQvS4Bm6g12WAamQ9cbzRfxEdxpL7NEsOlyZax2
+Please store or write down this password to manage Glim.
+You can delete this user once you assign manager permissions to another user
+-----------------------------------------------------------------------------------
+
+------------------------------------- WARNING -------------------------------------
+A new user with read-only permissions has been created:
+- Username: search
+- Password WgkJeRgAuRzdPncgj50f9TXAtN9NbGiAqDn8pRvlxW7vJetGeSy4zf2aMTEc1X4G
+Please store or write down this password to perform search queries in Glim.
+-----------------------------------------------------------------------------------
+```
+
+4. Open a terminal and play with Glim
+
+```bash
+docker exec -it glim /app/glim login
+Username: admin
+Password: 
+Login Succeeded
+```
+
 ## How does it work
 
 ```(bash)
