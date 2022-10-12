@@ -23,7 +23,7 @@ If you're looking for a full LDAP server replacement that fully understands sche
 
 - Answer LDAP authentication (bind) and search queries sent by your applications
 - Store your users and groups in a SQL database (Postgres or SQLite)
-- Manage your users with simple CLI commands
+- Manage your users and groups with simple CLI commands
 - Provide a simple REST API that you can use with your applications
 - Be used for your automated tests...
 
@@ -88,23 +88,27 @@ Could not find required CA pem file to validate authority
 
 ## FAQ
 
-1. Is Glim a proxy for LDAP requests that can be sent to LDAP backends?
+1. Which applications can use Glim to authenticate users?
+
+   > In theory Glim can be used with any application that use common methods to authenticate users with LDAP but so far Glim has been tested with: Gitea, Harbor, Portainer CE, OpenNebula, Gitlab CE and Kanboard and you can find configuration examples in the wiki. If your application can't use Glim please let us know.
+
+2. Is Glim a proxy for LDAP requests that can be sent to LDAP backends?
 
    > No. Glim stores users and groups in a SQL database (SQLite or Postgres).  
 
-2. Can I add or delete users or groups using LDIF files?
+3. Can I add or delete users or groups using LDIF files?
 
    > No. You can use Glim's CLI to manage your users and groups easier.
 
-3. Can I use phpLDAPadmin, Apache Directory Studio or other LDAP GUI tool?
+4. Can I use phpLDAPadmin, Apache Directory Studio or other LDAP GUI tool?
 
    > Not currently. Glim cannot answer Root DSE requests or add/delete LDAP operations. Open a discussion if you find this feature useful so it can be added to the roadmap.
 
-4. Does Glim support anonymous bind?
+5. Does Glim support anonymous bind?
 
    > Nope. Glim comes with a search user (readonly) that you can use to bind and search information
 
-5. Does Glim have a web user interface?
+6. Does Glim have a web user interface?
 
    > Not for now, but open a discussion if you need a web management tool that will use Glim's REST API.
 
