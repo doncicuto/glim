@@ -40,7 +40,7 @@ func CsvDeleteUsersCmd() *cobra.Command {
 			jsonOutput := viper.GetBool("json")
 
 			// Read and open file
-			users, err := readUsersFromCSV(jsonOutput)
+			users, err := readUsersFromCSV(jsonOutput, "uid, username")
 			if err != nil {
 				return err
 			}

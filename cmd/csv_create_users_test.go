@@ -168,7 +168,7 @@ func TestCsvCreateUsers(t *testing.T) {
 			name:           "file with wrong header",
 			cmd:            CsvCreateUsersCmd(),
 			args:           []string{"--server", "http://127.0.0.1:50032", "--file", "/tmp/file3.csv"},
-			errorMessage:   "record on line 2: wrong number of fields",
+			errorMessage:   "wrong header",
 			successMessage: "",
 		},
 		{

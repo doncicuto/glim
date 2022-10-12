@@ -41,7 +41,7 @@ func CsvDeleteGroupsCmd() *cobra.Command {
 			messages := []string{}
 
 			// Read and open file
-			groups, err := readGroupsFromCSV(jsonOutput)
+			groups, err := readGroupsFromCSV(jsonOutput, "gid, name")
 			if err != nil {
 				return err
 			}

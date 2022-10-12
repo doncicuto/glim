@@ -43,7 +43,7 @@ func CsvCreateUsersCmd() *cobra.Command {
 			messages := []string{}
 
 			// Read and open file
-			users, err := readUsersFromCSV(jsonOutput)
+			users, err := readUsersFromCSV(jsonOutput, "username,firstname,lastname,email,password,ssh_public_key,jpeg_photo,manager,readonly,locked,groups")
 			if err != nil {
 				return err
 			}
