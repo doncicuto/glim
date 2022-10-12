@@ -153,7 +153,7 @@ func TestCsvCreateGroups(t *testing.T) {
 			name:           "file with wrong header",
 			cmd:            CsvCreateGroupsCmd(),
 			args:           []string{"--server", "http://127.0.0.1:50033", "--file", "/tmp/file3.csv"},
-			errorMessage:   "record on line 2: wrong number of fields",
+			errorMessage:   "wrong header",
 			successMessage: "",
 		},
 		{

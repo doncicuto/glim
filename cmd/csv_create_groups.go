@@ -40,7 +40,7 @@ func CsvCreateGroupsCmd() *cobra.Command {
 			messages := []string{}
 
 			// Read and open file
-			groups, err := readGroupsFromCSV(jsonOutput)
+			groups, err := readGroupsFromCSV(jsonOutput, "name,description,members")
 			if err != nil {
 				return err
 			}

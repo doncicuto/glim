@@ -17,6 +17,7 @@ limitations under the License.
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 
@@ -26,7 +27,28 @@ import (
 	"github.com/spf13/viper"
 )
 
-func readUsersFromCSV(jsonOutput bool) ([]*models.User, error) {
+func checkCSVHeader(header string) error {
+	file := viper.GetString("file")
+	csvFile, err := os.Open(file)
+	if err != nil {
+		return fmt.Errorf("can't open CSV file")
+	}
+	defer csvFile.Close()
+
+	// Try to read first row and check if row is valid
+	reader := bufio.NewReader(csvFile)
+	line, _, err := reader.ReadLine()
+	if err != nil {
+		return err
+	}
+
+	if header != string(line) {
+		return fmt.Errorf("wrong header")
+	}
+	return nil
+}
+
+func readUsersFromCSV(jsonOutput bool, header string) ([]*models.User, error) {
 	// Read and open file
 	file := viper.GetString("file")
 	csvFile, err := os.Open(file)
@@ -34,6 +56,12 @@ func readUsersFromCSV(jsonOutput bool) ([]*models.User, error) {
 		return nil, fmt.Errorf("can't open CSV file")
 	}
 	defer csvFile.Close()
+
+	// Try to read first row and check if row is valid
+	err = checkCSVHeader(header)
+	if err != nil {
+		return nil, err
+	}
 
 	// Try to unmarshal CSV file usin gocsv
 	users := []*models.User{}
@@ -43,7 +71,7 @@ func readUsersFromCSV(jsonOutput bool) ([]*models.User, error) {
 	return users, nil
 }
 
-func readGroupsFromCSV(jsonOutput bool) ([]*models.Group, error) {
+func readGroupsFromCSV(jsonOutput bool, header string) ([]*models.Group, error) {
 	// Read and open file
 	file := viper.GetString("file")
 	csvFile, err := os.Open(file)
@@ -51,6 +79,12 @@ func readGroupsFromCSV(jsonOutput bool) ([]*models.Group, error) {
 		return nil, fmt.Errorf("can't open CSV file")
 	}
 	defer csvFile.Close()
+
+	// Try to read first row and check if row is valid
+	err = checkCSVHeader(header)
+	if err != nil {
+		return nil, err
+	}
 
 	// Try to unmarshal CSV file usin gocsv
 	groups := []*models.Group{}
