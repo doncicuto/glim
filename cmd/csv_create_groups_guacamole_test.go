@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func prepareGroupTestFiles() error {
+func prepareGroupGuacamoleTestFiles() error {
 
 	// File with a good CSV file
 	f, err := os.Create("/tmp/file1.csv")
@@ -84,25 +84,25 @@ func prepareGroupTestFiles() error {
 	return nil
 }
 
-func deleteGroupTestingFiles() {
+func deleteGroupGuacamoleTestingFiles() {
 	os.Remove("/tmp/file1.csv")
 	os.Remove("/tmp/file2.csv")
 	os.Remove("/tmp/file3.csv")
 	os.Remove("/tmp/file4.csv")
 }
 
-func TestCsvCreateGroups(t *testing.T) {
+func TestCsvCreateGuacamoleGroups(t *testing.T) {
 	// Prepare test databases and echo testing server
 	dbPath := uuid.New()
 	guacamoleEnabled := true
 	e := testSetup(t, dbPath.String(), guacamoleEnabled) // guacamole <- true
 	defer testCleanUp(dbPath.String())
 
-	err := prepareGroupTestFiles()
+	err := prepareGroupGuacamoleTestFiles()
 	if err != nil {
 		t.Fatal("error preparing CSV testing files")
 	}
-	defer deleteGroupTestingFiles()
+	defer deleteGroupGuacamoleTestingFiles()
 
 	// Launch testing server
 	go func() {
