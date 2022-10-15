@@ -16,15 +16,15 @@ func prepareGroupGuacamoleTestFiles() error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("name,description,members\n")
+	_, err = f.WriteString("name,description,members,guac_config_protocol,guac_config_parameters\n")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"devel","Developers","saul,kim"` + "\n")
+	_, err = f.WriteString(`"devel","Developers","saul,kim",,` + "\n")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"admins","Administratos","kim"` + "\n")
+	_, err = f.WriteString(`"admins","Administratos","kim",,` + "\n")
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func prepareGroupGuacamoleTestFiles() error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("name,description,members\n")
+	_, err = f.WriteString("name,description,members,guac_config_protocol,guac_config_parameters\n")
 	if err != nil {
 		return err
 	}
@@ -50,11 +50,11 @@ func prepareGroupGuacamoleTestFiles() error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("name,desdsdcription,members\n")
+	_, err = f.WriteString("name,descrsdiption,members,guac_config_protocol,guac_config_parameters\n")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"some","User","",` + "\n")
+	_, err = f.WriteString(`"some","User","",,,` + "\n")
 	if err != nil {
 		return err
 	}
@@ -67,11 +67,11 @@ func prepareGroupGuacamoleTestFiles() error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("name,description,members\n")
+	_, err = f.WriteString("name,description,members,guac_config_protocol,guac_config_parameters\n")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"","test1","ron"` + "\n")
+	_, err = f.WriteString(`"","test1","ron",,` + "\n")
 	if err != nil {
 		return err
 	}
