@@ -26,7 +26,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//AddGroupMembers - TODO comment
+// AddGroupMembers - TODO comment
 // @Summary      Add members to a group
 // @Description  Add members to a group
 // @Tags         groups
@@ -85,5 +85,5 @@ func (h *Handler) AddGroupMembers(c echo.Context) error {
 
 	// Return group
 	showMembers := true
-	return c.JSON(http.StatusOK, models.GetGroupInfo(g, showMembers))
+	return c.JSON(http.StatusOK, models.GetGroupInfo(g, showMembers, h.Guacamole))
 }

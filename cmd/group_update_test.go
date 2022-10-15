@@ -8,7 +8,7 @@ import (
 
 func TestUpdateGroupCmd(t *testing.T) {
 	dbPath := uuid.New()
-	e := testSetup(t, dbPath.String())
+	e := testSetup(t, dbPath.String(), false)
 	defer testCleanUp(dbPath.String())
 
 	// Launch testing server
@@ -66,7 +66,7 @@ func TestUpdateGroupCmd(t *testing.T) {
 			cmd:            ListGroupCmd(),
 			args:           []string{"--server", "http://127.0.0.1:51015", "--gid", "1", "--json"},
 			errorMessage:   "",
-			successMessage: `{"gid":1,"name":"test","description":"new description","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}` + "\n",
+			successMessage: `{"gid":1,"name":"test","description":"new description","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}` + "\n",
 		},
 		{
 			name:           "add mike as group members",
@@ -80,7 +80,7 @@ func TestUpdateGroupCmd(t *testing.T) {
 			cmd:            ListGroupCmd(),
 			args:           []string{"--server", "http://127.0.0.1:51015", "--gid", "1", "--json"},
 			errorMessage:   "",
-			successMessage: `{"gid":1,"name":"test","description":"new description","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}` + "\n",
+			successMessage: `{"gid":1,"name":"test","description":"new description","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}` + "\n",
 		},
 		{
 			name:           "replace all members",
@@ -94,7 +94,7 @@ func TestUpdateGroupCmd(t *testing.T) {
 			cmd:            ListGroupCmd(),
 			args:           []string{"--server", "http://127.0.0.1:51015", "--gid", "1", "--json"},
 			errorMessage:   "",
-			successMessage: `{"gid":1,"name":"test","description":"new description","members":[{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}` + "\n",
+			successMessage: `{"gid":1,"name":"test","description":"new description","members":[{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}` + "\n",
 		},
 		{
 			name:           "login successful as kim",

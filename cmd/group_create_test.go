@@ -8,7 +8,7 @@ import (
 
 func TestNewGroupCmd(t *testing.T) {
 	dbPath := uuid.New()
-	e := testSetup(t, dbPath.String())
+	e := testSetup(t, dbPath.String(), false)
 	defer testCleanUp(dbPath.String())
 
 	// Launch testing server

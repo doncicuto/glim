@@ -528,6 +528,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/guacamole": {
+            "get": {
+                "description": "Get a boolean showing if Apache Guacamole support is enabled",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Check if Apache Guacamole support is enabled",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GuacamoleSupport"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Log in to the API and get JWT access and refresh tokens",
@@ -1118,6 +1150,12 @@ const docTemplate = `{
                 "gid": {
                     "type": "integer"
                 },
+                "guac_config_parameters": {
+                    "type": "string"
+                },
+                "guac_config_protocol": {
+                    "type": "string"
+                },
                 "members": {
                     "type": "array",
                     "items": {
@@ -1141,6 +1179,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "description": {
+                    "type": "string"
+                },
+                "guac_config_parameters": {
+                    "type": "string"
+                },
+                "guac_config_protocol": {
                     "type": "string"
                 },
                 "members": {
@@ -1269,6 +1313,14 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "types.GuacamoleSupport": {
+            "type": "object",
+            "properties": {
+                "guac_enabled": {
+                    "type": "boolean"
                 }
             }
         },

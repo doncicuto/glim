@@ -7,7 +7,7 @@ import (
 
 func TestGroupDelete(t *testing.T) {
 	// Setup
-	h, e, settings := testSetup(t)
+	h, e, settings := testSetup(t, false)
 	defer testCleanUp()
 
 	// Log in with admin, search and/or plain user and get tokens
@@ -47,7 +47,7 @@ func TestGroupDelete(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers"}`,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers"}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:       "group can be deleted",

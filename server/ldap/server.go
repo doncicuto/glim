@@ -130,26 +130,41 @@ func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings types.LDAPSe
 		addr = settings.Address
 	}
 
-	// Load server certificate and private key
-	cer, err := tls.LoadX509KeyPair(settings.TLSCert, settings.TLSKey)
-	if err != nil {
-		log.SetHeader("${time_rfc3339} [Glim] ⇨")
-		log.Fatal("could not load server certificate and private key pair")
-		return
-	}
+	var err error
+	var l net.Listener
 
-	// Start TLS listener
-	config := &tls.Config{Certificates: []tls.Certificate{cer}}
-	l, err := tls.Listen("tcp", addr, config)
-	if err != nil {
+	if settings.TLSDisabled {
+		// Start TCP listener
+		l, err = net.Listen("tcp", addr)
+		if err != nil {
+			log.SetHeader("${time_rfc3339} [Glim] ⇨")
+			log.Fatal("")
+			return
+		}
 		log.SetHeader("${time_rfc3339} [Glim] ⇨")
-		log.Fatal("")
-		return
-	}
-	defer l.Close()
+		log.Printf("starting LDAP server in address %s...", addr)
+		defer l.Close()
+	} else {
+		// Load server certificate and private key
+		cer, err := tls.LoadX509KeyPair(settings.TLSCert, settings.TLSKey)
+		if err != nil {
+			log.SetHeader("${time_rfc3339} [Glim] ⇨")
+			log.Fatal("could not load server certificate and private key pair")
+			return
+		}
 
-	log.SetHeader("${time_rfc3339} [Glim] ⇨")
-	log.Printf("starting LDAPS server in address %s...", addr)
+		// Start TLS listener
+		config := &tls.Config{Certificates: []tls.Certificate{cer}}
+		l, err = tls.Listen("tcp", addr, config)
+		if err != nil {
+			log.SetHeader("${time_rfc3339} [Glim] ⇨")
+			log.Fatal("")
+			return
+		}
+		log.SetHeader("${time_rfc3339} [Glim] ⇨")
+		log.Printf("starting LDAPS server in address %s...", addr)
+		defer l.Close()
+	}
 
 	// Handle LDAP connections in a for loop
 	for {

@@ -51,7 +51,7 @@ func testSettings(db *gorm.DB, kv types.Store) types.APISettings {
 	}
 }
 
-func testSetup(t *testing.T, dbPath string) *echo.Echo {
+func testSetup(t *testing.T, dbPath string, guacamole bool) *echo.Echo {
 	// New SQLite test database
 	db, err := newTestDatabase(dbPath)
 	if err != nil {
@@ -65,6 +65,7 @@ func testSetup(t *testing.T, dbPath string) *echo.Echo {
 	}
 
 	settings := testSettings(db, kv)
+	settings.Guacamole = guacamole
 	e := handlers.EchoServer(settings)
 	e.Logger.SetLevel(log.ERROR)
 	e.Logger.SetHeader("${time_rfc3339} [Glim] ⇨")

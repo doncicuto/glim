@@ -7,7 +7,7 @@ import (
 
 func TestGroupRemoveMembers(t *testing.T) {
 	// Setup
-	h, e, settings := testSetup(t)
+	h, e, settings := testSetup(t, false)
 	defer testCleanUp()
 
 	// Log in with admin, search and/or plain user and get tokens
@@ -22,7 +22,7 @@ func TestGroupRemoveMembers(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers", "members": "saul,kim,mike"}`,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "group id is required",
@@ -54,7 +54,7 @@ func TestGroupRemoveMembers(t *testing.T) {
 			reqURL:           "/v1/groups/1",
 			reqMethod:        http.MethodGet,
 			secret:           adminToken,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:        "delete all members",
@@ -70,7 +70,7 @@ func TestGroupRemoveMembers(t *testing.T) {
 			reqURL:           "/v1/groups/1",
 			reqMethod:        http.MethodGet,
 			secret:           adminToken,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers"}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 	}
 

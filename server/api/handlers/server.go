@@ -22,8 +22,9 @@ import (
 // @in header
 // @name Authorization
 type Handler struct {
-	DB *gorm.DB
-	KV types.Store
+	DB        *gorm.DB
+	KV        types.Store
+	Guacamole bool
 }
 
 func EchoServer(settings types.APISettings) *echo.Echo {
@@ -34,7 +35,7 @@ func EchoServer(settings types.APISettings) *echo.Echo {
 
 	// Initialize handler
 	blacklist := settings.KV
-	h := &Handler{DB: settings.DB, KV: blacklist}
+	h := &Handler{DB: settings.DB, KV: blacklist, Guacamole: settings.Guacamole}
 
 	// Routes
 	v1 := e.Group("v1")
@@ -46,6 +47,9 @@ func EchoServer(settings types.APISettings) *echo.Echo {
 	})
 	v1.DELETE("/login/refresh_token", func(c echo.Context) error {
 		return h.Logout(c, settings)
+	})
+	v1.GET("/guacamole", func(c echo.Context) error {
+		return h.GuacamoleSupport(c)
 	})
 
 	u := v1.Group("/users")

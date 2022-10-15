@@ -8,7 +8,7 @@ import (
 
 func TestRefresh(t *testing.T) {
 	// Setup
-	h, e, settings := testSetup(t)
+	h, e, settings := testSetup(t, false)
 	defer testCleanUp()
 
 	// Log in with admin user and get tokens

@@ -93,6 +93,15 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required group name"}
 	}
 
+	// Validate Apache Guacamole protocol and parameters
+	if !h.Guacamole && (body.GuacamoleConfigParameters != "" || body.GuacamoleConfigProtocol != "") {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "Apache Guacamole support not set in server"}
+	}
+
+	if body.GuacamoleConfigParameters != "" && body.GuacamoleConfigProtocol == "" {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "Apache Guacamole config protocol is required"}
+	}
+
 	// Check if group already exists
 	err := h.DB.Where("name = ?", body.Name).First(&g).Error
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -106,6 +115,10 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 	// Prepare new group
 	g.Name = &body.Name
 	g.Description = &body.Description
+
+	// Guacamole config
+	g.GuacamoleConfigProtocol = &body.GuacamoleConfigProtocol
+	g.GuacamoleConfigParameters = &body.GuacamoleConfigParameters
 
 	// Created by
 	g.CreatedBy = createdBy.Username
@@ -128,6 +141,6 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 
 	// Send group information
 	showMembers := true
-	i := models.GetGroupInfo(g, showMembers)
+	i := models.GetGroupInfo(g, showMembers, h.Guacamole)
 	return c.JSON(http.StatusOK, i)
 }

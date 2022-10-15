@@ -21,9 +21,31 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/doncicuto/glim/types"
+	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+func isGuacamoleEnabled(client *resty.Client, url string) (bool, error) {
+	// Check if Guacamole support is enabled
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetResult(types.GuacamoleSupport{}).
+		SetError(&types.APIError{}).
+		Get(fmt.Sprintf("%s/v1/guacamole", url))
+
+	if err != nil {
+		return false, fmt.Errorf("can't connect with Glim: %v", err)
+	}
+
+	if resp.IsError() {
+		return false, fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+	}
+
+	guacamoleSupport := resp.Result().(*types.GuacamoleSupport)
+	return guacamoleSupport.Enabled, nil
+}
 
 // groupCmd represents the group command
 var groupCmd = &cobra.Command{

@@ -98,7 +98,7 @@ func deleteUserDeleteTestingFiles() {
 func TestCsvDeleteUsers(t *testing.T) {
 	// Prepare test databases and echo testing server
 	dbPath := uuid.New()
-	e := testSetup(t, dbPath.String())
+	e := testSetup(t, dbPath.String(), false)
 	defer testCleanUp(dbPath.String())
 
 	err := prepareUserDeleteTestFiles()

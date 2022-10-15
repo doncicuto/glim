@@ -7,7 +7,7 @@ import (
 
 func TestGroupCreate(t *testing.T) {
 	// Setup
-	h, e, settings := testSetup(t)
+	h, e, settings := testSetup(t, false)
 	defer testCleanUp()
 
 	// Log in with admin, search and/or plain user and get tokens
@@ -48,7 +48,7 @@ func TestGroupCreate(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers"}`,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers"}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "group name already exits",
@@ -66,7 +66,7 @@ func TestGroupCreate(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "lawyers", "description": "Lawyers", "members":"saul,kim"}`,
-			expectedBodyJSON: `{"gid":2,"name":"lawyers","description":"Lawyers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":2,"name":"lawyers","description":"Lawyers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "group can be created with non-existent members",
@@ -75,7 +75,7 @@ func TestGroupCreate(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "dealers", "description": "Dealers", "members":"walter"}`,
-			expectedBodyJSON: `{"gid":3,"name":"dealers","description":"Dealers"}`,
+			expectedBodyJSON: `{"gid":3,"name":"dealers","description":"Dealers","guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "group can be created with existent and non-existent members",
@@ -84,7 +84,7 @@ func TestGroupCreate(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "fixers", "description": "Fixers", "members":"walter,mike"}`,
-			expectedBodyJSON: `{"gid":4,"name":"fixers","description":"Fixers","members":[{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":4,"name":"fixers","description":"Fixers","members":[{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 	}
 

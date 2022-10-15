@@ -51,16 +51,19 @@ type APISettings struct {
 	AccessTokenExpiry  uint
 	RefreshTokenExpiry uint
 	MaxDaysWoRelogin   int
+	Guacamole          bool
 }
 
 type LDAPSettings struct {
-	DB        *gorm.DB
-	KV        Store
-	TLSCert   string
-	TLSKey    string
-	Address   string
-	Domain    string
-	SizeLimit int
+	DB          *gorm.DB
+	KV          Store
+	TLSDisabled bool
+	TLSCert     string
+	TLSKey      string
+	Address     string
+	Domain      string
+	SizeLimit   int
+	Guacamole   bool
 }
 
 type Credentials struct {
@@ -106,4 +109,8 @@ type Store interface {
 	Delete(k string) (err error)
 	// Close a connection with our key-value store
 	Close() error
+}
+
+type GuacamoleSupport struct {
+	Enabled bool `json:"guac_enabled"`
 }

@@ -26,7 +26,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//FindAllUsers - TODO comment
+// FindAllUsers - TODO comment
 // @Summary      Find all users
 // @Description  Find all users
 // @Tags         users
@@ -66,13 +66,13 @@ func (h *Handler) FindAllUsers(c echo.Context) error {
 	var allUsers []models.UserInfo
 	showMemberOf := true
 	for _, user := range users {
-		allUsers = append(allUsers, models.GetUserInfo(user, showMemberOf))
+		allUsers = append(allUsers, models.GetUserInfo(user, showMemberOf, h.Guacamole))
 	}
 
 	return c.JSON(http.StatusOK, allUsers)
 }
 
-//FindUserByID - TODO comment
+// FindUserByID - TODO comment
 // @Summary      Find user by id
 // @Description  Find user by id
 // @Tags         users
@@ -105,11 +105,11 @@ func (h *Handler) FindUserByID(c echo.Context) error {
 	}
 
 	showMemberOf := true
-	i := models.GetUserInfo(u, showMemberOf)
+	i := models.GetUserInfo(u, showMemberOf, h.Guacamole)
 	return c.JSON(http.StatusOK, i)
 }
 
-//FindUIDFromUsername - TODO comment
+// FindUIDFromUsername - TODO comment
 // @Summary      Find user by username
 // @Description  Find user by username
 // @Tags         users

@@ -8,7 +8,7 @@ import (
 
 func TestLogout(t *testing.T) {
 	// Setup
-	h, e, settings := testSetup(t)
+	h, e, settings := testSetup(t, false)
 	defer testCleanUp()
 
 	// Log in with plain user and get tokens

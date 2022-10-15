@@ -170,6 +170,20 @@ func decodeFilters(p *ber.Packet) (string, *ServerError) {
 		}
 		filter += ")"
 
+	case FilterNot:
+		filter += "(!"
+
+		for _, f := range p.Children {
+			df, err := decodeFilters(f)
+			if err != nil {
+				return "", &ServerError{
+					Msg:  "wrong search filter definition",
+					Code: ProtocolError,
+				}
+			}
+			filter += df
+		}
+		filter += ")"
 	case FilterEquality:
 		if len(p.Children) != 2 {
 			return "", &ServerError{
@@ -528,6 +542,7 @@ func HandleSearchRequest(message *Message, settings types.LDAPSettings) ([]*ber.
 			domain:         settings.Domain,
 			limit:          n,
 			offset:         offset,
+			guacamole:      settings.Guacamole,
 		}
 
 		groups, err, nResults, totalResults = getGroupsFromDB(params)
@@ -551,6 +566,7 @@ func HandleSearchRequest(message *Message, settings types.LDAPSettings) ([]*ber.
 				domain:         settings.Domain,
 				limit:          n,
 				offset:         offset,
+				guacamole:      settings.Guacamole,
 			}
 
 			groups, err, nResults, totalResults = getGroupsFromDB(params)

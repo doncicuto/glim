@@ -57,7 +57,7 @@ func testSettings(db *gorm.DB, kv types.Store) types.APISettings {
 	}
 }
 
-func testSetup(t *testing.T) (*Handler, *echo.Echo, types.APISettings) {
+func testSetup(t *testing.T, guacamole bool) (*Handler, *echo.Echo, types.APISettings) {
 	// New SQLite test database
 	db, err := newTestDatabase()
 	if err != nil {
@@ -71,6 +71,7 @@ func testSetup(t *testing.T) (*Handler, *echo.Echo, types.APISettings) {
 	}
 
 	settings := testSettings(db, kv)
+	settings.Guacamole = guacamole
 	e := EchoServer(settings)
 	h := &Handler{DB: db, KV: kv}
 

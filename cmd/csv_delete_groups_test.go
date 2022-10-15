@@ -16,15 +16,15 @@ func prepareGroupDeleteTestFiles() error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("name,description,members\n")
+	_, err = f.WriteString("name,description,members,guac_config_protocol,guac_config_parameters\n")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"devel","Developers","saul,kim"` + "\n")
+	_, err = f.WriteString(`"devel","Developers","saul,kim",,` + "\n")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"admins","Administratos","kim"` + "\n")
+	_, err = f.WriteString(`"admins","Administratos","kim",,` + "\n")
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func deleteGroupDeleteTestingFiles() {
 func TestCsvDeleteGroups(t *testing.T) {
 	// Prepare test databases and echo testing server
 	dbPath := uuid.New()
-	e := testSetup(t, dbPath.String())
+	e := testSetup(t, dbPath.String(), false)
 	defer testCleanUp(dbPath.String())
 
 	err := prepareGroupDeleteTestFiles()

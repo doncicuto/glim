@@ -40,7 +40,7 @@ func CsvCreateGroupsCmd() *cobra.Command {
 			messages := []string{}
 
 			// Read and open file
-			groups, err := readGroupsFromCSV(jsonOutput, "name,description,members")
+			groups, err := readGroupsFromCSV(jsonOutput, "name,description,members,guac_config_protocol,guac_config_parameters")
 			if err != nil {
 				return err
 			}
@@ -68,9 +68,11 @@ func CsvCreateGroupsCmd() *cobra.Command {
 				resp, err := client.R().
 					SetHeader("Content-Type", "application/json").
 					SetBody(models.JSONGroupBody{
-						Name:        *group.Name,
-						Description: *group.Description,
-						Members:     *group.GroupMembers,
+						Name:                      *group.Name,
+						Description:               *group.Description,
+						Members:                   *group.GroupMembers,
+						GuacamoleConfigProtocol:   *group.GuacamoleConfigProtocol,
+						GuacamoleConfigParameters: *group.GuacamoleConfigParameters,
 					}).
 					SetError(&types.APIError{}).
 					Post(endpoint)
