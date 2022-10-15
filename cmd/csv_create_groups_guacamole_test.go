@@ -20,11 +20,11 @@ func prepareGroupGuacamoleTestFiles() error {
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"devel","Developers","saul,kim","vnc","host=localhost"` + "\n")
+	_, err = f.WriteString(`"programmers","Developers","saul,kim","vnc","host=localhost"` + "\n")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"admins","Administratos","kim","ssh","host=localhost"` + "\n")
+	_, err = f.WriteString(`"managers","Administratos","kim","ssh","host=localhost"` + "\n")
 	if err != nil {
 		return err
 	}
@@ -131,21 +131,21 @@ func TestCsvCreateGuacamoleGroups(t *testing.T) {
 			cmd:            CsvCreateGroupsCmd(),
 			args:           []string{"--server", "http://127.0.0.1:50033", "--file", "/tmp/file1.csv"},
 			errorMessage:   "",
-			successMessage: "devel: successfully created\nadmins: successfully created\nCreate from CSV finished!\n",
+			successMessage: "programmers: successfully created\nmanagers: successfully created\nCreate from CSV finished!\n",
 		},
 		{
 			name:           "group devel detail",
 			cmd:            ListGroupCmd(),
 			args:           []string{"--server", "http://127.0.0.1:50033", "--gid", "1", "--json"},
 			errorMessage:   "",
-			successMessage: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"vnc","guac_config_parameters":"host=localhost"}` + "\n",
+			successMessage: `{"gid":1,"name":"programmers","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"vnc","guac_config_parameters":"host=localhost"}` + "\n",
 		},
 		{
 			name:           "repeat file, groups should be skipped",
 			cmd:            CsvCreateGroupsCmd(),
 			args:           []string{"--server", "http://127.0.0.1:50033", "--file", "/tmp/file1.csv"},
 			errorMessage:   "",
-			successMessage: "devel: skipped, group already exists\nadmins: skipped, group already exists\nCreate from CSV finished!\n",
+			successMessage: "programmers: skipped, group already exists\nmanagers: skipped, group already exists\nCreate from CSV finished!\n",
 		},
 		{
 			name:           "file without groups",
