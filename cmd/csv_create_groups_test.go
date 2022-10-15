@@ -101,65 +101,65 @@ func TestCsvCreateGroups(t *testing.T) {
 
 	// Launch testing server
 	go func() {
-		e.Start(":50033")
+		e.Start(":50043")
 	}()
 
-	waitForTestServer(t, ":50033")
+	waitForTestServer(t, ":50043")
 
 	testCases := []CmdTestCase{
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{"--server", "http://127.0.0.1:50033", "--username", "admin", "--password", "test"},
+			args:           []string{"--server", "http://127.0.0.1:50043", "--username", "admin", "--password", "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
 		{
 			name:           "file not found",
 			cmd:            CsvCreateGroupsCmd(),
-			args:           []string{"--server", "http://127.0.0.1:50033", "--file", "/tmp/file1"},
+			args:           []string{"--server", "http://127.0.0.1:50043", "--file", "/tmp/file1"},
 			errorMessage:   "can't open CSV file",
 			successMessage: "",
 		},
 		{
 			name:           "create groups should be succesful",
 			cmd:            CsvCreateGroupsCmd(),
-			args:           []string{"--server", "http://127.0.0.1:50033", "--file", "/tmp/file1.csv"},
+			args:           []string{"--server", "http://127.0.0.1:50043", "--file", "/tmp/file1.csv"},
 			errorMessage:   "",
 			successMessage: "devel: successfully created\nadmins: successfully created\nCreate from CSV finished!\n",
 		},
 		{
 			name:           "group devel detail",
 			cmd:            ListGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:50033", "--gid", "1", "--json"},
+			args:           []string{"--server", "http://127.0.0.1:50043", "--gid", "1", "--json"},
 			errorMessage:   "",
 			successMessage: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}` + "\n",
 		},
 		{
 			name:           "repeat file, groups should be skipped",
 			cmd:            CsvCreateGroupsCmd(),
-			args:           []string{"--server", "http://127.0.0.1:50033", "--file", "/tmp/file1.csv"},
+			args:           []string{"--server", "http://127.0.0.1:50043", "--file", "/tmp/file1.csv"},
 			errorMessage:   "",
 			successMessage: "devel: skipped, group already exists\nadmins: skipped, group already exists\nCreate from CSV finished!\n",
 		},
 		{
 			name:           "file without groups",
 			cmd:            CsvCreateGroupsCmd(),
-			args:           []string{"--server", "http://127.0.0.1:50033", "--file", "/tmp/file2.csv"},
+			args:           []string{"--server", "http://127.0.0.1:50043", "--file", "/tmp/file2.csv"},
 			errorMessage:   "no groups where found in CSV file",
 			successMessage: "",
 		},
 		{
 			name:           "file with wrong header",
 			cmd:            CsvCreateGroupsCmd(),
-			args:           []string{"--server", "http://127.0.0.1:50033", "--file", "/tmp/file3.csv"},
+			args:           []string{"--server", "http://127.0.0.1:50043", "--file", "/tmp/file3.csv"},
 			errorMessage:   "wrong header",
 			successMessage: "",
 		},
 		{
 			name:           "file with groups that have several errors",
 			cmd:            CsvCreateGroupsCmd(),
-			args:           []string{"--server", "http://127.0.0.1:50033", "--file", "/tmp/file4.csv"},
+			args:           []string{"--server", "http://127.0.0.1:50043", "--file", "/tmp/file4.csv"},
 			errorMessage:   "",
 			successMessage: ": skipped, required group name\nCreate from CSV finished!\n",
 		},
