@@ -8,7 +8,7 @@ import (
 
 func TestUserCreate(t *testing.T) {
 	// Setup
-	h, e, settings := testSetup(t)
+	h, e, settings := testSetup(t, false)
 	defer testCleanUp()
 
 	// Log in with admin, search and/or plain user and get tokens

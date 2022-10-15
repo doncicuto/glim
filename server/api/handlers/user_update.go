@@ -57,7 +57,7 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 	return nil
 }
 
-//UpdateUser - TODO comment
+// UpdateUser - TODO comment
 // @Summary      Update user account information
 // @Description  Update user account information
 // @Tags         users
@@ -255,5 +255,5 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	// Return user
 	showMemberOf := true
-	return c.JSON(http.StatusOK, models.GetUserInfo(*u, showMemberOf))
+	return c.JSON(http.StatusOK, models.GetUserInfo(*u, showMemberOf, h.Guacamole))
 }

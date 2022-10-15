@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func prepareGroupGuacamoleTestFiles() error {
+func prepareGroupTestFiles() error {
 
 	// File with a good CSV file
 	f, err := os.Create("/tmp/file1.csv")
@@ -16,15 +16,15 @@ func prepareGroupGuacamoleTestFiles() error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("name,description,members\n")
+	_, err = f.WriteString("name,description,members,guac_config_protocol,guac_config_parameters\n")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"devel","Developers","saul,kim"` + "\n")
+	_, err = f.WriteString(`"devel","Developers","saul,kim","vnc","host=localhost"` + "\n")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"admins","Administratos","kim"` + "\n")
+	_, err = f.WriteString(`"admins","Administratos","kim","ssh","host=localhost"` + "\n")
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func prepareGroupGuacamoleTestFiles() error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("name,description,members\n")
+	_, err = f.WriteString("name,description,members,guac_config_protocol,guac_config_parameters\n")
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func prepareGroupGuacamoleTestFiles() error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("name,desdsdcription,members\n")
+	_, err = f.WriteString("name,descriptddion,membdsders,guac_condsdsfig_protocol,guac_config_parameters\n")
 	if err != nil {
 		return err
 	}
@@ -67,11 +67,15 @@ func prepareGroupGuacamoleTestFiles() error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("name,description,members\n")
+	_, err = f.WriteString("name,description,members,guac_config_protocol,guac_config_parameters\n")
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString(`"","test1","ron"` + "\n")
+	_, err = f.WriteString(`"","test1","ron","",""` + "\n")
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString(`"test4","test1","kim","","port=22"` + "\n")
 	if err != nil {
 		return err
 	}
@@ -80,24 +84,25 @@ func prepareGroupGuacamoleTestFiles() error {
 	return nil
 }
 
-func deleteGroupGuacamoleTestingFiles() {
+func deleteGroupTestingFiles() {
 	os.Remove("/tmp/file1.csv")
 	os.Remove("/tmp/file2.csv")
 	os.Remove("/tmp/file3.csv")
 	os.Remove("/tmp/file4.csv")
 }
 
-func TestCsvCreateGuacamoleGroups(t *testing.T) {
+func TestCsvCreateGroups(t *testing.T) {
 	// Prepare test databases and echo testing server
 	dbPath := uuid.New()
-	e := testSetup(t, dbPath.String(), false)
+	guacamoleEnabled := true
+	e := testSetup(t, dbPath.String(), guacamoleEnabled) // guacamole <- true
 	defer testCleanUp(dbPath.String())
 
-	err := prepareGroupGuacamoleTestFiles()
+	err := prepareGroupTestFiles()
 	if err != nil {
 		t.Fatal("error preparing CSV testing files")
 	}
-	defer deleteGroupGuacamoleTestingFiles()
+	defer deleteGroupTestingFiles()
 
 	// Launch testing server
 	go func() {
@@ -133,7 +138,7 @@ func TestCsvCreateGuacamoleGroups(t *testing.T) {
 			cmd:            ListGroupCmd(),
 			args:           []string{"--server", "http://127.0.0.1:50033", "--gid", "1", "--json"},
 			errorMessage:   "",
-			successMessage: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}` + "\n",
+			successMessage: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"vnc","guac_config_parameters":"host=localhost"}` + "\n",
 		},
 		{
 			name:           "repeat file, groups should be skipped",
@@ -161,7 +166,7 @@ func TestCsvCreateGuacamoleGroups(t *testing.T) {
 			cmd:            CsvCreateGroupsCmd(),
 			args:           []string{"--server", "http://127.0.0.1:50033", "--file", "/tmp/file4.csv"},
 			errorMessage:   "",
-			successMessage: ": skipped, required group name\nCreate from CSV finished!\n",
+			successMessage: ": skipped, required group name\ntest4: skipped, Apache Guacamole config protocol is required\nCreate from CSV finished!\n",
 		},
 	}
 

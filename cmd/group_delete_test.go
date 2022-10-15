@@ -8,7 +8,7 @@ import (
 
 func TestDeleteCmd(t *testing.T) {
 	dbPath := uuid.New()
-	e := testSetup(t, dbPath.String())
+	e := testSetup(t, dbPath.String(), false)
 	defer testCleanUp(dbPath.String())
 
 	// Launch testing server
@@ -52,7 +52,7 @@ func TestDeleteCmd(t *testing.T) {
 			cmd:            ListGroupCmd(),
 			args:           []string{"--server", "http://127.0.0.1:51013", "--json"},
 			errorMessage:   "",
-			successMessage: `[{"gid":1,"name":"test","description":"test","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}]` + "\n",
+			successMessage: `[{"gid":1,"name":"test","description":"test","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}]` + "\n",
 		},
 		{
 			name:           "try to delete non-existent group",

@@ -54,11 +54,11 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 	}
 
 	showMembers := true
-	i := models.GetGroupInfo(&g, showMembers)
+	i := models.GetGroupInfo(&g, showMembers, h.Guacamole)
 	return c.JSON(http.StatusOK, i)
 }
 
-//FindGIDFromGroupName - TODO comment
+// FindGIDFromGroupName - TODO comment
 // @Summary      Find user by group
 // @Description  Find user by group
 // @Tags         users
@@ -132,7 +132,7 @@ func (h *Handler) FindAllGroups(c echo.Context) error {
 	var allGroups []models.GroupInfo
 	showMembers := true
 	for _, group := range groups {
-		allGroups = append(allGroups, *models.GetGroupInfo(&group, showMembers))
+		allGroups = append(allGroups, *models.GetGroupInfo(&group, showMembers, h.Guacamole))
 	}
 
 	return c.JSON(http.StatusOK, allGroups)

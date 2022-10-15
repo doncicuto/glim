@@ -55,7 +55,7 @@ func (h *Handler) AddMembersOf(u *models.User, memberOf []string) error {
 	return nil
 }
 
-//SaveUser - TODO comment
+// SaveUser - TODO comment
 // @Summary      Create a new user
 // @Description  Create a new user in our database
 // @Tags         users
@@ -172,6 +172,6 @@ func (h *Handler) SaveUser(c echo.Context) error {
 	}
 
 	showMemberOf := true
-	i := models.GetUserInfo(*u, showMemberOf)
+	i := models.GetUserInfo(*u, showMemberOf, h.Guacamole)
 	return c.JSON(http.StatusOK, i)
 }

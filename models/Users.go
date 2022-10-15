@@ -22,7 +22,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//User - TODO comment
+// User - TODO comment
 type User struct {
 	ID           uint32    `gorm:"primary_key;auto_increment" json:"uid" csv:"uid"`
 	Username     *string   `gorm:"size:64;not null;unique" json:"username" csv:"username"`
@@ -69,7 +69,7 @@ type JSONPasswdBody struct {
 	OldPassword string `json:"old_password"`
 }
 
-//UserInfo - TODO comment
+// UserInfo - TODO comment
 type UserInfo struct {
 	ID           uint32      `json:"uid"`
 	Username     string      `json:"username"`
@@ -89,18 +89,18 @@ type UserID struct {
 	ID uint32 `json:"uid"`
 }
 
-//Hash - TODO comment
+// Hash - TODO comment
 func Hash(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
-//VerifyPassword - TODO comment
+// VerifyPassword - TODO comment
 func VerifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-//GetUserInfo - TODO comment
-func GetUserInfo(u User, showMemberOf bool) UserInfo {
+// GetUserInfo - TODO comment
+func GetUserInfo(u User, showMemberOf bool, guacamole bool) UserInfo {
 	var i UserInfo
 	i.ID = u.ID
 	if u.Username != nil {
@@ -137,7 +137,7 @@ func GetUserInfo(u User, showMemberOf bool) UserInfo {
 	if showMemberOf {
 		members := []GroupInfo{}
 		for _, member := range u.MemberOf {
-			members = append(members, *GetGroupInfo(member, !showMemberOf))
+			members = append(members, *GetGroupInfo(member, !showMemberOf, guacamole))
 		}
 		i.MemberOf = members
 	}

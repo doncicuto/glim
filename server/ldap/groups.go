@@ -19,11 +19,12 @@ type groupQueryParams struct {
 	domain         string
 	limit          int
 	offset         int
+	guacamole      bool
 }
 
-func groupEntry(group models.Group, attributes string, domain string) map[string][]string {
+func groupEntry(group models.Group, params groupQueryParams) map[string][]string {
 	attrs := make(map[string]string)
-	for _, a := range strings.Split(attributes, " ") {
+	for _, a := range strings.Split(params.attributes, " ") {
 		attrs[a] = a
 	}
 
@@ -46,9 +47,9 @@ func groupEntry(group models.Group, attributes string, domain string) map[string
 		creator := *group.CreatedBy
 		createdBy := ""
 		if creator == "admin" {
-			createdBy = fmt.Sprintf("cn=admin,%s", domain)
+			createdBy = fmt.Sprintf("cn=admin,%s", params.domain)
 		} else {
-			createdBy = fmt.Sprintf("uid=%s,ou=Users,%s", creator, domain)
+			createdBy = fmt.Sprintf("uid=%s,ou=Users,%s", creator, params.domain)
 		}
 		values["creatorsName"] = []string{createdBy}
 	}
@@ -63,9 +64,9 @@ func groupEntry(group models.Group, attributes string, domain string) map[string
 		modifier := *group.UpdatedBy
 		updatedBy := ""
 		if modifier == "admin" {
-			updatedBy = fmt.Sprintf("cn=admin,%s", domain)
+			updatedBy = fmt.Sprintf("cn=admin,%s", params.domain)
 		} else {
-			updatedBy = fmt.Sprintf("uid=%s,ou=Users,%s", modifier, domain)
+			updatedBy = fmt.Sprintf("uid=%s,ou=Users,%s", modifier, params.domain)
 		}
 		values["modifiersName"] = []string{updatedBy}
 	}
@@ -75,18 +76,22 @@ func groupEntry(group models.Group, attributes string, domain string) map[string
 		values["modifyTimestamp"] = []string{group.UpdatedAt.Format("20060102150405Z")}
 	}
 
-	if attributes == "ALL" || attrs["cn"] != "" || attrs["groupOfNames"] != "" || operational {
+	if params.attributes == "ALL" || attrs["cn"] != "" || attrs["groupOfNames"] != "" || operational {
 		values["cn"] = []string{*group.Name}
 	}
 
 	_, ok = attrs["objectClass"]
-	if attributes == "ALL" || ok || operational {
-		values["objectClass"] = []string{"groupOfNames"}
+	if params.attributes == "ALL" || ok || operational {
+		if group.GuacamoleConfigParameters != nil && group.GuacamoleConfigProtocol != nil && params.guacamole {
+			values["objectClass"] = []string{"groupOfNames", "guacConfigGroup"}
+		} else {
+			values["objectClass"] = []string{"groupOfNames"}
+		}
 	}
 
 	_, ok = attrs["entryDN"]
 	if ok || operational {
-		values["entryDN"] = []string{fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, domain)}
+		values["entryDN"] = []string{fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, params.domain)}
 	}
 
 	_, ok = attrs["subschemaSubentry"]
@@ -100,21 +105,32 @@ func groupEntry(group models.Group, attributes string, domain string) map[string
 	}
 
 	_, ok = attrs["member"]
-	if attributes == "ALL" || ok || attrs["groupOfNames"] != "" || operational {
+	if params.attributes == "ALL" || ok || attrs["groupOfNames"] != "" || operational {
 		members := []string{}
 		for _, member := range group.Members {
-			members = append(members, fmt.Sprintf("uid=%s,ou=Users,%s", *member.Username, domain))
+			members = append(members, fmt.Sprintf("uid=%s,ou=Users,%s", *member.Username, params.domain))
 		}
 		values["member"] = members
 	}
 
 	_, ok = attrs["uid"]
-	if attributes == "ALL" || ok || attrs["groupOfNames"] != "" || operational {
+	if params.attributes == "ALL" || ok || attrs["groupOfNames"] != "" || operational {
 		uids := []string{}
 		for _, member := range group.Members {
 			uids = append(uids, *member.Username)
 		}
 		values["uid"] = uids
+	}
+
+	_, ok = attrs["guacConfigProtocol"]
+	if (params.attributes == "ALL" || ok || attrs["groupOfNames"] != "" || attrs["guacConfigGroup"] != "" || operational) && params.guacamole && group.GuacamoleConfigParameters != nil && group.GuacamoleConfigProtocol != nil {
+		values["guacConfigProtocol"] = []string{*group.GuacamoleConfigProtocol}
+	}
+
+	_, ok = attrs["guacConfigParameter"]
+	if (params.attributes == "ALL" || ok || attrs["groupOfNames"] != "" || attrs["guacConfigGroup"] != "" || operational) && params.guacamole && group.GuacamoleConfigParameters != nil && group.GuacamoleConfigProtocol != nil {
+		parameters := strings.Split(*group.GuacamoleConfigParameters, ",")
+		values["guacConfigParameter"] = parameters
 	}
 
 	return values
@@ -150,29 +166,48 @@ func getGroupsFromDB(params groupQueryParams) ([]*ber.Packet, *ServerError, int,
 		}, 0, 0
 	}
 
+	filterOutGuacConfigGroup, _ := regexp.Compile(`!\(objectClass=guacConfigGroup\)`)
+	excludeGuacConfigGroup := filterOutGuacConfigGroup.FindStringSubmatch(params.originalFilter) != nil
+	filterInGuacConfigGroup, _ := regexp.Compile(`&\(objectClass=guacConfigGroup\)`)
+	includeGuacConfigGroup := filterInGuacConfigGroup.FindStringSubmatch(params.originalFilter) != nil
+
 	filterUser, _ := regexp.Compile("uid=([A-Za-z.0-9-]+)")
 	if filterUser.MatchString(params.originalFilter) {
 		matches := filterUser.FindStringSubmatch(params.originalFilter)
 		if matches != nil {
 			for _, group := range groups {
+				// If query contains !(objectClass=guacConfigGroup) it means that a Guacamole query has been used to exclude those groups
+				if excludeGuacConfigGroup && group.GuacamoleConfigParameters != nil && group.GuacamoleConfigProtocol != nil {
+					continue
+				}
 				filteredMembers := []*models.User{}
 				for _, member := range group.Members {
 					if *member.Username == matches[1] {
+						// If query contains &(objectClass=guacConfigGroup) it means that a Guacamole query has been used to include those groups
+						if includeGuacConfigGroup && (group.GuacamoleConfigProtocol == nil || group.GuacamoleConfigParameters == nil) {
+							continue
+						}
 						filteredMembers = append(filteredMembers, member)
 					}
 				}
+				if len(filteredMembers) == 0 {
+					continue
+				}
 				group.Members = filteredMembers
 				dn := fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, params.domain)
-				values := groupEntry(group, params.attributes, params.domain)
+				values := groupEntry(group, params)
 				e := encodeSearchResultEntry(params.id, values, dn)
 				r = append(r, e)
 			}
 		}
 	} else {
-
 		for _, group := range groups {
+			// If query contains !(objectClass=guacConfigGroup) it means that a Guacamole query has been used to exclude those groups
+			if excludeGuacConfigGroup && group.GuacamoleConfigParameters != nil && group.GuacamoleConfigProtocol != nil {
+				continue
+			}
 			dn := fmt.Sprintf("cn=%s,ou=Groups,%s", *group.Name, params.domain)
-			values := groupEntry(group, params.attributes, params.domain)
+			values := groupEntry(group, params)
 			e := encodeSearchResultEntry(params.id, values, dn)
 			r = append(r, e)
 		}

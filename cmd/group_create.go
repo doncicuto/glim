@@ -55,9 +55,11 @@ func NewGroupCmd() *cobra.Command {
 			resp, err := client.R().
 				SetHeader("Content-Type", "application/json").
 				SetBody(models.JSONGroupBody{
-					Name:        viper.GetString("group"),
-					Description: viper.GetString("description"),
-					Members:     viper.GetString("members"),
+					Name:                      viper.GetString("group"),
+					Description:               viper.GetString("description"),
+					Members:                   viper.GetString("members"),
+					GuacamoleConfigProtocol:   viper.GetString("guacamole-protocol"),
+					GuacamoleConfigParameters: viper.GetString("guacamole-parameters"),
 				}).
 				SetError(&types.APIError{}).
 				Post(endpoint)
@@ -84,10 +86,14 @@ func NewGroupCmd() *cobra.Command {
 	cmd.Flags().StringP("group", "g", "", "our group name")
 	cmd.Flags().StringP("description", "d", "", "our group description")
 	cmd.Flags().StringP("members", "m", "", "comma-separated list of usernames e.g: admin,tux")
+
 	cmd.MarkFlagRequired("group")
 	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
 	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+	cmd.Flags().String("guacamole-protocol", "", "Apache Guacamole protocol e.g: vnc")
+	cmd.Flags().String("guacamole-parameters", "", "Apache Guacamole config params using a comma-separated list e.g: hostname=localhost,port=5900,password=secret")
+
 	return cmd
 }
 

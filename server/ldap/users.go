@@ -207,31 +207,33 @@ func getUsersFromDB(params userQueryParams) ([]*ber.Packet, *ServerError, int, i
 		}, 0, 0
 	}
 
-	filterGroup, _ := regexp.Compile(fmt.Sprintf("memberOf=cn=([A-Za-z.0-9-]+),ou=Groups,%s", params.domain))
+	filterGroup, _ := regexp.Compile(fmt.Sprintf("member[oO]f=cn=([A-Za-z.0-9-]+),ou=Groups,%s", params.domain))
+	matches := []string{}
+	if filterGroup.MatchString(params.originalFilter) {
+		matches = filterGroup.FindAllString(params.originalFilter, -1)
+	}
 
 	for _, user := range users {
 		if *user.Username != "admin" && !*user.Readonly {
-			if filterGroup.MatchString(params.originalFilter) {
-				matches := filterGroup.FindStringSubmatch(params.originalFilter)
-				if matches != nil {
-					for _, group := range user.MemberOf {
-						if *group.Name == matches[1] {
+			if len(matches) > 0 {
+			GroupsLoop:
+				for _, group := range user.MemberOf {
+					for _, match := range matches {
+						if fmt.Sprintf("memberOf=cn=%s,ou=Groups,%s", *group.Name, params.domain) == match || fmt.Sprintf("memberof=cn=%s,ou=Groups,%s", *group.Name, params.domain) == match {
 							dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, params.domain)
 							values := userEntry(user, params.attributes, params.domain)
 							e := encodeSearchResultEntry(params.messageID, values, dn)
 							r = append(r, e)
-							break
+							break GroupsLoop
 						}
 					}
 				}
-
 			} else {
 				dn := fmt.Sprintf("uid=%s,ou=Users,%s", *user.Username, params.domain)
 				values := userEntry(user, params.attributes, params.domain)
 				e := encodeSearchResultEntry(params.messageID, values, dn)
 				r = append(r, e)
 			}
-
 		}
 
 	}

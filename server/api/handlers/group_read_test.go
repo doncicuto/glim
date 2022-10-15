@@ -7,7 +7,7 @@ import (
 
 func TestGroupRead(t *testing.T) {
 	// Setup
-	h, e, settings := testSetup(t)
+	h, e, settings := testSetup(t, false)
 	defer testCleanUp()
 
 	// Log in with admin, search and/or plain user and get tokens
@@ -15,7 +15,7 @@ func TestGroupRead(t *testing.T) {
 	searchToken, _ := getUserTokens("search", h, e, settings)
 	plainUserToken, _ := getUserTokens("saul", h, e, settings)
 
-	everybodyInfo := `[{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]},{"gid":2,"name":"managers","description":"Managers","members":[{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}]`
+	everybodyInfo := `[{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""},{"gid":2,"name":"managers","description":"Managers","members":[{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}]`
 
 	// Test cases
 	testCases := []RestTestCase{
@@ -26,7 +26,7 @@ func TestGroupRead(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers", "members":"saul"}`,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "group managers can be created",
@@ -35,7 +35,7 @@ func TestGroupRead(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "managers", "description": "Managers", "members":"kim"}`,
-			expectedBodyJSON: `{"gid":2,"name":"managers","description":"Managers","members":[{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":2,"name":"managers","description":"Managers","members":[{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "search user can list all groups",
@@ -74,7 +74,7 @@ func TestGroupRead(t *testing.T) {
 			reqURL:           "/v1/groups/1",
 			reqMethod:        http.MethodGet,
 			secret:           adminToken,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "readonly user can see a single group info by its gid",
@@ -82,7 +82,7 @@ func TestGroupRead(t *testing.T) {
 			reqURL:           "/v1/groups/1",
 			reqMethod:        http.MethodGet,
 			secret:           searchToken,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "plain user can't get info of a group which is a member of",

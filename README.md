@@ -113,7 +113,7 @@ $ glim logout
 $ glim server stop
 ```
 
-Glim server will listen on 1323 TCP port (REST API) and on 1636 TCP (LDAPS) port and only TLS communications will be allowed in order to secure credentials and data exchange.
+By default, Glim server will listen on 1323 TCP port (REST API) and on 1636 TCP (LDAPS) port and only TLS communications will be allowed in order to secure credentials and data exchange. If you start Glim with *--no-tls-ldap* you can disable tls encryption for Glim's LDAP server.
 
 While I understand that you don't want to use certificates for testing, I feel that it is a good practice to use certificates from the beginning. Glim can create a fake CA and generate client and server certificates and matching private keys for testing purposes.
 
@@ -129,7 +129,7 @@ Could not find required CA pem file to validate authority
 
 1. Which applications can use Glim to authenticate users?
 
-   > In theory Glim can be used with any application that use common methods to authenticate users with LDAP but so far Glim has been tested with: Gitea, Harbor, Portainer CE, OpenNebula, Gitlab CE and Kanboard and you can find configuration examples in the wiki. If your application can't use Glim please let us know.
+   > In theory Glim can be used with any application that use common methods to authenticate users with LDAP but so far Glim has been tested with: Gitea, Harbor, Portainer CE, Apache Guacamole, OpenNebula, Gitlab CE and Kanboard and you can find configuration examples in the wiki. If your application can't use Glim please let us know.
 
 2. Is Glim a proxy for LDAP requests that can be sent to LDAP backends?
 

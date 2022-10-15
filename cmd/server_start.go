@@ -220,6 +220,9 @@ var serverStartCmd = &cobra.Command{
 
 		restAddress := viper.GetString("rest-addr")
 
+		if viper.GetBool("guacamole") {
+			fmt.Printf("%s [Glim] ⇨ enabled support for Apache Guacamole...\n", time.Now().Format(time.RFC3339))
+		}
 		// Preparing API server settings
 		apiSettings := types.APISettings{
 			DB:                 database,
@@ -231,6 +234,7 @@ var serverStartCmd = &cobra.Command{
 			AccessTokenExpiry:  viper.GetUint("access-token-expiry-time"),
 			RefreshTokenExpiry: viper.GetUint("refresh-token-expiry-time"),
 			MaxDaysWoRelogin:   viper.GetInt("max-days-relogin"),
+			Guacamole:          viper.GetBool("guacamole"),
 		}
 
 		ldapAddress := viper.GetString("ldap-addr")
@@ -239,13 +243,15 @@ var serverStartCmd = &cobra.Command{
 
 		// Preparing LDAP server settings
 		ldapSettings := types.LDAPSettings{
-			KV:        blacklist,
-			DB:        database,
-			TLSCert:   tlscert,
-			TLSKey:    tlskey,
-			Address:   ldapAddress,
-			Domain:    ldap.GetDomain(domain),
-			SizeLimit: ldapSizeLimit,
+			KV:          blacklist,
+			DB:          database,
+			TLSDisabled: viper.GetBool("no-tls-ldap"),
+			TLSCert:     tlscert,
+			TLSKey:      tlskey,
+			Address:     ldapAddress,
+			Domain:      ldap.GetDomain(domain),
+			SizeLimit:   ldapSizeLimit,
+			Guacamole:   viper.GetBool("guacamole"),
 		}
 
 		// get current PID and store it in glim.pid at our tmp directory
@@ -298,6 +304,7 @@ func init() {
 	defaultDbPath := filepath.Join(homeDir, ".glim", "glim.db")
 
 	// LDAP Server
+	serverStartCmd.Flags().Bool("no-tls-ldap", false, "Don't use TLS with LDAP server")
 	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().Int("ldap-size-limit", 500, "LDAP server maximum number of entries that should be returned from the search")
 	serverStartCmd.Flags().String("ldap-domain", "example.org", "LDAP domain")
@@ -347,6 +354,9 @@ func init() {
 
 	// Debug
 	serverStartCmd.Flags().Bool("sql", false, "enable SQL queries logging")
+
+	// Apache Guacamole
+	serverStartCmd.Flags().Bool("guacamole", false, "enable Apache Guacamole support")
 
 	viper.BindPFlags(serverStartCmd.Flags())
 }

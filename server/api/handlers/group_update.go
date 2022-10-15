@@ -30,7 +30,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//UpdateGroup - TODO comment
+// UpdateGroup - TODO comment
 // @Summary      Update group
 // @Description  Update group
 // @Tags         groups
@@ -109,6 +109,23 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 		modifiedBy["description"] = html.EscapeString(strings.TrimSpace(body.Description))
 	}
 
+	// Validate Apache Guacamole protocol and parameters
+	if !h.Guacamole && (body.GuacamoleConfigParameters != "" || body.GuacamoleConfigProtocol != "") {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "Apache Guacamole support not set in server"}
+	}
+
+	if body.GuacamoleConfigParameters != "" && *g.GuacamoleConfigProtocol == "" {
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "Apache Guacamole config protocol is required"}
+	}
+
+	if body.GuacamoleConfigProtocol != "" {
+		modifiedBy["guacamole_config_protocol"] = html.EscapeString(strings.TrimSpace(body.GuacamoleConfigProtocol))
+	}
+
+	if body.GuacamoleConfigParameters != "" {
+		modifiedBy["guacamole_config_parameters"] = html.EscapeString(strings.TrimSpace(body.GuacamoleConfigParameters))
+	}
+
 	// New update date
 	modifiedBy["updated_at"] = time.Now()
 	modifiedBy["updated_by"] = *u.Username
@@ -153,5 +170,5 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 
 	// Return group
 	showMembers := true
-	return c.JSON(http.StatusOK, models.GetGroupInfo(g, showMembers))
+	return c.JSON(http.StatusOK, models.GetGroupInfo(g, showMembers, h.Guacamole))
 }

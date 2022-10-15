@@ -7,7 +7,7 @@ import (
 
 func TestGroupUpdate(t *testing.T) {
 	// Setup
-	h, e, settings := testSetup(t)
+	h, e, settings := testSetup(t, false)
 	defer testCleanUp()
 
 	// Log in with admin, search and/or plain user and get tokens
@@ -46,7 +46,7 @@ func TestGroupUpdate(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers"}`,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers"}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Developers","guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "group can be created without members",
@@ -55,7 +55,7 @@ func TestGroupUpdate(t *testing.T) {
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "managers", "description": "Managers"}`,
-			expectedBodyJSON: `{"gid":2,"name":"managers","description":"Managers"}`,
+			expectedBodyJSON: `{"gid":2,"name":"managers","description":"Managers","guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "group name can't be duplicated",
@@ -73,7 +73,7 @@ func TestGroupUpdate(t *testing.T) {
 			reqMethod:        http.MethodPut,
 			secret:           adminToken,
 			reqBodyJSON:      `{"description": "Devs"}`,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Devs"}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Devs","guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "can replace all members",
@@ -82,7 +82,7 @@ func TestGroupUpdate(t *testing.T) {
 			reqMethod:        http.MethodPut,
 			secret:           adminToken,
 			reqBodyJSON:      `{"members": "saul", "replace": true}`,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Devs","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Devs","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 		{
 			name:             "can add a member",
@@ -91,7 +91,7 @@ func TestGroupUpdate(t *testing.T) {
 			reqMethod:        http.MethodPut,
 			secret:           adminToken,
 			reqBodyJSON:      `{"members": "kim"}`,
-			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Devs","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]}`,
+			expectedBodyJSON: `{"gid":1,"name":"devel","description":"Devs","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}`,
 		},
 	}
 
