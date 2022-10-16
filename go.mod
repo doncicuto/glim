@@ -10,6 +10,7 @@ require (
 	github.com/dgraph-io/badger v1.6.2
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.4
+	github.com/go-ldap/ldap v3.0.3+incompatible // indirect
 	github.com/go-openapi/spec v0.20.6 // indirect
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
@@ -36,6 +37,7 @@ require (
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	golang.org/x/tools v0.1.11 // indirect
+	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
 	gorm.io/driver/postgres v1.3.9 // indirect
 	gorm.io/driver/sqlite v1.3.4
