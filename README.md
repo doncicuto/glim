@@ -113,7 +113,7 @@ $ glim logout
 $ glim server stop
 ```
 
-By default, Glim server will listen on 1323 TCP port (REST API) and on 1636 TCP (LDAPS) port and only TLS communications will be allowed in order to secure credentials and data exchange. If you start Glim with *--no-tls-ldap* you can disable tls encryption for Glim's LDAP server.
+By default, Glim server will listen on 1323 TCP port (REST API) and on 1636 TCP (LDAPS) port and only TLS communications will be allowed in order to secure credentials and data exchange. You can set the IP address and port used for both servers using *--ldap-addr* and *--rest-addr*. If you start Glim with *--no-tls-ldap* you can disable tls encryption for Glim's LDAP server.
 
 While I understand that you don't want to use certificates for testing, I feel that it is a good practice to use certificates from the beginning. Glim can create a fake CA and generate client and server certificates and matching private keys for testing purposes.
 
