@@ -12,10 +12,10 @@ RUN go build -o /go/bin/glim
 
 FROM alpine
 RUN apk add ca-certificates
-COPY --from=build /go/bin/glim /app/glim
+COPY --from=build /go/bin/glim /bin/glim
 RUN adduser --disabled-password glim
 USER glim
 EXPOSE 1323
 EXPOSE 1636
 CMD ["server", "start"]
-ENTRYPOINT ["/app/glim"]
+ENTRYPOINT ["/bin/glim"]
