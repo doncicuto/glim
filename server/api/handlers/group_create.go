@@ -35,11 +35,11 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 	for _, member := range members {
 		member = strings.TrimSpace(member)
 		// Find user
-		createdBy := new(models.User)
-		err = h.DB.Model(&models.User{}).Where("username = ?", member).Take(&createdBy).Error
+		user := new(models.User)
+		err = h.DB.Model(&models.User{}).Where("username = ?", member).Take(&user).Error
 		if err == nil {
 			// Append association
-			err = h.DB.Model(&g).Association("Members").Append(createdBy)
+			err = h.DB.Model(&g).Association("Members").Append(user)
 			if err != nil {
 				return err
 			}
