@@ -115,6 +115,20 @@ type BindTestCase struct {
 	errorMessage string
 }
 
+type SearchTestCase struct {
+	conn         *ldapClient.Conn
+	name         string
+	baseDN       string
+	scope        int
+	sizeLimit    int
+	timeLimit    int
+	filter       string
+	attributes   []string
+	controls     []ldapClient.Control
+	numEntries   int
+	errorMessage string
+}
+
 func waitForTestServer(t *testing.T, address string) {
 	if !wait.New(
 		wait.WithProto("tcp"),
@@ -136,6 +150,22 @@ func runBindTests(t *testing.T, tc BindTestCase) {
 		} else {
 			if tc.errorMessage != "" {
 				t.Fatal(fmt.Errorf("error was expected"))
+			}
+		}
+	})
+}
+
+func runSearchTests(t *testing.T, tc SearchTestCase) {
+	t.Run(tc.name, func(t *testing.T) {
+		searchRequest := ldapClient.NewSearchRequest(tc.baseDN, tc.scope, ldapClient.DerefAlways, tc.sizeLimit, tc.timeLimit, false, tc.filter, tc.attributes, tc.controls)
+		sr, err := tc.conn.Search(searchRequest)
+		if err != nil {
+			assert.Equal(t, tc.errorMessage, fmt.Sprintf("%v", err.Error()))
+		} else {
+			if tc.errorMessage != "" {
+				t.Fatal(fmt.Errorf("error was expected"))
+			} else {
+				assert.Equal(t, tc.numEntries, len(sr.Entries))
 			}
 		}
 	})
