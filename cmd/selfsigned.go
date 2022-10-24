@@ -92,6 +92,7 @@ type cert struct {
 
 // Config stores information to be used in our certificate generation requests
 type certConfig struct {
+	CA           string
 	Organization string
 	Hosts        []string
 	OutputPath   string
@@ -155,7 +156,7 @@ func generateSelfSignedCerts(config *certConfig) error {
 	rootTemplate := x509.Certificate{
 		IsCA:                  true,
 		SerialNumber:          serialNumber,
-		Subject:               pkix.Name{Organization: []string{"Acme Co Fake CA"}},
+		Subject:               pkix.Name{Organization: []string{config.CA}},
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,

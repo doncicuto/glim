@@ -63,7 +63,15 @@ var serverStartCmd = &cobra.Command{
 			fmt.Println("Oh, I can't find your certificates and private keys, don't worry I'll create some for you.")
 
 			// organization cannot be empty
-			organization := viper.GetString("organization")
+			ca := viper.GetString("autocert-ca")
+			if ca == "" {
+				fmt.Println("CA name cannot be empty")
+				os.Exit(1)
+			}
+			config.CA = ca
+
+			// organization cannot be empty
+			organization := viper.GetString("autocert-org")
 			if organization == "" {
 				fmt.Println("Organization name cannot be empty")
 				os.Exit(1)
@@ -71,14 +79,14 @@ var serverStartCmd = &cobra.Command{
 			config.Organization = organization
 
 			// address list cannot be empty
-			hosts := strings.Split(viper.GetString("hosts"), ",")
+			hosts := strings.Split(viper.GetString("autocert-hosts"), ",")
 			if len(hosts) == 0 {
 				fmt.Println("Please specify a comma-separated list of hosts and/or IP addresses to be added to certificates")
 				os.Exit(1)
 			}
 			config.Hosts = hosts
 
-			path := viper.GetString("path")
+			path := viper.GetString("autocert-path")
 			err := os.MkdirAll(path, 0755)
 			if err != nil {
 				fmt.Println("Could not create selected directory for certificates path")
@@ -87,7 +95,7 @@ var serverStartCmd = &cobra.Command{
 			config.OutputPath = path
 
 			// years should be greater than 0
-			years := viper.GetInt("years")
+			years := viper.GetInt("autocert-years")
 			if years < 1 {
 				fmt.Println("Certificate should be valid for at least 1 year")
 				os.Exit(1)
@@ -114,8 +122,8 @@ var serverStartCmd = &cobra.Command{
 		}
 
 		// Database
-		dbName := viper.GetString("db")
-		sqlLog := viper.GetBool("sql")
+		dbName := viper.GetString("sqlite-db")
+		sqlLog := viper.GetBool("log-sql")
 		useSqlite := true
 
 		postgresPort := viper.GetInt("postgres-port")
@@ -218,7 +226,7 @@ var serverStartCmd = &cobra.Command{
 		}()
 		fmt.Printf("%s [Glim] ⇨ connected to key-value store...\n", time.Now().Format(time.RFC3339))
 
-		restAddress := viper.GetString("rest-addr")
+		restAddress := viper.GetString("api-addr")
 
 		if viper.GetBool("guacamole") {
 			fmt.Printf("%s [Glim] ⇨ enabled support for Apache Guacamole...\n", time.Now().Format(time.RFC3339))
@@ -231,9 +239,9 @@ var serverStartCmd = &cobra.Command{
 			TLSKey:             tlskey,
 			Address:            restAddress,
 			APISecret:          apiSecret,
-			AccessTokenExpiry:  viper.GetUint("access-token-expiry-time"),
-			RefreshTokenExpiry: viper.GetUint("refresh-token-expiry-time"),
-			MaxDaysWoRelogin:   viper.GetInt("max-days-relogin"),
+			AccessTokenExpiry:  viper.GetUint("api-access-token-expiry-time"),
+			RefreshTokenExpiry: viper.GetUint("api-refresh-token-expiry-time"),
+			MaxDaysWoRelogin:   viper.GetInt("api-max-days-relogin"),
 			Guacamole:          viper.GetBool("guacamole"),
 		}
 
@@ -245,7 +253,7 @@ var serverStartCmd = &cobra.Command{
 		ldapSettings := types.LDAPSettings{
 			KV:          blacklist,
 			DB:          database,
-			TLSDisabled: viper.GetBool("no-tls-ldap"),
+			TLSDisabled: viper.GetBool("ldap-no-tls"),
 			TLSCert:     tlscert,
 			TLSKey:      tlskey,
 			Address:     ldapAddress,
@@ -304,31 +312,32 @@ func init() {
 	defaultDbPath := filepath.Join(homeDir, ".glim", "glim.db")
 
 	// LDAP Server
-	serverStartCmd.Flags().Bool("no-tls-ldap", false, "Don't use TLS with LDAP server")
+	serverStartCmd.Flags().Bool("ldap-no-tls", false, "Don't use TLS with LDAP server")
 	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().Int("ldap-size-limit", 500, "LDAP server maximum number of entries that should be returned from the search")
 	serverStartCmd.Flags().String("ldap-domain", "example.org", "LDAP domain")
 
 	// REST API
-	serverStartCmd.Flags().String("rest-addr", ":1323", "REST API server address and port (format: <ip:port>)")
+	serverStartCmd.Flags().String("api-addr", ":1323", "REST API server address and port (format: <ip:port>)")
 	serverStartCmd.Flags().String("api-secret", "", "API secret string to be used with JWT tokens")
-	serverStartCmd.Flags().Uint("access-token-expiry-time", 3600, "access token refresh expiry time in seconds")
-	serverStartCmd.Flags().Uint("refresh-token-expiry-time", 259200, "refresh token refresh expiry time in seconds")
-	serverStartCmd.Flags().Int("max-days-relogin", 7, "number of days that we can use refresh tokens without log in again")
+	serverStartCmd.Flags().Uint("api-access-token-expiry-time", 3600, "access token refresh expiry time in seconds")
+	serverStartCmd.Flags().Uint("api-refresh-token-expiry-time", 259200, "refresh token refresh expiry time in seconds")
+	serverStartCmd.Flags().Int("api-max-days-relogin", 7, "number of days that we can use refresh tokens without log in again")
 
 	// TLS
 	serverStartCmd.Flags().String("tlscert", defaultCertPEMFilePath, "TLS server certificate path")
 	serverStartCmd.Flags().String("tlskey", defaultCertKeyFilePath, "TLS server private key path")
-	serverStartCmd.Flags().String("organization", "Glim Fake Organization, Inc", "organization name for Glim's auto-generated certificates")
-	serverStartCmd.Flags().String("hosts", "127.0.0.1, localhost", "comma-separated list of hosts and IP addresses to be added to Glim's auto-generated certificate")
-	serverStartCmd.Flags().String("path", path, "filesystem path where Glim's auto-generated certificates and private keys files will be created")
-	serverStartCmd.Flags().Int("years", 1, "number of years that we want Glim's auto-generated to be valid.")
+	serverStartCmd.Flags().String("autocert-ca", "Acme Co Fake CA", "Name for our fake CA for auto-generated certificates")
+	serverStartCmd.Flags().String("autocert-org", "Glim Fake Organization, Inc", "organization name for Glim's auto-generated certificates")
+	serverStartCmd.Flags().String("autocert-hosts", "127.0.0.1, localhost", "comma-separated list of hosts and IP addresses to be added to Glim's auto-generated certificate")
+	serverStartCmd.Flags().String("autocert-path", path, "filesystem path where Glim's auto-generated certificates and private keys files will be created")
+	serverStartCmd.Flags().Int("autocert-years", 1, "number of years that we want Glim's auto-generated to be valid.")
 
 	// Badger
 	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
 
 	// SQLite
-	serverStartCmd.Flags().String("db", defaultDbPath, "path of the file containing SQLite Glim's database")
+	serverStartCmd.Flags().String("sqlite-db", defaultDbPath, "path of the file containing SQLite Glim's database")
 
 	// Postgres
 	serverStartCmd.Flags().String("postgres-host", "", "PostgreSQL server address")
@@ -353,7 +362,7 @@ func init() {
 	serverStartCmd.Flags().String("initial-users-password", "glim", "default password for your initial users")
 
 	// Debug
-	serverStartCmd.Flags().Bool("sql", false, "enable SQL queries logging")
+	serverStartCmd.Flags().Bool("log-sql", false, "enable SQL queries logging")
 
 	// Apache Guacamole
 	serverStartCmd.Flags().Bool("guacamole", false, "enable Apache Guacamole support")
