@@ -51,6 +51,12 @@ func EchoServer(settings types.APISettings) *echo.Echo {
 	v1.GET("/guacamole", func(c echo.Context) error {
 		return h.GuacamoleSupport(c)
 	})
+	v1.GET("/healthz", func(c echo.Context) error {
+		return h.Healthz(c)
+	})
+	v1.GET("/readyz", func(c echo.Context) error {
+		return h.Readyz(c)
+	})
 
 	u := v1.Group("/users")
 	u.Use(middleware.JWT([]byte(settings.APISecret)))

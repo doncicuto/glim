@@ -19,21 +19,16 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/doncicuto/glim/types"
-
 	"github.com/labstack/echo/v4"
 )
 
-// GuacamoleSupport - Check if Apache Guacamole support is enabled
-// @Summary      Check if Apache Guacamole support is enabled
+// Healthz - Liveness probe
+// @Summary      Check if Glim is running
 // @Description  Get a boolean showing if Apache Guacamole support is enabled
 // @Produce      json
-// @Success      200  {object}  types.GuacamoleSupport
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
-// @Router       /guacamole [get]
-func (h *Handler) GuacamoleSupport(c echo.Context) error {
-	support := types.GuacamoleSupport{}
-	support.Enabled = h.Guacamole
-	return c.JSON(http.StatusOK, support)
+// @Success      204
+// @Failure 	   503  {object} types.ErrorResponse
+// @Router       /healthz [get]
+func (h *Handler) Healthz(c echo.Context) error {
+	return c.NoContent(http.StatusNoContent)
 }
