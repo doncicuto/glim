@@ -508,8 +508,19 @@ paths:
           schema:
             $ref: '#/definitions/types.ErrorResponse'
       summary: Check if Apache Guacamole support is enabled
-      tags:
-      - authentication
+  /healthz:
+    get:
+      description: Get a boolean showing if Apache Guacamole support is enabled
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Check if Glim is running
   /login:
     post:
       consumes:
@@ -609,6 +620,15 @@ paths:
       summary: Refresh authentication tokens
       tags:
       - authentication
+  /readyz:
+    get:
+      description: Get a boolean showing if Apache Guacamole support is enabled
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Check if Glim is running
   /users:
     get:
       consumes:

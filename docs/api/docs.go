@@ -534,9 +534,6 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "authentication"
-                ],
                 "summary": "Check if Apache Guacamole support is enabled",
                 "responses": {
                     "200": {
@@ -553,6 +550,26 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz": {
+            "get": {
+                "description": "Get a boolean showing if Apache Guacamole support is enabled",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Check if Glim is running",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
                         "schema": {
                             "$ref": "#/definitions/types.ErrorResponse"
                         }
@@ -707,6 +724,20 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/types.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/readyz": {
+            "get": {
+                "description": "Get a boolean showing if Apache Guacamole support is enabled",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Check if Glim is running",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }
