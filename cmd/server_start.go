@@ -310,6 +310,7 @@ func init() {
 	defaultCertPEMFilePath := filepath.Join(homeDir, ".glim", "server.pem")
 	defaultCertKeyFilePath := filepath.Join(homeDir, ".glim", "server.key")
 	defaultDbPath := filepath.Join(homeDir, ".glim", "glim.db")
+	defaultKvPath := filepath.Join(homeDir, ".glim", "kv")
 
 	// LDAP Server
 	serverStartCmd.Flags().Bool("ldap-no-tls", false, "Don't use TLS with LDAP server")
@@ -334,7 +335,7 @@ func init() {
 	serverStartCmd.Flags().Int("autocert-years", 1, "number of years that we want Glim's auto-generated to be valid.")
 
 	// Badger
-	serverStartCmd.Flags().String("badgerdb-store", "/tmp/kv", "directory path for BadgerDB KV store")
+	serverStartCmd.Flags().String("badgerdb-store", defaultKvPath, "directory path for BadgerDB KV store")
 
 	// SQLite
 	serverStartCmd.Flags().String("sqlite-db", defaultDbPath, "path of the file containing SQLite Glim's database")
