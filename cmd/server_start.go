@@ -227,6 +227,11 @@ var serverStartCmd = &cobra.Command{
 		fmt.Printf("%s [Glim] ⇨ connected to key-value store...\n", time.Now().Format(time.RFC3339))
 
 		restAddress := viper.GetString("api-addr")
+		restPort := viper.GetInt("api-port")
+		if restPort <= 0 || restPort > 65535 {
+			fmt.Printf("%s [Glim] ⇨ wrong REST API port. Exiting now...\n", time.Now().Format(time.RFC3339))
+			os.Exit(1)
+		}
 
 		if viper.GetBool("guacamole") {
 			fmt.Printf("%s [Glim] ⇨ enabled support for Apache Guacamole...\n", time.Now().Format(time.RFC3339))
@@ -237,7 +242,7 @@ var serverStartCmd = &cobra.Command{
 			KV:                 blacklist,
 			TLSCert:            tlscert,
 			TLSKey:             tlskey,
-			Address:            restAddress,
+			Address:            fmt.Sprintf("%s:%d", restAddress, restPort),
 			APISecret:          apiSecret,
 			AccessTokenExpiry:  viper.GetUint("api-access-token-expiry-time"),
 			RefreshTokenExpiry: viper.GetUint("api-refresh-token-expiry-time"),
@@ -246,6 +251,12 @@ var serverStartCmd = &cobra.Command{
 		}
 
 		ldapAddress := viper.GetString("ldap-addr")
+		ldapPort := viper.GetInt("ldap-port")
+		if ldapPort <= 0 || ldapPort > 65535 || ldapPort == restPort {
+			fmt.Printf("%s [Glim] ⇨ wrong LDAP port. Exiting now...\n", time.Now().Format(time.RFC3339))
+			os.Exit(1)
+		}
+
 		ldapSizeLimit := viper.GetInt("ldap-size-limit")
 		domain := viper.GetString("ldap-domain")
 
@@ -256,7 +267,7 @@ var serverStartCmd = &cobra.Command{
 			TLSDisabled: viper.GetBool("ldap-no-tls"),
 			TLSCert:     tlscert,
 			TLSKey:      tlskey,
-			Address:     ldapAddress,
+			Address:     fmt.Sprintf("%s:%d", ldapAddress, ldapPort),
 			Domain:      ldap.GetDomain(domain),
 			SizeLimit:   ldapSizeLimit,
 			Guacamole:   viper.GetBool("guacamole"),
@@ -314,12 +325,14 @@ func init() {
 
 	// LDAP Server
 	serverStartCmd.Flags().Bool("ldap-no-tls", false, "Don't use TLS with LDAP server")
-	serverStartCmd.Flags().String("ldap-addr", ":1636", "LDAP server address and port (format: <ip:port>)")
+	serverStartCmd.Flags().String("ldap-addr", "", "LDAP server IP address to listen (for example: 127.0.0.1)")
+	serverStartCmd.Flags().Int("ldap-port", 1636, "LDAP server port")
 	serverStartCmd.Flags().Int("ldap-size-limit", 500, "LDAP server maximum number of entries that should be returned from the search")
 	serverStartCmd.Flags().String("ldap-domain", "example.org", "LDAP domain")
 
 	// REST API
-	serverStartCmd.Flags().String("api-addr", ":1323", "REST API server address and port (format: <ip:port>)")
+	serverStartCmd.Flags().String("api-addr", "", "REST API server IP address to listen (for example: 127.0.0.1)")
+	serverStartCmd.Flags().Int("api-port", 1323, "REST API server port")
 	serverStartCmd.Flags().String("api-secret", "", "API secret string to be used with JWT tokens")
 	serverStartCmd.Flags().Uint("api-access-token-expiry-time", 3600, "access token refresh expiry time in seconds")
 	serverStartCmd.Flags().Uint("api-refresh-token-expiry-time", 259200, "refresh token refresh expiry time in seconds")
