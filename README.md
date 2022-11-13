@@ -68,6 +68,26 @@ Password:
 Login Succeeded
 ```
 
+## Try it in K8s ☸️
+
+You can deploy Glim using a Helm chart.
+
+Add my repository to Helm:
+
+```bash
+helm repo add doncicuto https://doncicuto.github.io/helm-charts/
+```
+
+Install Glim chart:
+
+```bash
+helm install glim sologitops/glim
+```
+
+Visit [https://github.com/doncicuto/glim-chart](https://github.com/doncicuto/glim-chart) to know more about the values you can use with this chart.
+
+If you have any problems or suggestions with this chart, please open an issue.
+
 ## How does it work
 
 ```(bash)
