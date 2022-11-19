@@ -10,6 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const authTokenPathNotFound = "could not get AuthTokenPath - %v"
+const cantWriteToken = "could not write token file - %v"
+const validManagerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.ssYmxVciETD6LIKVfK_43Ka0Q79TAE4fdbNpjO-TpvA"
+const validReadonlyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOmZhbHNlLCJyZWFkb25seSI6ZmFsc2UsInN1YiI6ImFwaS5nbGltLmNsaWVudCIsInVpZCI6MX0.NZND2mvAGLd-7mCirt-"
+
 func TestAuthTokenPath(t *testing.T) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -19,7 +24,7 @@ func TestAuthTokenPath(t *testing.T) {
 
 	tokenPath, err := AuthTokenPath()
 	if err != nil {
-		t.Fatalf("could not get AuthTokenPath - %v", err)
+		t.Fatalf(authTokenPathNotFound, err)
 	}
 
 	assert.Equal(t, path, tokenPath)
@@ -28,7 +33,7 @@ func TestAuthTokenPath(t *testing.T) {
 func TestReadCredentials(t *testing.T) {
 	tokenPath, err := AuthTokenPath()
 	if err != nil {
-		t.Fatalf("could not get AuthTokenPath - %v", err)
+		t.Fatalf(authTokenPathNotFound, err)
 	}
 
 	t.Run("can't read token from non-existent file", func(t *testing.T) {
@@ -43,7 +48,7 @@ func TestReadCredentials(t *testing.T) {
 		wrongJsonObject := []byte("wrong{}\n")
 		err := os.WriteFile(tokenPath, wrongJsonObject, 0644)
 		if err != nil {
-			t.Fatalf("could not write token file - %v", err)
+			t.Fatalf(cantWriteToken, err)
 		}
 		_, err = readCredentials()
 		assert.Equal(t, errors.New("could not get credentials from stored file"), err)
@@ -55,7 +60,7 @@ func TestReadCredentials(t *testing.T) {
 		json := []byte("{\"token_type\":\"Bearer\",\"expires_in\":3600,\"expires_on\":1664698795,\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE2NjQ2OTg3OTUsImlhdCI6MTY2NDY5NTE5NSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiYjEwMjVmOGEtODgwNC00MDEyLThlZWYtN2E5MjU4MDY0Y2U5IiwibWFuYWdlciI6dHJ1ZSwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjF9.ycuAQ-gtWu5k0ggTpbXRP_Y4VzEwjtvXFeMXSHItGIU\",\"refresh_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiYjEwMjVmOGEtODgwNC00MDEyLThlZWYtN2E5MjU4MDY0Y2U5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxNjY0OTU0Mzk1LCJpYXQiOjE2NjQ2OTUxOTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6IjkxMzcwNWEyLThmOGEtNGJlMC04ZGJjLTE1MjdmMWU0NjBlYyIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.YFr7KfmR1xyIbkAjxB_EyyXWKIV0CbTGTMlYgoE8AhQ\"}\n")
 		err := os.WriteFile(tokenPath, json, 0644)
 		if err != nil {
-			t.Fatalf("could not write token file - %v", err)
+			t.Fatalf(cantWriteToken, err)
 		}
 		token, err := readCredentials()
 		expectToken := types.TokenAuthentication{TokenType: "Bearer", ExpiresIn: 3600, ExpiresOn: 1664698795, Tokens: types.Tokens{AccessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE2NjQ2OTg3OTUsImlhdCI6MTY2NDY5NTE5NSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiYjEwMjVmOGEtODgwNC00MDEyLThlZWYtN2E5MjU4MDY0Y2U5IiwibWFuYWdlciI6dHJ1ZSwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjF9.ycuAQ-gtWu5k0ggTpbXRP_Y4VzEwjtvXFeMXSHItGIU", RefreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiYjEwMjVmOGEtODgwNC00MDEyLThlZWYtN2E5MjU4MDY0Y2U5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxNjY0OTU0Mzk1LCJpYXQiOjE2NjQ2OTUxOTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6IjkxMzcwNWEyLThmOGEtNGJlMC04ZGJjLTE1MjdmMWU0NjBlYyIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.YFr7KfmR1xyIbkAjxB_EyyXWKIV0CbTGTMlYgoE8AhQ"}}
@@ -67,7 +72,7 @@ func TestReadCredentials(t *testing.T) {
 func TestDeleteCredentials(t *testing.T) {
 	tokenPath, err := AuthTokenPath()
 	if err != nil {
-		t.Fatalf("could not get AuthTokenPath - %v", err)
+		t.Fatalf(authTokenPathNotFound, err)
 	}
 
 	//Can't delete credentials from non-existent file
@@ -83,7 +88,7 @@ func TestDeleteCredentials(t *testing.T) {
 		json := []byte("{}")
 		err := os.WriteFile(tokenPath, json, 0644)
 		if err != nil {
-			t.Fatalf("could not write token file - %v", err)
+			t.Fatalf(cantWriteToken, err)
 		}
 		err = DeleteCredentials()
 		assert.Nil(t, err)
@@ -107,7 +112,7 @@ func TestRefresh(t *testing.T) {
 	// Get token path
 	tokenPath, err := AuthTokenPath()
 	if err != nil {
-		t.Fatalf("could not get AuthTokenPath - %v", err)
+		t.Fatalf(authTokenPathNotFound, err)
 	}
 
 	t.Run("token is empty", func(t *testing.T) {
@@ -128,7 +133,7 @@ func TestRefresh(t *testing.T) {
 
 	t.Run("token can be refreshed", func(t *testing.T) {
 		os.Remove(tokenPath)
-		token, err := refresh(url, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.ssYmxVciETD6LIKVfK_43Ka0Q79TAE4fdbNpjO-TpvA")
+		token, err := refresh(url, validManagerToken)
 		if err != nil {
 			assert.Contains(t, err.Error(), "refresh token usage without log in exceeded")
 		} else {
@@ -153,13 +158,13 @@ func TestNeedsRefresh(t *testing.T) {
 
 func TestAmIManager(t *testing.T) {
 	t.Run("I am not manager", func(t *testing.T) {
-		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOmZhbHNlLCJyZWFkb25seSI6ZmFsc2UsInN1YiI6ImFwaS5nbGltLmNsaWVudCIsInVpZCI6MX0.NZND2mvAGLd-7mCirt-zQj2VyXBnB9C31AAeaERsnMQ"}}
+		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: validReadonlyToken}}
 		manager := AmIManager(&token)
 		assert.Equal(t, false, manager)
 	})
 
 	t.Run("I am manager", func(t *testing.T) {
-		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.ssYmxVciETD6LIKVfK_43Ka0Q79TAE4fdbNpjO-TpvA"}}
+		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: validManagerToken}}
 		manager := AmIManager(&token)
 		assert.Equal(t, true, manager)
 	})
@@ -167,7 +172,7 @@ func TestAmIManager(t *testing.T) {
 
 func TestAmIReadonly(t *testing.T) {
 	t.Run("I am not readonly", func(t *testing.T) {
-		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOmZhbHNlLCJyZWFkb25seSI6ZmFsc2UsInN1YiI6ImFwaS5nbGltLmNsaWVudCIsInVpZCI6MX0.NZND2mvAGLd-7mCirt-zQj2VyXBnB9C31AAeaERsnMQ"}}
+		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: validReadonlyToken}}
 		readonly := AmIReadonly(&token)
 		assert.Equal(t, false, readonly)
 	})
@@ -181,13 +186,13 @@ func TestAmIReadonly(t *testing.T) {
 
 func TestAmIPlainUser(t *testing.T) {
 	t.Run("I am not plain user", func(t *testing.T) {
-		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.ssYmxVciETD6LIKVfK_43Ka0Q79TAE4fdbNpjO-TpvA"}}
+		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: validManagerToken}}
 		plainuser := AmIPlainUser(&token)
 		assert.Equal(t, false, plainuser)
 	})
 
 	t.Run("I am plain user", func(t *testing.T) {
-		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOmZhbHNlLCJyZWFkb25seSI6ZmFsc2UsInN1YiI6ImFwaS5nbGltLmNsaWVudCIsInVpZCI6MX0.NZND2mvAGLd-7mCirt-zQj2VyXBnB9C31AAeaERsnMQ"}}
+		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: validReadonlyToken}}
 		plainuser := AmIPlainUser(&token)
 		assert.Equal(t, true, plainuser)
 	})
@@ -203,7 +208,7 @@ func TestWhichIsMyTokenUID(t *testing.T) {
 	})
 
 	t.Run("can get uid", func(t *testing.T) {
-		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOTQ4YzYyYzYtMTZlZC00OWQ4LWI0YjEtY2IyZTUwZDhjMjQ5IiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoxOTgwNDM2NDM2LCJpYXQiOjE2NjQ3MTE2NTUsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6Ijg1YjkyZmU2LWRjYmYtNDcwNy1hZmJiLTlkYWMwOWJkOGY0ZiIsIm1hbmFnZXIiOmZhbHNlLCJyZWFkb25seSI6ZmFsc2UsInN1YiI6ImFwaS5nbGltLmNsaWVudCIsInVpZCI6MX0.NZND2mvAGLd-7mCirt-zQj2VyXBnB9C31AAeaERsnMQ"}}
+		token := types.TokenAuthentication{Tokens: types.Tokens{AccessToken: validReadonlyToken}}
 		uid, err := WhichIsMyTokenUID(&token)
 		if err != nil {
 			assert.Contains(t, err.Error(), "could not parse access token. Please try to log in again")
