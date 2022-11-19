@@ -23,9 +23,39 @@ import (
 
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/types"
+	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+func restCreateGroups(client *resty.Client, endpoint string, groups []*models.Group) ([]string, error) {
+	messages := []string{}
+	for _, group := range groups {
+		name := *group.Name
+		resp, err := client.R().
+			SetHeader("Content-Type", "application/json").
+			SetBody(models.JSONGroupBody{
+				Name:                      *group.Name,
+				Description:               *group.Description,
+				Members:                   *group.GroupMembers,
+				GuacamoleConfigProtocol:   *group.GuacamoleConfigProtocol,
+				GuacamoleConfigParameters: *group.GuacamoleConfigParameters,
+			}).
+			SetError(&types.APIError{}).
+			Post(endpoint)
+
+		if err != nil {
+			return nil, fmt.Errorf("can't connect with Glim: %v", err)
+		}
+
+		if resp.IsError() {
+			messages = append(messages, fmt.Sprintf("%s: skipped, %v", name, resp.Error().(*types.APIError).Message))
+			continue
+		}
+		messages = append(messages, fmt.Sprintf("%s: successfully created", name))
+	}
+	return messages, nil
+}
 
 func CsvCreateGroupsCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -37,16 +67,11 @@ func CsvCreateGroupsCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			// json output?
 			jsonOutput := viper.GetBool("json")
-			messages := []string{}
 
 			// Read and open file
 			groups, err := readGroupsFromCSV(jsonOutput, "name,description,members,guac_config_protocol,guac_config_parameters")
 			if err != nil {
 				return err
-			}
-
-			if len(groups) == 0 {
-				return fmt.Errorf("no groups where found in CSV file")
 			}
 
 			// Glim server URL
@@ -63,31 +88,13 @@ func CsvCreateGroupsCmd() *cobra.Command {
 			// Rest API authentication
 			client := RestClient(token.AccessToken)
 
-			for _, group := range groups {
-				name := *group.Name
-				resp, err := client.R().
-					SetHeader("Content-Type", "application/json").
-					SetBody(models.JSONGroupBody{
-						Name:                      *group.Name,
-						Description:               *group.Description,
-						Members:                   *group.GroupMembers,
-						GuacamoleConfigProtocol:   *group.GuacamoleConfigProtocol,
-						GuacamoleConfigParameters: *group.GuacamoleConfigParameters,
-					}).
-					SetError(&types.APIError{}).
-					Post(endpoint)
-
-				if err != nil {
-					return fmt.Errorf("can't connect with Glim: %v", err)
-				}
-
-				if resp.IsError() {
-					messages = append(messages, fmt.Sprintf("%s: skipped, %v", name, resp.Error().(*types.APIError).Message))
-					continue
-				}
-				messages = append(messages, fmt.Sprintf("%s: successfully created", name))
+			// Call API
+			messages, err := restCreateGroups(client, endpoint, groups)
+			if err != nil {
+				return err
 			}
 
+			// Print results
 			printCSVMessages(cmd, messages, jsonOutput)
 			if !jsonOutput {
 				printCmdMessage(cmd, "Create from CSV finished!", jsonOutput)

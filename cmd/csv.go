@@ -93,6 +93,11 @@ func readGroupsFromCSV(jsonOutput bool, header string) ([]*models.Group, error) 
 	if err := gocsv.UnmarshalFile(csvFile, &groups); err != nil { // Load clients from file
 		return nil, err
 	}
+
+	if len(groups) == 0 {
+		return nil, fmt.Errorf("no groups where found in CSV file")
+	}
+
 	return groups, nil
 }
 

@@ -46,10 +46,6 @@ func CsvDeleteGroupsCmd() *cobra.Command {
 				return err
 			}
 
-			if len(groups) == 0 {
-				return fmt.Errorf("no groups where found in CSV file")
-			}
-
 			// Glim server URL
 			url := viper.GetString("server")
 
