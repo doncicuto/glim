@@ -27,11 +27,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+const cantOpenCSV = "can't open CSV file"
+
 func checkCSVHeader(header string) error {
 	file := viper.GetString("file")
 	csvFile, err := os.Open(file)
 	if err != nil {
-		return fmt.Errorf("can't open CSV file")
+		return fmt.Errorf(cantOpenCSV)
 	}
 	defer csvFile.Close()
 
@@ -53,7 +55,7 @@ func readUsersFromCSV(jsonOutput bool, header string) ([]*models.User, error) {
 	file := viper.GetString("file")
 	csvFile, err := os.Open(file)
 	if err != nil {
-		return nil, fmt.Errorf("can't open CSV file")
+		return nil, fmt.Errorf(cantOpenCSV)
 	}
 	defer csvFile.Close()
 
@@ -76,7 +78,7 @@ func readGroupsFromCSV(jsonOutput bool, header string) ([]*models.Group, error) 
 	file := viper.GetString("file")
 	csvFile, err := os.Open(file)
 	if err != nil {
-		return nil, fmt.Errorf("can't open CSV file")
+		return nil, fmt.Errorf(cantOpenCSV)
 	}
 	defer csvFile.Close()
 
