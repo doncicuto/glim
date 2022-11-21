@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+const file0 = "/tmp/file0.csv"
 const file1 = "/tmp/file1.csv"
 const file2 = "/tmp/file2.csv"
 const file3 = "/tmp/file3.csv"
