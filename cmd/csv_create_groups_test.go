@@ -120,7 +120,7 @@ func TestCsvCreateGroups(t *testing.T) {
 		{
 			name:           "file not found",
 			cmd:            CsvCreateGroupsCmd(),
-			args:           []string{serverFlag, endpoint, fileFlag, file1},
+			args:           []string{serverFlag, endpoint, fileFlag, "/tmp/file1"},
 			errorMessage:   "can't open CSV file",
 			successMessage: "",
 		},
