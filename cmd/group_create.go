@@ -96,7 +96,3 @@ func NewGroupCmd() *cobra.Command {
 
 	return cmd
 }
-
-func init() {
-
-}
