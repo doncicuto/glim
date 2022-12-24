@@ -22,7 +22,7 @@ func TestGroupRead(t *testing.T) {
 		{
 			name:             "group devel can be created",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers", "members":"saul"}`,
@@ -31,7 +31,7 @@ func TestGroupRead(t *testing.T) {
 		{
 			name:             "group managers can be created",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "managers", "description": "Managers", "members":"kim"}`,
@@ -40,7 +40,7 @@ func TestGroupRead(t *testing.T) {
 		{
 			name:             "search user can list all groups",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodGet,
 			secret:           searchToken,
 			expectedBodyJSON: everybodyInfo,
@@ -48,7 +48,7 @@ func TestGroupRead(t *testing.T) {
 		{
 			name:             "manager user can list all groups",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodGet,
 			secret:           adminToken,
 			expectedBodyJSON: everybodyInfo,
@@ -56,10 +56,10 @@ func TestGroupRead(t *testing.T) {
 		{
 			name:             "plain user can't list all groups",
 			expResCode:       http.StatusUnauthorized,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
+			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
 		},
 		{
 			name:       "non-existent group returns 404",
@@ -90,7 +90,7 @@ func TestGroupRead(t *testing.T) {
 			reqURL:           "/v1/groups/1",
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
+			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
 		},
 		{
 			name:       "can't get gid from a non-existent group's name",
@@ -121,7 +121,7 @@ func TestGroupRead(t *testing.T) {
 			reqURL:           "/v1/groups/devel/gid",
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
+			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
 		},
 	}
 

@@ -3,10 +3,13 @@ package cmd
 import (
 	"testing"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/google/uuid"
 )
 
 func TestUpdateGuacamoleGroupCmd(t *testing.T) {
+	const endpoint = "http://127.0.0.1:56022"
+
 	dbPath := uuid.New()
 	e := testSetup(t, dbPath.String(), true)
 	defer testCleanUp(dbPath.String())
@@ -22,42 +25,42 @@ func TestUpdateGuacamoleGroupCmd(t *testing.T) {
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{"--server", "http://127.0.0.1:56022", "--username", "admin", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
 		{
 			name:           "new group test",
 			cmd:            NewGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:56022", "--group", "test", "--description", "test", "--members", "kim,saul", "--guacamole-protocol", "ssh", "--guacamole-parameters", "host=192.168.1.1,port=22"},
+			args:           []string{serverFlag, endpoint, groupFlag, "test", descriptionFlag, "test", membersFlag, "kim,saul", "--guacamole-protocol", "ssh", guacParametersFlag, "host=192.168.1.1,port=22"},
 			errorMessage:   "",
 			successMessage: "Group created\n",
 		},
 		{
 			name:           "guacamole group updated",
 			cmd:            UpdateGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:56022", "--group", "test", "--description", "test", "--members", "kim,saul", "--guacamole-protocol", "vnc", "--guacamole-parameters", "host=192.168.1.1,port=22,password=secret"},
+			args:           []string{serverFlag, endpoint, groupFlag, "test", descriptionFlag, "test", membersFlag, "kim,saul", "--guacamole-protocol", "vnc", guacParametersFlag, "host=192.168.1.1,port=22,password=secret"},
 			errorMessage:   "",
-			successMessage: "Group updated\n",
+			successMessage: common.GroupUpdatedMessage,
 		},
 		{
 			name:           "guacamole group can be updated again",
 			cmd:            UpdateGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:56022", "--group", "test", "--description", "test", "--members", "kim,saul", "--guacamole-parameters", "host=192.168.1.1,port=22,password=secret"},
+			args:           []string{serverFlag, endpoint, groupFlag, "test", descriptionFlag, "test", membersFlag, "kim,saul", guacParametersFlag, "host=192.168.1.1,port=22,password=secret"},
 			errorMessage:   "",
-			successMessage: "Group updated\n",
+			successMessage: common.GroupUpdatedMessage,
 		},
 		{
 			name:           "new group test2",
 			cmd:            NewGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:56022", "--group", "test2", "--description", "test", "--members", "kim,saul"},
+			args:           []string{serverFlag, endpoint, groupFlag, "test2", descriptionFlag, "test", membersFlag, "kim,saul"},
 			errorMessage:   "",
 			successMessage: "Group created\n",
 		},
 		{
 			name:           "guacamole group can't be updated",
 			cmd:            UpdateGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:56022", "--group", "test2", "--description", "test", "--members", "kim,saul", "--guacamole-parameters", "host=192.168.1.1,port=22,password=secret"},
+			args:           []string{serverFlag, endpoint, groupFlag, "test2", descriptionFlag, "test", membersFlag, "kim,saul", guacParametersFlag, "host=192.168.1.1,port=22,password=secret"},
 			errorMessage:   "Apache Guacamole config protocol is required",
 			successMessage: "",
 		},

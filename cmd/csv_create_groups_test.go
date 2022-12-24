@@ -106,14 +106,14 @@ func TestCsvCreateGroups(t *testing.T) {
 
 	waitForTestServer(t, ":50043")
 	const endpoint = "http://127.0.0.1:50043"
-	const serverFlag = "--server"
+
 	const fileFlag = "--file"
 
 	testCases := []CmdTestCase{
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{serverFlag, endpoint, "--username", "admin", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
@@ -134,7 +134,7 @@ func TestCsvCreateGroups(t *testing.T) {
 		{
 			name:           "group devel detail",
 			cmd:            ListGroupCmd(),
-			args:           []string{serverFlag, endpoint, "--gid", "1", "--json"},
+			args:           []string{serverFlag, endpoint, "--gid", "1", jsonFlag},
 			errorMessage:   "",
 			successMessage: `{"gid":1,"name":"devel","description":"Developers","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}` + "\n",
 		},

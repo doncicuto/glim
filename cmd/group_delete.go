@@ -22,9 +22,10 @@ import (
 	"path/filepath"
 
 	"github.com/Songmu/prompter"
-	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func DeleteGroupCmd() *cobra.Command {
@@ -69,16 +70,16 @@ func DeleteGroupCmd() *cobra.Command {
 			endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 
 			resp, err := client.R().
-				SetHeader("Content-Type", "application/json").
-				SetError(&types.APIError{}).
+				SetHeader(contentTypeHeader, appJson).
+				SetError(&common.APIError{}).
 				Delete(endpoint)
 
 			if err != nil {
-				return fmt.Errorf("can't connect with Glim: %v", err)
+				return fmt.Errorf(common.CantConnectMessage, err)
 			}
 
 			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 			}
 
 			printCmdMessage(cmd, "Group deleted", jsonOutput)

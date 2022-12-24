@@ -25,9 +25,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/doncicuto/glim/types"
 	ber "github.com/go-asn1-ber/asn1-ber"
 	"github.com/labstack/gommon/log"
+
+	"github.com/doncicuto/glim/common"
 )
 
 //Settings - TODO comment
@@ -37,7 +38,7 @@ func printLog(msg string) {
 	log.Print(msg)
 }
 
-func handleConnection(c net.Conn, settings types.LDAPSettings) {
+func handleConnection(c net.Conn, settings common.LDAPSettings) {
 	defer c.Close()
 
 	var username = ""
@@ -123,7 +124,7 @@ func waitForShutdown(l net.Listener, ch chan bool) {
 }
 
 // Server - TODO comment
-func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings types.LDAPSettings) {
+func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings common.LDAPSettings) {
 	defer wg.Done()
 	addr, ok := os.LookupEnv("LDAP_SERVER_ADDRESS")
 	if !ok {

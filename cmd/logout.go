@@ -21,9 +21,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func LogoutCmd() *cobra.Command {
@@ -33,7 +34,7 @@ func LogoutCmd() *cobra.Command {
 		Short: "Log out from a Glim server",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			var token *types.TokenAuthentication
+			var token *common.TokenAuthentication
 			url := viper.GetString("server")
 
 			// Get credentials
@@ -46,17 +47,17 @@ func LogoutCmd() *cobra.Command {
 			client := RestClient("")
 
 			resp, err := client.R().
-				SetHeader("Content-Type", "application/json").
+				SetHeader(contentTypeHeader, appJson).
 				SetBody(fmt.Sprintf(`{"refresh_token":"%s"}`, token.RefreshToken)).
-				SetError(&types.APIError{}).
+				SetError(&common.APIError{}).
 				Delete(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
 			if err != nil {
-				return fmt.Errorf("can't connect with Glim: %v", err)
+				return fmt.Errorf(common.CantConnectMessage, err)
 			}
 
 			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 			}
 
 			// Remove credentials file

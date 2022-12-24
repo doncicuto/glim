@@ -18,7 +18,7 @@ func TestGroupGuacamoleCreate(t *testing.T) {
 		{
 			name:             "group can be created with Guacamole settings",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers", "guac_config_protocol": "vnc", "guac_config_parameters": "host=192.168.1.131"}`,
@@ -27,7 +27,7 @@ func TestGroupGuacamoleCreate(t *testing.T) {
 		{
 			name:             "group can't be created with missing Guacamole settings",
 			expResCode:       http.StatusNotAcceptable,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers", "guac_config_parameters": "host=192.168.1.131"}`,

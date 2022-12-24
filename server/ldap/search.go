@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/doncicuto/glim/types"
 	ber "github.com/go-asn1-ber/asn1-ber"
 	"github.com/google/uuid"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func searchSize(p *ber.Packet, searchLimit int, pagedResultSize int64) (int, *ServerError) {
@@ -80,7 +81,7 @@ func searchFilter(p *ber.Packet) (string, *ServerError) {
 	filter, err := decodeFilters(p)
 	if err != nil {
 		return "", &ServerError{
-			Msg:  "wrong search filter definition",
+			Msg:  common.WrongSearchFilterMessage,
 			Code: ProtocolError,
 		}
 	}
@@ -107,7 +108,7 @@ func decodeSubstringFilter(p *ber.Packet) (string, *ServerError) {
 	if p.ClassType != ber.ClassContext ||
 		p.TagType != ber.TypeConstructed && p.Tag != ber.TagOctetString {
 		return "", &ServerError{
-			Msg:  "wrong search filter definition",
+			Msg:  common.WrongSearchFilterMessage,
 			Code: ProtocolError,
 		}
 	}
@@ -117,7 +118,7 @@ func decodeSubstringFilter(p *ber.Packet) (string, *ServerError) {
 
 		if err != nil {
 			return "", &ServerError{
-				Msg:  "wrong search filter definition",
+				Msg:  common.WrongSearchFilterMessage,
 				Code: ProtocolError,
 			}
 		}
@@ -135,7 +136,7 @@ func decodeFilters(p *ber.Packet) (string, *ServerError) {
 		((p.TagType != ber.TypeConstructed && p.Tag != ber.TagEOC) &&
 			(p.TagType != ber.TypePrimitive && p.Tag != ber.TagObjectDescriptor && p.Tag != ber.TagSequence)) {
 		return "", &ServerError{
-			Msg:  "wrong search filter definition",
+			Msg:  common.WrongSearchFilterMessage,
 			Code: ProtocolError,
 		}
 	}
@@ -147,7 +148,7 @@ func decodeFilters(p *ber.Packet) (string, *ServerError) {
 			df, err := decodeFilters(f)
 			if err != nil {
 				return "", &ServerError{
-					Msg:  "wrong search filter definition",
+					Msg:  common.WrongSearchFilterMessage,
 					Code: ProtocolError,
 				}
 			}
@@ -162,7 +163,7 @@ func decodeFilters(p *ber.Packet) (string, *ServerError) {
 			df, err := decodeFilters(f)
 			if err != nil {
 				return "", &ServerError{
-					Msg:  "wrong search filter definition",
+					Msg:  common.WrongSearchFilterMessage,
 					Code: ProtocolError,
 				}
 			}
@@ -177,7 +178,7 @@ func decodeFilters(p *ber.Packet) (string, *ServerError) {
 			df, err := decodeFilters(f)
 			if err != nil {
 				return "", &ServerError{
-					Msg:  "wrong search filter definition",
+					Msg:  common.WrongSearchFilterMessage,
 					Code: ProtocolError,
 				}
 			}
@@ -187,7 +188,7 @@ func decodeFilters(p *ber.Packet) (string, *ServerError) {
 	case FilterEquality:
 		if len(p.Children) != 2 {
 			return "", &ServerError{
-				Msg:  "wrong search filter definition",
+				Msg:  common.WrongSearchFilterMessage,
 				Code: ProtocolError,
 			}
 		}
@@ -197,7 +198,7 @@ func decodeFilters(p *ber.Packet) (string, *ServerError) {
 		df, err := decodeSubstringFilter(p)
 		if err != nil {
 			return "", &ServerError{
-				Msg:  "wrong search filter definition",
+				Msg:  common.WrongSearchFilterMessage,
 				Code: ProtocolError,
 			}
 		}
@@ -277,7 +278,7 @@ func searchScope(p *ber.Packet) (int64, *ServerError) {
 }
 
 // HandleSearchRequest - TODO comment
-func HandleSearchRequest(message *Message, settings types.LDAPSettings) ([]*ber.Packet, error) {
+func HandleSearchRequest(message *Message, settings common.LDAPSettings) ([]*ber.Packet, error) {
 
 	// Defined in https://www.rfc-editor.org/rfc/rfc4511#section-4.5.1
 	var offset = 0

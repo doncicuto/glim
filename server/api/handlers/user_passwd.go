@@ -22,13 +22,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
-//Passwd - TODO comment
+// Passwd - TODO comment
 // @Summary      Change user account password
 // @Description  Change user account password
 // @Tags         users
@@ -37,10 +38,10 @@ import (
 // @Param        id   path      int  true  "User Account ID"
 // @Param        password body models.JSONPasswdBody  true  "Password body"
 // @Success      204
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   403  {object} types.ErrorResponse
-// @Failure 	   406  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   403  {object} common.ErrorResponse
+// @Failure 	   406  {object} common.ErrorResponse
 // @Router       /users/{id}/passwd [post]
 // @Security 		 Bearer
 func (h *Handler) Passwd(c echo.Context) error {
@@ -63,13 +64,13 @@ func (h *Handler) Passwd(c echo.Context) error {
 
 	// Get uid and manager status from JWT token
 	if c.Get("user") == nil {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	tokenUID, ok := claims["uid"].(float64)
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 	id, err := strconv.Atoi(uid)
 	if err != nil {
@@ -77,7 +78,7 @@ func (h *Handler) Passwd(c echo.Context) error {
 	}
 	manager, ok := claims["manager"].(bool)
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 
 	// If token uid is not the same as requested uid
@@ -93,7 +94,7 @@ func (h *Handler) Passwd(c echo.Context) error {
 	// Check if user exists
 	err = h.DB.Where("id = ?", uid).First(&dbUser).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &echo.HTTPError{Code: http.StatusNotFound, Message: "wrong username or password"}
+		return &echo.HTTPError{Code: http.StatusNotFound, Message: common.WrongUsernameOrPasswordMessage}
 	}
 
 	// Check if old passwords match

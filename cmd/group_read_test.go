@@ -5,9 +5,12 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestGroupReadCmd(t *testing.T) {
+	const endpoint = "http://127.0.0.1:51012"
 	dbPath := uuid.New()
 	e := testSetup(t, dbPath.String(), false)
 	defer testCleanUp(dbPath.String())
@@ -30,64 +33,64 @@ func TestGroupReadCmd(t *testing.T) {
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51012", "--username", "admin", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "admin", "--password", "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
 		{
 			name:           "list initial groups",
 			cmd:            ListGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51012", "--json"},
+			args:           []string{serverFlag, endpoint, jsonFlag},
 			errorMessage:   "",
 			successMessage: `[]` + "\n",
 		},
 		{
 			name:           "test group created",
 			cmd:            NewGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51012", "--group", "test", "--description", "test", "--members", "saul,mike"},
+			args:           []string{serverFlag, endpoint, groupFlag, "test", descriptionFlag, "test", membersFlag, "saul,mike"},
 			errorMessage:   "",
 			successMessage: "Group created\n",
 		},
 		{
 			name:           "list current groups",
 			cmd:            ListGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51012", "--json"},
+			args:           []string{serverFlag, endpoint, jsonFlag},
 			errorMessage:   "",
 			successMessage: `[{"gid":1,"name":"test","description":"test","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}]` + "\n",
 		},
 		{
 			name:           "group test detail",
 			cmd:            ListGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51012", "--gid", "1", "--json"},
+			args:           []string{serverFlag, endpoint, "--gid", "1", jsonFlag},
 			errorMessage:   "",
 			successMessage: `{"gid":1,"name":"test","description":"test","members":[{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}],"guac_config_protocol":"","guac_config_parameters":""}` + "\n",
 		},
 		{
 			name:           "login successful as kim",
 			cmd:            LoginCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51012", "--username", "kim", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "kim", "--password", "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
 		{
 			name:           "kim can't get details about groups",
 			cmd:            ListGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51012", "--json"},
-			errorMessage:   "user has no proper permissions",
+			args:           []string{serverFlag, endpoint, jsonFlag},
+			errorMessage:   common.UserHasNoProperPermissionsMessage,
 			successMessage: "",
 		},
 		{
 			name:           "kim can't get details about groups using ls",
 			cmd:            ListGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51012", "ls", "--json"},
-			errorMessage:   "user has no proper permissions",
+			args:           []string{serverFlag, endpoint, "ls", jsonFlag},
+			errorMessage:   common.UserHasNoProperPermissionsMessage,
 			successMessage: "",
 		},
 		{
 			name:           "kim can't get details about specific group",
 			cmd:            ListGroupCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51012", "ls", "--gid", "3", "--json"},
-			errorMessage:   "user has no proper permissions",
+			args:           []string{serverFlag, endpoint, "ls", "--gid", "3", jsonFlag},
+			errorMessage:   common.UserHasNoProperPermissionsMessage,
 			successMessage: "",
 		},
 	}

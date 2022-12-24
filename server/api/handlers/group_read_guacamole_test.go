@@ -19,7 +19,7 @@ func TestGroupGuacamoleRead(t *testing.T) {
 		{
 			name:             "Guacamole group can be created",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers", "members":"saul", "guac_config_protocol":"vnc", "guac_config_parameters":"host=localhost"}`,

@@ -22,9 +22,10 @@ import (
 	"path/filepath"
 
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func CsvDeleteGroupsCmd() *cobra.Command {
@@ -71,17 +72,17 @@ func CsvDeleteGroupsCmd() *cobra.Command {
 				if name != "" {
 					endpoint := fmt.Sprintf("%s/v1/groups/%s/gid", url, name)
 					resp, err := client.R().
-						SetHeader("Content-Type", "application/json").
+						SetHeader(contentTypeHeader, appJson).
 						SetResult(models.Group{}).
-						SetError(&types.APIError{}).
+						SetError(&common.APIError{}).
 						Get(endpoint)
 
 					if err != nil {
-						return fmt.Errorf("can't connect with Glim: %v", err)
+						return fmt.Errorf(common.CantConnectMessage, err)
 					}
 
 					if resp.IsError() {
-						messages = append(messages, fmt.Sprintf("%s: skipped, %v\n", name, resp.Error().(*types.APIError).Message))
+						messages = append(messages, fmt.Sprintf("%s: skipped, %v\n", name, resp.Error().(*common.APIError).Message))
 						continue
 					}
 
@@ -97,19 +98,19 @@ func CsvDeleteGroupsCmd() *cobra.Command {
 				// Delete using API
 				endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 				resp, err := client.R().
-					SetHeader("Content-Type", "application/json").
-					SetError(&types.APIError{}).
+					SetHeader(contentTypeHeader, appJson).
+					SetError(&common.APIError{}).
 					Delete(endpoint)
 
 				if err != nil {
-					return fmt.Errorf("can't connect with Glim: %v", err)
+					return fmt.Errorf(common.CantConnectMessage, err)
 				}
 
 				if resp.IsError() {
 					if name != "" {
-						messages = append(messages, fmt.Sprintf("%s: skipped, %v", name, resp.Error().(*types.APIError).Message))
+						messages = append(messages, fmt.Sprintf("%s: skipped, %v", name, resp.Error().(*common.APIError).Message))
 					} else {
-						messages = append(messages, fmt.Sprintf("GID %d: skipped, %v", gid, resp.Error().(*types.APIError).Message))
+						messages = append(messages, fmt.Sprintf("GID %d: skipped, %v", gid, resp.Error().(*common.APIError).Message))
 					}
 					continue
 				}

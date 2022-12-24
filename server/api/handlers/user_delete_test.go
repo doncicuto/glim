@@ -19,7 +19,7 @@ func TestUserDelete(t *testing.T) {
 		{
 			name:       "wrong token",
 			expResCode: http.StatusUnauthorized,
-			reqURL:     "/v1/users",
+			reqURL:     usersEndpoint,
 			reqMethod:  http.MethodDelete,
 			secret:     "wrong secret",
 		},

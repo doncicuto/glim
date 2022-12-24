@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
@@ -56,11 +57,11 @@ func (h *Handler) AddMembers(g *models.Group, members []string) error {
 // @Produce      json
 // @Param        group body models.JSONGroupBody  true  "Group body. Name is required. The members property expect a comma-separated list of usernames e.g 'bob,sally'. The replace property is not used in this command."
 // @Success      200  {object}  models.GroupInfo
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   404  {object} types.ErrorResponse
-// @Failure 	   406  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   404  {object} common.ErrorResponse
+// @Failure 	   406  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /groups [post]
 // @Security 		 Bearer
 func (h *Handler) SaveGroup(c echo.Context) error {
@@ -70,14 +71,14 @@ func (h *Handler) SaveGroup(c echo.Context) error {
 
 	// Get username that is updating this group
 	if c.Get("user") == nil {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 	user := c.Get("user").(*jwt.Token)
 
 	claims := user.Claims.(jwt.MapClaims)
 	uid, ok := claims["uid"].(float64)
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(uid)).First(&createdBy).Error; err != nil {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to create group"}

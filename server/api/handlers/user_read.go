@@ -33,7 +33,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  models.UserInfo
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /users [get]
 // @Security 		 Bearer
 func (h *Handler) FindAllUsers(c echo.Context) error {
@@ -80,10 +80,10 @@ func (h *Handler) FindAllUsers(c echo.Context) error {
 // @Produce      json
 // @Param        id   path      int  true  "User Account ID"
 // @Success      200  {object}  models.UserInfo
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   404  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   404  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /users/{id} [get]
 // @Security 		 Bearer
 func (h *Handler) FindUserByID(c echo.Context) error {
@@ -117,10 +117,10 @@ func (h *Handler) FindUserByID(c echo.Context) error {
 // @Produce      json
 // @Param        username   path      string  true  "username"
 // @Success      200  {object}  models.UserID
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   404  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   404  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /users/{username}/uid [get]
 // @Security 		 Bearer
 func (h *Handler) FindUIDFromUsername(c echo.Context) error {

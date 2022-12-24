@@ -19,8 +19,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/doncicuto/glim/types"
-
+	"github.com/doncicuto/glim/common"
 	"github.com/labstack/echo/v4"
 )
 
@@ -28,12 +27,12 @@ import (
 // @Summary      Check if Apache Guacamole support is enabled
 // @Description  Get a boolean showing if Apache Guacamole support is enabled
 // @Produce      json
-// @Success      200  {object}  types.GuacamoleSupport
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Success      200  {object}  common.GuacamoleSupport
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /guacamole [get]
 func (h *Handler) GuacamoleSupport(c echo.Context) error {
-	support := types.GuacamoleSupport{}
+	support := common.GuacamoleSupport{}
 	support.Enabled = h.Guacamole
 	return c.JSON(http.StatusOK, support)
 }

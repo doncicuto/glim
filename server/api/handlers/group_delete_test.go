@@ -22,7 +22,7 @@ func TestGroupDelete(t *testing.T) {
 			reqURL:           "/v1/groups/1",
 			reqMethod:        http.MethodDelete,
 			secret:           searchToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
+			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
 		},
 		{
 			name:             "gid param should be a valid integer",
@@ -43,7 +43,7 @@ func TestGroupDelete(t *testing.T) {
 		{
 			name:             "create group",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers"}`,

@@ -22,9 +22,10 @@ import (
 	"path/filepath"
 
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func UpdateGroupCmd() *cobra.Command {
@@ -67,7 +68,7 @@ func UpdateGroupCmd() *cobra.Command {
 			endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 
 			resp, err := client.R().
-				SetHeader("Content-Type", "application/json").
+				SetHeader(contentTypeHeader, appJson).
 				SetBody(models.JSONGroupBody{
 					Name:                      viper.GetString("group"),
 					Description:               viper.GetString("description"),
@@ -76,15 +77,15 @@ func UpdateGroupCmd() *cobra.Command {
 					GuacamoleConfigProtocol:   viper.GetString("guacamole-protocol"),
 					GuacamoleConfigParameters: viper.GetString("guacamole-parameters"),
 				}).
-				SetError(&types.APIError{}).
+				SetError(&common.APIError{}).
 				Put(endpoint)
 
 			if err != nil {
-				return fmt.Errorf("can't connect with Glim: %v", err)
+				return fmt.Errorf(common.CantConnectMessage, err)
 			}
 
 			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 			}
 
 			printCmdMessage(cmd, "Group updated", jsonOutput)

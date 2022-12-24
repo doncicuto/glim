@@ -30,6 +30,23 @@ import (
 	"github.com/spf13/viper"
 )
 
+const sectionSeparator = "====\n"
+const descrFormat = "%-15s %-100s\n"
+const accountFormat = "%-15s %-8v\n"
+const serverFlag = "--server"
+const jsonFlag = "--json"
+const forceFlag = "--force"
+const groupFlag = "--group"
+const descriptionFlag = "--description"
+const membersFlag = "--members"
+const usernameFlag = "--username"
+const passwordFlag = "--password"
+const postgresHostFlag = "postgres-host"
+const postgresDbFlag = "postgres-db"
+const guacParametersFlag = "--guacamole-parameters"
+const contentTypeHeader = "Content-Type"
+const appJson = "application/json"
+
 func truncate(text string, length int) string {
 	if len(text) > length {
 		format := fmt.Sprintf("%%.%ds...", length-3)

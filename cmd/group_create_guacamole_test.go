@@ -18,28 +18,27 @@ func TestNewGuacamoleGroupCmd(t *testing.T) {
 
 	waitForTestServer(t, ":56021")
 
-	const serverFlag = "--server"
 	const endpoint = "http://127.0.0.1:56021"
 
 	testCases := []CmdTestCase{
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{serverFlag, endpoint, "--username", "admin", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
 		{
 			name:           "new group test",
 			cmd:            NewGroupCmd(),
-			args:           []string{serverFlag, endpoint, "--group", "test", "--description", "test", "--members", "kim,saul", "--guacamole-protocol", "ssh", "--guacamole-parameters", "host=192.168.1.1,port=22"},
+			args:           []string{serverFlag, endpoint, groupFlag, "test", descriptionFlag, "test", membersFlag, "kim,saul", "--guacamole-protocol", "ssh", guacParametersFlag, "host=192.168.1.1,port=22"},
 			errorMessage:   "",
 			successMessage: "Group created\n",
 		},
 		{
 			name:           "guacamole protocol is required if parameters are set",
 			cmd:            NewGroupCmd(),
-			args:           []string{serverFlag, endpoint, "--group", "wrong", "--description", "test", "--members", "kim,saul", "--guacamole-parameters", "host=192.168.1.1,port=22"},
+			args:           []string{serverFlag, endpoint, groupFlag, "wrong", descriptionFlag, "test", membersFlag, "kim,saul", guacParametersFlag, "host=192.168.1.1,port=22"},
 			errorMessage:   "Apache Guacamole config protocol is required",
 			successMessage: "",
 		},

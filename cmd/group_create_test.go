@@ -4,14 +4,15 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestNewGroupCmd(t *testing.T) {
 	const endpoint = "http://127.0.0.1:51021"
-	const serverFlag = "--server"
-	const descriptionFlag = "--description"
-	const membersFlag = "--members"
-	const groupFlag = "--group"
+
+	const descriptionFlag = descriptionFlag
+	const membersFlag = membersFlag
 
 	dbPath := uuid.New()
 	e := testSetup(t, dbPath.String(), false)
@@ -28,7 +29,7 @@ func TestNewGroupCmd(t *testing.T) {
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{serverFlag, endpoint, "--username", "admin", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
@@ -56,7 +57,7 @@ func TestNewGroupCmd(t *testing.T) {
 		{
 			name:           "login successful as kim",
 			cmd:            LoginCmd(),
-			args:           []string{serverFlag, endpoint, "--username", "kim", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "kim", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
@@ -64,7 +65,7 @@ func TestNewGroupCmd(t *testing.T) {
 			name:           "kim can't add new group",
 			cmd:            NewGroupCmd(),
 			args:           []string{serverFlag, endpoint, groupFlag, "killers", descriptionFlag, "test", membersFlag, "charles"},
-			errorMessage:   "user has no proper permissions",
+			errorMessage:   common.UserHasNoProperPermissionsMessage,
 			successMessage: "",
 		},
 	}

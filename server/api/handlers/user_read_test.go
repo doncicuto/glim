@@ -22,7 +22,7 @@ func TestUserRead(t *testing.T) {
 		{
 			name:             "search user can list everybody's information",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/users",
+			reqURL:           usersEndpoint,
 			reqMethod:        http.MethodGet,
 			secret:           searchToken,
 			expectedBodyJSON: everybodyInfo,
@@ -30,7 +30,7 @@ func TestUserRead(t *testing.T) {
 		{
 			name:             "manager user can list everybody's information",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/users",
+			reqURL:           usersEndpoint,
 			reqMethod:        http.MethodGet,
 			secret:           adminToken,
 			expectedBodyJSON: everybodyInfo,

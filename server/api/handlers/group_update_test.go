@@ -21,7 +21,7 @@ func TestGroupUpdate(t *testing.T) {
 			reqURL:           "/v1/groups/1",
 			reqMethod:        http.MethodPut,
 			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwibWFuYWdlciI6dHJ1ZSwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQifQ.SQ0P6zliTGQiAdTi2DjCDeht0n2FjYdPGV7JgOx0TRY",
-			expectedBodyJSON: `{"message":"wrong token or missing info in token claims"}`,
+			expectedBodyJSON: `{"message":common.WrongTokenOrMissingMessage}`,
 		},
 		{
 			name:             "non-existent manager user can't update account info",
@@ -42,7 +42,7 @@ func TestGroupUpdate(t *testing.T) {
 		{
 			name:             "group devel can be created without members",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers"}`,
@@ -51,7 +51,7 @@ func TestGroupUpdate(t *testing.T) {
 		{
 			name:             "group can be created without members",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "managers", "description": "Managers"}`,

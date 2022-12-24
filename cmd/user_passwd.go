@@ -21,8 +21,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 
 	"github.com/Songmu/prompter"
 	"github.com/spf13/cobra"
@@ -35,9 +35,6 @@ func UserPasswdCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "passwd",
 		Short: "Change a Glim user account password",
-		PreRun: func(cmd *cobra.Command, _ []string) {
-
-		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			passwdBody := models.JSONPasswdBody{}
 
@@ -106,17 +103,17 @@ func UserPasswdCmd() *cobra.Command {
 
 			endpoint := fmt.Sprintf("%s/v1/users/%d/passwd", url, uid)
 			resp, err := client.R().
-				SetHeader("Content-Type", "application/json").
+				SetHeader(contentTypeHeader, appJson).
 				SetBody(passwdBody).
-				SetError(&types.APIError{}).
+				SetError(&common.APIError{}).
 				Post(endpoint)
 
 			if err != nil {
-				return fmt.Errorf("can't connect with Glim: %v", err)
+				return fmt.Errorf(common.CantConnectMessage, err)
 			}
 
 			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 			}
 
 			printCmdMessage(cmd, "Password changed", jsonOutput)

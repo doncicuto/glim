@@ -18,7 +18,7 @@ func TestGroupAddMembers(t *testing.T) {
 		{
 			name:             "group can be created without members",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers"}`,

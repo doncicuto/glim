@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -39,11 +40,11 @@ import (
 // @Param        id   path      int  true  "Group ID"
 // @Param        group body models.JSONGroupBody  true  "Group body. All properties are optional. The members property expect a comma-separated list of usernames e.g 'bob,sally'. The replace property if true will replace all members by those selected by the members property, if replace is false the member will be added to current members."
 // @Success      200  {object}  models.UserInfo
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   404  {object} types.ErrorResponse
-// @Failure 	   406  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   404  {object} common.ErrorResponse
+// @Failure 	   406  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /groups/{id} [put]
 // @Security 		 Bearer
 func (h *Handler) UpdateGroup(c echo.Context) error {
@@ -54,14 +55,14 @@ func (h *Handler) UpdateGroup(c echo.Context) error {
 
 	// Get username that is updating this group
 	if c.Get("user") == nil {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 	user := c.Get("user").(*jwt.Token)
 
 	claims := user.Claims.(jwt.MapClaims)
 	uid, ok := claims["uid"].(float64)
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(uid)).First(&u).Error; err != nil {
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to update group"}

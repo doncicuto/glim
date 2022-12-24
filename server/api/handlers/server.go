@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/doncicuto/glim/types"
+	"github.com/doncicuto/glim/common"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -23,11 +23,16 @@ import (
 // @name Authorization
 type Handler struct {
 	DB        *gorm.DB
-	KV        types.Store
+	KV        common.Store
 	Guacamole bool
 }
 
-func EchoServer(settings types.APISettings) *echo.Echo {
+const usersEndpoint = "/v1/users"
+const groupsEndpoint = "/v1/groups"
+const loginEndpoint = "/v1/login"
+const refreshTokenEndpoint = "/v1/login/refresh_token"
+
+func EchoServer(settings common.APISettings) *echo.Echo {
 	// New Echo framework server
 	e := echo.New()
 	e.HideBanner = true

@@ -24,9 +24,10 @@ import (
 	"strings"
 
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func CsvCreateUsersCmd() *cobra.Command {
@@ -99,7 +100,7 @@ func CsvCreateUsersCmd() *cobra.Command {
 				}
 
 				resp, err := client.R().
-					SetHeader("Content-Type", "application/json").
+					SetHeader(contentTypeHeader, appJson).
 					SetBody(models.JSONUserBody{
 						Username:     username,
 						Password:     password,
@@ -114,15 +115,15 @@ func CsvCreateUsersCmd() *cobra.Command {
 						Readonly:     &readonly,
 						Locked:       &locked,
 					}).
-					SetError(&types.APIError{}).
+					SetError(&common.APIError{}).
 					Post(endpoint)
 
 				if err != nil {
-					return fmt.Errorf("can't connect with Glim: %v", err)
+					return fmt.Errorf(common.CantConnectMessage, err)
 				}
 
 				if resp.IsError() {
-					messages = append(messages, fmt.Sprintf("%s: skipped, %v", username, resp.Error().(*types.APIError).Message))
+					messages = append(messages, fmt.Sprintf("%s: skipped, %v", username, resp.Error().(*common.APIError).Message))
 					continue
 				}
 				messages = append(messages, fmt.Sprintf("%s: successfully created", username))

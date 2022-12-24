@@ -20,8 +20,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/doncicuto/glim/types"
-
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
@@ -34,16 +33,16 @@ import (
 // @Tags         authentication
 // @Accept       json
 // @Produce      json
-// @Param        tokens  body types.Tokens  true  "Access and Refresh JWT tokens"
-// @Success      200  {object}  types.TokenAuthentication
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Param        tokens  body common.Tokens  true  "Access and Refresh JWT tokens"
+// @Success      200  {object}  common.TokenAuthentication
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /login/refresh_token [post]
-func (h *Handler) Refresh(c echo.Context, settings types.APISettings) error {
+func (h *Handler) Refresh(c echo.Context, settings common.APISettings) error {
 
 	// Get refresh token from body
-	tokens := new(types.Tokens)
+	tokens := new(common.Tokens)
 	if err := c.Bind(tokens); err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token, you may have to log in again"}
 	}
@@ -187,7 +186,7 @@ func (h *Handler) Refresh(c echo.Context, settings types.APISettings) error {
 	}
 
 	// Create response with access and refresh tokens
-	tokenAuth := types.TokenAuthentication{}
+	tokenAuth := common.TokenAuthentication{}
 	tokenAuth.AccessToken = at
 	tokenAuth.RefreshToken = rt
 	tokenAuth.TokenType = "Bearer"

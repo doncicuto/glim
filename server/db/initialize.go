@@ -22,8 +22,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 	"github.com/google/uuid"
 	"github.com/sethvargo/go-password/password"
 	"gorm.io/driver/postgres"
@@ -32,7 +32,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func createUsers(db *gorm.DB, dbInit types.DBInit) {
+func createUsers(db *gorm.DB, dbInit common.DBInit) {
 	users := dbInit.Users
 	password := dbInit.DefaultPasswd
 
@@ -170,7 +170,7 @@ func createReadonly(db *gorm.DB, initialPassword string) error {
 }
 
 // Initialize - TODO common
-func Initialize(dbName string, sqlLog bool, dbInit types.DBInit) (*gorm.DB, error) {
+func Initialize(dbName string, sqlLog bool, dbInit common.DBInit) (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
 	var gormConfig = &gorm.Config{}

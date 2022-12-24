@@ -22,10 +22,11 @@ import (
 	"path/filepath"
 
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func restCreateGroups(client *resty.Client, endpoint string, groups []*models.Group) ([]string, error) {
@@ -33,7 +34,7 @@ func restCreateGroups(client *resty.Client, endpoint string, groups []*models.Gr
 	for _, group := range groups {
 		name := *group.Name
 		resp, err := client.R().
-			SetHeader("Content-Type", "application/json").
+			SetHeader(contentTypeHeader, appJson).
 			SetBody(models.JSONGroupBody{
 				Name:                      *group.Name,
 				Description:               *group.Description,
@@ -41,15 +42,15 @@ func restCreateGroups(client *resty.Client, endpoint string, groups []*models.Gr
 				GuacamoleConfigProtocol:   *group.GuacamoleConfigProtocol,
 				GuacamoleConfigParameters: *group.GuacamoleConfigParameters,
 			}).
-			SetError(&types.APIError{}).
+			SetError(&common.APIError{}).
 			Post(endpoint)
 
 		if err != nil {
-			return nil, fmt.Errorf("can't connect with Glim: %v", err)
+			return nil, fmt.Errorf(common.CantConnectMessage, err)
 		}
 
 		if resp.IsError() {
-			messages = append(messages, fmt.Sprintf("%s: skipped, %v", name, resp.Error().(*types.APIError).Message))
+			messages = append(messages, fmt.Sprintf("%s: skipped, %v", name, resp.Error().(*common.APIError).Message))
 			continue
 		}
 		messages = append(messages, fmt.Sprintf("%s: successfully created", name))

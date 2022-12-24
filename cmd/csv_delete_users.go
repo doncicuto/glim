@@ -22,9 +22,10 @@ import (
 	"path/filepath"
 
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func CsvDeleteUsersCmd() *cobra.Command {
@@ -76,17 +77,17 @@ func CsvDeleteUsersCmd() *cobra.Command {
 				if username != "" {
 					endpoint := fmt.Sprintf("%s/v1/users/%s/uid", url, username)
 					resp, err := client.R().
-						SetHeader("Content-Type", "application/json").
+						SetHeader(contentTypeHeader, appJson).
 						SetResult(models.User{}).
-						SetError(&types.APIError{}).
+						SetError(&common.APIError{}).
 						Get(endpoint)
 
 					if err != nil {
-						return fmt.Errorf("can't connect with Glim: %v", err)
+						return fmt.Errorf(common.CantConnectMessage, err)
 					}
 
 					if resp.IsError() {
-						messages = append(messages, fmt.Sprintf("%s: skipped, %v\n", username, resp.Error().(*types.APIError).Message))
+						messages = append(messages, fmt.Sprintf("%s: skipped, %v\n", username, resp.Error().(*common.APIError).Message))
 						continue
 					}
 
@@ -102,20 +103,20 @@ func CsvDeleteUsersCmd() *cobra.Command {
 				// Delete using API
 				endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
 				resp, err := client.R().
-					SetHeader("Content-Type", "application/json").
-					SetError(&types.APIError{}).
+					SetHeader(contentTypeHeader, appJson).
+					SetError(&common.APIError{}).
 					Delete(endpoint)
 
 				if err != nil {
-					return fmt.Errorf("can't connect with Glim: %v", err)
+					return fmt.Errorf(common.CantConnectMessage, err)
 				}
 
 				if resp.IsError() {
 					if username != "" {
-						error := fmt.Sprintf("%s: skipped, %v", username, resp.Error().(*types.APIError).Message)
+						error := fmt.Sprintf("%s: skipped, %v", username, resp.Error().(*common.APIError).Message)
 						messages = append(messages, error)
 					} else {
-						error := fmt.Sprintf("UID %d: skipped, %v", uid, resp.Error().(*types.APIError).Message)
+						error := fmt.Sprintf("UID %d: skipped, %v", uid, resp.Error().(*common.APIError).Message)
 						messages = append(messages, error)
 					}
 					continue

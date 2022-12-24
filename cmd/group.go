@@ -21,7 +21,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/doncicuto/glim/types"
+	"github.com/doncicuto/glim/common"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,20 +30,20 @@ import (
 func isGuacamoleEnabled(client *resty.Client, url string) (bool, error) {
 	// Check if Guacamole support is enabled
 	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
-		SetResult(types.GuacamoleSupport{}).
-		SetError(&types.APIError{}).
+		SetHeader(contentTypeHeader, appJson).
+		SetResult(common.GuacamoleSupport{}).
+		SetError(&common.APIError{}).
 		Get(fmt.Sprintf("%s/v1/guacamole", url))
 
 	if err != nil {
-		return false, fmt.Errorf("can't connect with Glim: %v", err)
+		return false, fmt.Errorf(common.CantConnectMessage, err)
 	}
 
 	if resp.IsError() {
-		return false, fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+		return false, fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 	}
 
-	guacamoleSupport := resp.Result().(*types.GuacamoleSupport)
+	guacamoleSupport := resp.Result().(*common.GuacamoleSupport)
 	return guacamoleSupport.Enabled, nil
 }
 

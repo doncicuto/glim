@@ -31,8 +31,8 @@ import (
 	"github.com/doncicuto/glim/server/kv/badgerdb"
 	"github.com/doncicuto/glim/server/kv/redis"
 	"github.com/doncicuto/glim/server/ldap"
-	"github.com/doncicuto/glim/types"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/server/api"
 	"github.com/doncicuto/glim/server/db"
 	"github.com/spf13/cobra"
@@ -127,9 +127,9 @@ var serverStartCmd = &cobra.Command{
 		useSqlite := true
 
 		postgresPort := viper.GetInt("postgres-port")
-		if viper.GetString("postgres-host") != "" {
+		if viper.GetString(postgresHostFlag) != "" {
 			useSqlite = false
-			dbName = viper.GetString("postgres-db")
+			dbName = viper.GetString(postgresDbFlag)
 			if postgresPort <= 0 || postgresPort > 65535 {
 				fmt.Printf("%s [Glim] ⇨ wrong PostgreSQL port. Exiting now...\n", time.Now().Format(time.RFC3339))
 				os.Exit(1)
@@ -166,15 +166,15 @@ var serverStartCmd = &cobra.Command{
 			}
 		}
 
-		var dbInit = types.DBInit{
+		var dbInit = common.DBInit{
 			AdminPasswd:           viper.GetString("initial-admin-passwd"),
 			SearchPasswd:          viper.GetString("initial-search-passwd"),
 			Users:                 viper.GetString("initial-users"),
 			DefaultPasswd:         viper.GetString("initial-users-password"),
 			UseSqlite:             useSqlite,
-			PostgresHost:          viper.GetString("postgres-host"),
+			PostgresHost:          viper.GetString(postgresHostFlag),
 			PostgresPort:          postgresPort,
-			PostgresDatabase:      viper.GetString("postgres-db"),
+			PostgresDatabase:      viper.GetString(postgresDbFlag),
 			PostgresUser:          viper.GetString("postgres-user"),
 			PostgresPassword:      viper.GetString("postgres-password"),
 			PostgresSSLRootCA:     postgresSSLRootCa,
@@ -193,7 +193,7 @@ var serverStartCmd = &cobra.Command{
 		fmt.Printf("%s [Glim] ⇨ connected to database...\n", time.Now().Format(time.RFC3339))
 
 		// Key-value store for JWT tokens storage
-		var blacklist types.Store
+		var blacklist common.Store
 
 		badgerKV := viper.GetString("badgerdb-store")
 		redisHost := viper.GetString("redis-host")
@@ -237,7 +237,7 @@ var serverStartCmd = &cobra.Command{
 			fmt.Printf("%s [Glim] ⇨ enabled support for Apache Guacamole...\n", time.Now().Format(time.RFC3339))
 		}
 		// Preparing API server settings
-		apiSettings := types.APISettings{
+		apiSettings := common.APISettings{
 			DB:                 database,
 			KV:                 blacklist,
 			TLSCert:            tlscert,
@@ -261,7 +261,7 @@ var serverStartCmd = &cobra.Command{
 		domain := viper.GetString("ldap-domain")
 
 		// Preparing LDAP server settings
-		ldapSettings := types.LDAPSettings{
+		ldapSettings := common.LDAPSettings{
 			KV:          blacklist,
 			DB:          database,
 			TLSDisabled: viper.GetBool("ldap-no-tls"),
@@ -354,11 +354,11 @@ func init() {
 	serverStartCmd.Flags().String("sqlite-db", defaultDbPath, "path of the file containing SQLite Glim's database")
 
 	// Postgres
-	serverStartCmd.Flags().String("postgres-host", "", "PostgreSQL server address")
+	serverStartCmd.Flags().String(postgresHostFlag, "", "PostgreSQL server address")
 	serverStartCmd.Flags().Int("postgres-port", 5432, "PostgreSQL server port")
 	serverStartCmd.Flags().String("postgres-user", "postgres", "PostgreSQL user")
 	serverStartCmd.Flags().String("postgres-password", "", "PostgreSQL password")
-	serverStartCmd.Flags().String("postgres-db", "glim", "name for Glim's database to be stored in PostgreSQL")
+	serverStartCmd.Flags().String(postgresDbFlag, "glim", "name for Glim's database to be stored in PostgreSQL")
 	serverStartCmd.Flags().String("postgres-root-ca", "", "path of the file containing PostgreSQL CA pem file")
 	serverStartCmd.Flags().String("postgres-client-cert", "", "path of the file containing PostgreSQL client certificate pem file")
 	serverStartCmd.Flags().String("postgres-client-key", "", "path of the file containing PostgreSQL client key file")

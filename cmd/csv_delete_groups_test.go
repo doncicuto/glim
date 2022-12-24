@@ -137,14 +137,14 @@ func TestCsvDeleteGroups(t *testing.T) {
 
 	waitForTestServer(t, ":50034")
 	const endpoint = "http://127.0.0.1:50034"
-	const serverFlag = "--server"
+
 	const fileFlag = "--file"
 
 	testCases := []CmdTestCase{
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{serverFlag, endpoint, "--username", "admin", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
@@ -172,7 +172,7 @@ func TestCsvDeleteGroups(t *testing.T) {
 		{
 			name:           "group list should be empty",
 			cmd:            ListGroupCmd(),
-			args:           []string{serverFlag, endpoint, "--json"},
+			args:           []string{serverFlag, endpoint, jsonFlag},
 			errorMessage:   "",
 			successMessage: `[]` + "\n",
 		},

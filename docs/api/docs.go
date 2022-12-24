@@ -25,10 +25,10 @@ const docTemplate = `{
                 ],
                 "description": "Find all groups",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "groups"
@@ -44,19 +44,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -69,10 +69,10 @@ const docTemplate = `{
                 ],
                 "description": "Create a new group",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "groups"
@@ -99,31 +99,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -138,10 +138,10 @@ const docTemplate = `{
                 ],
                 "description": "Find user by group",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "users"
@@ -166,25 +166,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -199,10 +199,10 @@ const docTemplate = `{
                 ],
                 "description": "Find group by id",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "groups"
@@ -227,25 +227,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -258,10 +258,10 @@ const docTemplate = `{
                 ],
                 "description": "Update group",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "groups"
@@ -295,31 +295,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -332,10 +332,10 @@ const docTemplate = `{
                 ],
                 "description": "Delete a group",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "groups"
@@ -357,31 +357,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -396,10 +396,10 @@ const docTemplate = `{
                 ],
                 "description": "Add members to a group",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "groups"
@@ -433,25 +433,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -464,10 +464,10 @@ const docTemplate = `{
                 ],
                 "description": "Remove members from a group",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "groups"
@@ -498,31 +498,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -532,26 +532,26 @@ const docTemplate = `{
             "get": {
                 "description": "Get a boolean showing if Apache Guacamole support is enabled",
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "summary": "Check if Apache Guacamole support is enabled",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.GuacamoleSupport"
+                            "$ref": "#/definitions/common.GuacamoleSupport"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -561,7 +561,7 @@ const docTemplate = `{
             "get": {
                 "description": "Get a boolean showing if Apache Guacamole support is enabled",
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "summary": "Check if Glim is running",
                 "responses": {
@@ -571,7 +571,7 @@ const docTemplate = `{
                     "503": {
                         "description": "Service Unavailable",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -581,10 +581,10 @@ const docTemplate = `{
             "post": {
                 "description": "Log in to the API and get JWT access and refresh tokens",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "authentication"
@@ -597,7 +597,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.LoginBody"
+                            "$ref": "#/definitions/common.LoginBody"
                         }
                     }
                 ],
@@ -605,25 +605,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.TokenAuthentication"
+                            "$ref": "#/definitions/common.TokenAuthentication"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -633,10 +633,10 @@ const docTemplate = `{
             "post": {
                 "description": "Get new JWT access and refresh tokens",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "authentication"
@@ -649,7 +649,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.Tokens"
+                            "$ref": "#/definitions/common.Tokens"
                         }
                     }
                 ],
@@ -657,25 +657,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.TokenAuthentication"
+                            "$ref": "#/definitions/common.TokenAuthentication"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -683,10 +683,10 @@ const docTemplate = `{
             "delete": {
                 "description": "Log out from the API",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "authentication"
@@ -699,7 +699,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.Tokens"
+                            "$ref": "#/definitions/common.Tokens"
                         }
                     }
                 ],
@@ -710,19 +710,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -732,7 +732,7 @@ const docTemplate = `{
             "get": {
                 "description": "Get a boolean showing if Apache Guacamole support is enabled",
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "summary": "Check if Glim is running",
                 "responses": {
@@ -751,10 +751,10 @@ const docTemplate = `{
                 ],
                 "description": "Find all users",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "users"
@@ -770,7 +770,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -783,10 +783,10 @@ const docTemplate = `{
                 ],
                 "description": "Create a new user in our database",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "users"
@@ -813,31 +813,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -852,10 +852,10 @@ const docTemplate = `{
                 ],
                 "description": "Find user by id",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "users"
@@ -880,25 +880,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -911,10 +911,10 @@ const docTemplate = `{
                 ],
                 "description": "Update user account information",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "users"
@@ -948,25 +948,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -979,10 +979,10 @@ const docTemplate = `{
                 ],
                 "description": "Delete user account",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "users"
@@ -1004,31 +1004,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -1043,10 +1043,10 @@ const docTemplate = `{
                 ],
                 "description": "Change user account password",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "users"
@@ -1077,25 +1077,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -1110,10 +1110,10 @@ const docTemplate = `{
                 ],
                 "description": "Find user by username",
                 "consumes": [
-                    "application/json"
+                    appJson
                 ],
                 "produces": [
-                    "application/json"
+                    appJson
                 ],
                 "tags": [
                     "users"
@@ -1138,25 +1138,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "$ref": "#/definitions/common.ErrorResponse"
                         }
                     }
                 }
@@ -1339,7 +1339,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.ErrorResponse": {
+        "common.ErrorResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -1347,7 +1347,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.GuacamoleSupport": {
+        "common.GuacamoleSupport": {
             "type": "object",
             "properties": {
                 "guac_enabled": {
@@ -1355,7 +1355,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.LoginBody": {
+        "common.LoginBody": {
             "type": "object",
             "properties": {
                 "password": {
@@ -1366,7 +1366,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.TokenAuthentication": {
+        "common.TokenAuthentication": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -1386,7 +1386,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.Tokens": {
+        "common.Tokens": {
             "type": "object",
             "properties": {
                 "access_token": {

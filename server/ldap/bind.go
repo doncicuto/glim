@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 	ber "github.com/go-asn1-ber/asn1-ber"
 	"gorm.io/gorm"
 )
@@ -47,7 +47,7 @@ func bindPassword(p *ber.Packet) (string, *ServerError) {
 }
 
 // HandleBind - TODO comment
-func HandleBind(message *Message, settings types.LDAPSettings, remoteAddr string) (*ber.Packet, string, error) {
+func HandleBind(message *Message, settings common.LDAPSettings, remoteAddr string) (*ber.Packet, string, error) {
 	username := ""
 	id := message.ID
 	p := message.Request

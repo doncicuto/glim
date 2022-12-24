@@ -10,6 +10,7 @@ import (
 )
 
 func TestLogoutCmd(t *testing.T) {
+	const endpoint = "http://127.0.0.1:51006"
 	dbPath := uuid.New()
 	e := testSetup(t, dbPath.String(), false)
 	defer testCleanUp(dbPath.String())
@@ -25,7 +26,7 @@ func TestLogoutCmd(t *testing.T) {
 		loginCmd := LoginCmd()
 		b := bytes.NewBufferString("")
 		loginCmd.SetOut(b)
-		loginCmd.SetArgs([]string{"--server", "http://127.0.0.1:51006", "--username", "admin", "--password", "test"})
+		loginCmd.SetArgs([]string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "test"})
 		err := loginCmd.Execute()
 		if err == nil {
 			out, err := ioutil.ReadAll(b)
@@ -40,7 +41,7 @@ func TestLogoutCmd(t *testing.T) {
 		logoutCmd := LogoutCmd()
 		b := bytes.NewBufferString("")
 		logoutCmd.SetOut(b)
-		logoutCmd.SetArgs([]string{"--server", "http://127.0.0.1:51006"})
+		logoutCmd.SetArgs([]string{serverFlag, endpoint})
 		err := logoutCmd.Execute()
 		if err == nil {
 			out, err := ioutil.ReadAll(b)

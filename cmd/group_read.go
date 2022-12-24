@@ -23,26 +23,27 @@ import (
 	"strings"
 
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func getGIDFromGroupName(client *resty.Client, group string, url string) (uint, error) {
 	endpoint := fmt.Sprintf("%s/v1/groups/%s/gid", url, group)
 	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
+		SetHeader(contentTypeHeader, appJson).
 		SetResult(models.GroupID{}).
-		SetError(&types.APIError{}).
+		SetError(&common.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
-		return 0, fmt.Errorf("can't connect with Glim: %v", err)
+		return 0, fmt.Errorf(common.CantConnectMessage, err)
 	}
 
 	if resp.IsError() {
-		return 0, fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+		return 0, fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 	}
 
 	result := resp.Result().(*models.GroupID)
@@ -64,16 +65,16 @@ func getGroup(cmd *cobra.Command, id uint, jsonOutput bool) error {
 	client := RestClient(token.AccessToken)
 
 	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
+		SetHeader(contentTypeHeader, appJson).
 		SetResult(models.GroupInfo{}).
-		SetError(&types.APIError{}).
+		SetError(&common.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
-		return fmt.Errorf("can't connect with Glim: %v", err)
+		return fmt.Errorf(common.CantConnectMessage, err)
 	}
 	if resp.IsError() {
-		return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+		return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 	}
 
 	result := resp.Result().(*models.GroupInfo)
@@ -81,24 +82,24 @@ func getGroup(cmd *cobra.Command, id uint, jsonOutput bool) error {
 	if jsonOutput {
 		encodeGroupToJson(cmd, result)
 	} else {
-		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n", "Group:", result.Name)
-		fmt.Fprintf(cmd.OutOrStdout(), "====\n")
+		fmt.Fprintf(cmd.OutOrStdout(), descrFormat, "Group:", result.Name)
+		fmt.Fprint(cmd.OutOrStdout(), sectionSeparator)
 		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100d\n", " GID:", result.ID)
 		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n\n", " Description:", result.Description)
 
 		fmt.Fprintf(cmd.OutOrStdout(), "%-15s\n", "Members:")
-		fmt.Fprintf(cmd.OutOrStdout(), "====\n")
+		fmt.Fprint(cmd.OutOrStdout(), sectionSeparator)
 		for _, member := range result.Members {
 			fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100d\n", " UID:", member.ID)
-			fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n", " Username:", member.Username)
+			fmt.Fprintf(cmd.OutOrStdout(), descrFormat, " Username:", member.Username)
 			fmt.Fprintf(cmd.OutOrStdout(), "----\n")
 		}
 
 		// Support for Apache Guacamole LDAP config schema
 		if result.GuacamoleConfigProtocol != "" && result.GuacamoleConfigParameters != "" {
 			fmt.Fprintf(cmd.OutOrStdout(), "\n%-15s\n", "Apache Guacamole Configuration:")
-			fmt.Fprintf(cmd.OutOrStdout(), "====\n")
-			fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n", " Protocol:", result.GuacamoleConfigProtocol)
+			fmt.Fprint(cmd.OutOrStdout(), sectionSeparator)
+			fmt.Fprintf(cmd.OutOrStdout(), descrFormat, " Protocol:", result.GuacamoleConfigProtocol)
 			parameters := strings.Split(result.GuacamoleConfigParameters, ",")
 			if len(parameters) > 0 {
 				fmt.Fprintf(cmd.OutOrStdout(), "%-20s\n", " Parameters:")
@@ -127,17 +128,17 @@ func getGroups(cmd *cobra.Command, jsonOutput bool) error {
 	client := RestClient(token.AccessToken)
 
 	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
+		SetHeader(contentTypeHeader, appJson).
 		SetResult([]models.GroupInfo{}).
-		SetError(&types.APIError{}).
+		SetError(&common.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
-		return fmt.Errorf("can't connect with Glim: %v", err)
+		return fmt.Errorf(common.CantConnectMessage, err)
 	}
 
 	if resp.IsError() {
-		return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+		return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 	}
 
 	results := resp.Result().(*[]models.GroupInfo)
@@ -260,8 +261,4 @@ func ListGroupCmd() *cobra.Command {
 	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
 
 	return cmd
-}
-
-func init() {
-
 }

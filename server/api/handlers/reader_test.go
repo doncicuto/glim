@@ -21,7 +21,7 @@ func TestReader(t *testing.T) {
 			reqURL:           "/v1/users/4",
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
+			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
 		},
 		{
 			name:             "plainuser user can't get uid from other's username",
@@ -29,7 +29,7 @@ func TestReader(t *testing.T) {
 			reqURL:           "/v1/users/kim/uid",
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
+			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
 		},
 		{
 			name:             "plainuser user can't get uid from non-existent username",
@@ -37,7 +37,7 @@ func TestReader(t *testing.T) {
 			reqURL:           "/v1/users/walter/uid",
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
+			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
 		},
 	}
 

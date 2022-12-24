@@ -28,7 +28,7 @@ func TestServer(t *testing.T) {
 		{
 			name:       "invalid token",
 			expResCode: http.StatusUnauthorized,
-			reqURL:     "/v1/groups",
+			reqURL:     groupsEndpoint,
 			reqMethod:  http.MethodPost,
 			secret:     "wrong secret",
 		},

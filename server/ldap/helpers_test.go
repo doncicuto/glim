@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/antelman107/net-wait-go/wait"
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/doncicuto/glim/server/db"
-	"github.com/doncicuto/glim/types"
 	ldapClient "github.com/go-ldap/ldap"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
@@ -45,7 +45,7 @@ func addGroup(db *gorm.DB, name string, description string, members string) erro
 }
 
 func newTestDatabase(dbPath string) (*gorm.DB, error) {
-	var dbInit = types.DBInit{
+	var dbInit = common.DBInit{
 		AdminPasswd:   "test",
 		SearchPasswd:  "test",
 		Users:         "saul,kim,mike",
@@ -72,8 +72,8 @@ func newTestDatabase(dbPath string) (*gorm.DB, error) {
 	return newDb, nil
 }
 
-func testSettings(db *gorm.DB, addr string) types.LDAPSettings {
-	return types.LDAPSettings{
+func testSettings(db *gorm.DB, addr string) common.LDAPSettings {
+	return common.LDAPSettings{
 		DB:          db,
 		TLSDisabled: true,
 		Address:     addr,
@@ -81,7 +81,7 @@ func testSettings(db *gorm.DB, addr string) types.LDAPSettings {
 	}
 }
 
-func testSetup(t *testing.T, dbPath string, guacamole bool, addr string) (net.Listener, types.LDAPSettings) {
+func testSetup(t *testing.T, dbPath string, guacamole bool, addr string) (net.Listener, common.LDAPSettings) {
 	// New SQLite test database
 	db, err := newTestDatabase(dbPath)
 	if err != nil {

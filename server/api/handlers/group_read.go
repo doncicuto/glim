@@ -34,10 +34,10 @@ import (
 // @Produce      json
 // @Param        id   path      int  true  "Group ID"
 // @Success      200  {object}  models.GroupInfo
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   404  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   404  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /groups/{id} [get]
 // @Security 		 Bearer
 func (h *Handler) FindGroupByID(c echo.Context) error {
@@ -66,10 +66,10 @@ func (h *Handler) FindGroupByID(c echo.Context) error {
 // @Produce      json
 // @Param        group   path      string  true  "group"
 // @Success      200  {object}  models.GroupID
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   404  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   404  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /groups/{group}/gid [get]
 // @Security 		 Bearer
 func (h *Handler) FindGIDFromGroupName(c echo.Context) error {
@@ -97,9 +97,9 @@ func (h *Handler) FindGIDFromGroupName(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  models.GroupInfo
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /groups [get]
 // @Security 		 Bearer
 func (h *Handler) FindAllGroups(c echo.Context) error {

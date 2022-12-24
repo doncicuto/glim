@@ -7,6 +7,8 @@ import (
 )
 
 func TestUserCreateCmd(t *testing.T) {
+	const endpoint = "http://127.0.0.1:51007"
+
 	dbPath := uuid.New()
 	e := testSetup(t, dbPath.String(), false)
 	defer testCleanUp(dbPath.String())
@@ -22,35 +24,35 @@ func TestUserCreateCmd(t *testing.T) {
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51007", "--username", "admin", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
 		{
 			name:           "wrong email for new user",
 			cmd:            NewUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51007", "--username", "test", "--password", "test", "--email", "wrongemail"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test", passwordFlag, "test", "--email", "wrongemail"},
 			errorMessage:   "email should have a valid format",
 			successMessage: "",
 		},
 		{
 			name:           "user can't have both manager and readonly roles",
 			cmd:            NewUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51007", "--username", "test", "--password", "test", "--manager", "--readonly"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test", passwordFlag, "test", "--manager", "--readonly"},
 			errorMessage:   "a Glim account cannot be both manager and readonly at the same time",
 			successMessage: "",
 		},
 		{
 			name:           "user created",
 			cmd:            NewUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51007", "--username", "test", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "User created\n",
 		},
 		{
 			name:           "user already exists",
 			cmd:            NewUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51007", "--username", "test", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test", passwordFlag, "test"},
 			errorMessage:   "user already exists",
 			successMessage: "",
 		},

@@ -27,7 +27,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//RemoveGroupMembers - TODO comment
+// RemoveGroupMembers - TODO comment
 // @Summary      Remove members from a group
 // @Description  Remove members from a group
 // @Tags         groups
@@ -36,11 +36,11 @@ import (
 // @Param        id   path      int  true  "Group ID"
 // @Param        members body models.GroupMembers  true  "Group members body. The members property expect a comma-separated list of usernames e.g 'bob,sally' to be removed from the group"
 // @Success      204
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   404  {object} types.ErrorResponse
-// @Failure 	   406  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   404  {object} common.ErrorResponse
+// @Failure 	   406  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /groups/{id}/members [delete]
 // @Security 		 Bearer
 func (h *Handler) RemoveGroupMembers(c echo.Context) error {

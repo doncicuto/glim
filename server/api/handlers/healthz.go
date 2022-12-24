@@ -27,7 +27,7 @@ import (
 // @Description  Get a boolean showing if Apache Guacamole support is enabled
 // @Produce      json
 // @Success      204
-// @Failure 	   503  {object} types.ErrorResponse
+// @Failure 	   503  {object} common.ErrorResponse
 // @Router       /healthz [get]
 func (h *Handler) Healthz(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)

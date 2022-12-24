@@ -26,7 +26,7 @@ func TestUserUpdate(t *testing.T) {
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodPut,
 			secret:           searchToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
+			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
 		},
 		{
 			name:             "plainuser can't update other's accounts",
@@ -34,7 +34,7 @@ func TestUserUpdate(t *testing.T) {
 			reqURL:           "/v1/users/4",
 			reqMethod:        http.MethodPut,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":"user has no proper permissions"}`,
+			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
 		},
 		{
 			name:             "non-existent manager user can't update account info",

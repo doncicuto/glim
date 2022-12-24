@@ -24,12 +24,12 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/server/api/handlers"
-	"github.com/doncicuto/glim/types"
 )
 
 // Server - TODO command
-func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings types.APISettings) {
+func Server(wg *sync.WaitGroup, shutdownChannel chan bool, settings common.APISettings) {
 	defer wg.Done()
 
 	// Get instance of Echo

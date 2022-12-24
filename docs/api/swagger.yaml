@@ -113,24 +113,24 @@ definitions:
       username:
         type: string
     type: object
-  types.ErrorResponse:
+  common.ErrorResponse:
     properties:
       message:
         type: string
     type: object
-  types.GuacamoleSupport:
+  common.GuacamoleSupport:
     properties:
       guac_enabled:
         type: boolean
     type: object
-  types.LoginBody:
+  common.LoginBody:
     properties:
       password:
         type: string
       username:
         type: string
     type: object
-  types.TokenAuthentication:
+  common.TokenAuthentication:
     properties:
       access_token:
         type: string
@@ -143,7 +143,7 @@ definitions:
       token_type:
         type: string
     type: object
-  types.Tokens:
+  common.Tokens:
     properties:
       access_token:
         type: string
@@ -168,15 +168,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Find all groups
@@ -205,23 +205,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Create a new group
@@ -248,19 +248,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Find user by group
@@ -285,23 +285,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Delete a group
@@ -327,19 +327,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Find group by id
@@ -374,23 +374,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Update group
@@ -422,23 +422,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Remove members from a group
@@ -471,19 +471,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Add members to a group
@@ -498,15 +498,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.GuacamoleSupport'
+            $ref: '#/definitions/common.GuacamoleSupport'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       summary: Check if Apache Guacamole support is enabled
   /healthz:
     get:
@@ -519,7 +519,7 @@ paths:
         "503":
           description: Service Unavailable
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       summary: Check if Glim is running
   /login:
     post:
@@ -532,26 +532,26 @@ paths:
         name: authentication
         required: true
         schema:
-          $ref: '#/definitions/types.LoginBody'
+          $ref: '#/definitions/common.LoginBody'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.TokenAuthentication'
+            $ref: '#/definitions/common.TokenAuthentication'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       summary: Log in to the API
       tags:
       - authentication
@@ -566,7 +566,7 @@ paths:
         name: tokens
         required: true
         schema:
-          $ref: '#/definitions/types.Tokens'
+          $ref: '#/definitions/common.Tokens'
       produces:
       - application/json
       responses:
@@ -575,15 +575,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       summary: Delete authentication tokens
       tags:
       - authentication
@@ -597,26 +597,26 @@ paths:
         name: tokens
         required: true
         schema:
-          $ref: '#/definitions/types.Tokens'
+          $ref: '#/definitions/common.Tokens'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.TokenAuthentication'
+            $ref: '#/definitions/common.TokenAuthentication'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       summary: Refresh authentication tokens
       tags:
       - authentication
@@ -644,7 +644,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Find all users
@@ -678,23 +678,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Create a new user
@@ -719,23 +719,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Delete user account
@@ -761,19 +761,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Find user by id
@@ -814,19 +814,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Update user account information
@@ -857,19 +857,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Change user account password
@@ -896,19 +896,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.ErrorResponse'
+            $ref: '#/definitions/common.ErrorResponse'
       security:
       - Bearer: []
       summary: Find user by username

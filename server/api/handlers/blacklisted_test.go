@@ -22,7 +22,7 @@ func TestIsBlacklisted(t *testing.T) {
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodPut,
 			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwicmVhZG9ubHkiOmZhbHNlLCJtYW5hZ2VyIjp0cnVlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjF9.PuDK1A_z108OZb_D4tJfTGUSHRaNHUCQETW7Pf_I2M8",
-			expectedBodyJSON: `{"message":"wrong token or missing info in token claims"}`,
+			expectedBodyJSON: `{"message":common.WrongTokenOrMissingMessage}`,
 		},
 		{
 			name:       "jti not in KV, not blacklisted",
@@ -34,7 +34,7 @@ func TestIsBlacklisted(t *testing.T) {
 		{
 			name:        "refreshed token successful",
 			expResCode:  http.StatusOK,
-			reqURL:      "/v1/login/refresh_token",
+			reqURL:      refreshTokenEndpoint,
 			reqBodyJSON: fmt.Sprintf(`{"refresh_token": "%s"}`, refreshToken),
 			reqMethod:   http.MethodPost,
 		},

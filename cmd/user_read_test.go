@@ -5,9 +5,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestUserReadCmd(t *testing.T) {
+	const endpoint = "http://127.0.0.1:51010"
+
 	dbPath := uuid.New()
 	e := testSetup(t, dbPath.String(), false)
 	defer testCleanUp(dbPath.String())
@@ -30,92 +34,92 @@ func TestUserReadCmd(t *testing.T) {
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "--username", "admin", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
 		{
 			name:           "list initial users",
 			cmd:            ListUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "--json"},
+			args:           []string{serverFlag, endpoint, jsonFlag},
 			errorMessage:   "",
 			successMessage: `[{"uid":1,"username":"admin","name":"","firstname":"LDAP","lastname":"administrator","email":"","ssh_public_key":"","jpeg_photo":"","manager":true,"readonly":false,"locked":false},{"uid":2,"username":"search","name":"","firstname":"Read-Only","lastname":"Account","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":true,"locked":false},{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]` + "\n",
 		},
 		{
 			name:           "test1 user created",
 			cmd:            NewUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "--username", "test1", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test1", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "User created\n",
 		},
 		{
 			name:           "list users including test1",
 			cmd:            ListUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "--json"},
+			args:           []string{serverFlag, endpoint, jsonFlag},
 			errorMessage:   "",
 			successMessage: `[{"uid":1,"username":"admin","name":"","firstname":"LDAP","lastname":"administrator","email":"","ssh_public_key":"","jpeg_photo":"","manager":true,"readonly":false,"locked":false},{"uid":2,"username":"search","name":"","firstname":"Read-Only","lastname":"Account","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":true,"locked":false},{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":6,"username":"test1","name":" ","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]` + "\n",
 		},
 		{
 			name:           "test1 user deleted",
 			cmd:            DeleteUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "--username", "test1", "--force"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test1", "--force"},
 			errorMessage:   "",
 			successMessage: "User account deleted\n",
 		},
 		{
 			name:           "list users after test1 deleted",
 			cmd:            ListUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "--json"},
+			args:           []string{serverFlag, endpoint, jsonFlag},
 			errorMessage:   "",
 			successMessage: `[{"uid":1,"username":"admin","name":"","firstname":"LDAP","lastname":"administrator","email":"","ssh_public_key":"","jpeg_photo":"","manager":true,"readonly":false,"locked":false},{"uid":2,"username":"search","name":"","firstname":"Read-Only","lastname":"Account","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":true,"locked":false},{"uid":3,"username":"saul","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":4,"username":"kim","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]` + "\n",
 		},
 		{
 			name:           "user 120 does not exist",
 			cmd:            ListUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "-i", "120", "--json"},
+			args:           []string{serverFlag, endpoint, "-i", "120", jsonFlag},
 			errorMessage:   "user not found",
 			successMessage: "",
 		},
 		{
 			name:           "user 5 exists",
 			cmd:            ListUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "-i", "5", "--json"},
+			args:           []string{serverFlag, endpoint, "-i", "5", jsonFlag},
 			errorMessage:   "",
 			successMessage: `{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}` + "\n",
 		},
 		{
 			name:           "username mike exists",
 			cmd:            ListUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "-u", "mike", "--json"},
+			args:           []string{serverFlag, endpoint, "-u", "mike", jsonFlag},
 			errorMessage:   "",
 			successMessage: `{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}` + "\n",
 		},
 		{
 			name:           "test1 user created",
 			cmd:            NewUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "--username", "test1", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test1", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "User created\n",
 		},
 		{
 			name:           "login as test1 successful",
 			cmd:            LoginCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "--username", "test1", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test1", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
 		{
 			name:           "list users with test1 privileges",
 			cmd:            ListUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "--json"},
+			args:           []string{serverFlag, endpoint, jsonFlag},
 			errorMessage:   "",
 			successMessage: `{"uid":6,"username":"test1","name":" ","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}` + "\n",
 		},
 		{
 			name:           "test1 can't see mikes info",
 			cmd:            ListUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51010", "-u", "mike", "--json"},
-			errorMessage:   "user has no proper permissions",
+			args:           []string{serverFlag, endpoint, "-u", "mike", jsonFlag},
+			errorMessage:   common.UserHasNoProperPermissionsMessage,
 			successMessage: "",
 		},
 	}

@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/doncicuto/glim/types"
+	"github.com/doncicuto/glim/common"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
@@ -31,16 +31,16 @@ import (
 // @Tags         authentication
 // @Accept       json
 // @Produce      json
-// @Param        tokens  body types.Tokens  true  "Access and Refresh JWT tokens"
+// @Param        tokens  body common.Tokens  true  "Access and Refresh JWT tokens"
 // @Success      204
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /login/refresh_token [delete]
-func (h *Handler) Logout(c echo.Context, settings types.APISettings) error {
+func (h *Handler) Logout(c echo.Context, settings common.APISettings) error {
 
 	// Get refresh token from body
-	tokens := new(types.Tokens)
+	tokens := new(common.Tokens)
 	if err := c.Bind(tokens); err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token"}
 	}

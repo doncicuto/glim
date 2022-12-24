@@ -26,6 +26,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -66,10 +67,10 @@ func (h *Handler) RemoveMembersOf(u *models.User, memberOf []string) error {
 // @Param        id   path      int  true  "User Account ID"
 // @Param        user  body models.JSONUserBody  true  "User account body. Username is required. The members property expect a comma-separated list of group names e.g 'admin,devel'. Password property is optional, if set it will be the password for that user, if no password is sent the user account will be locked (user can not log in). Manager property if true will assign the Manager role. Readonly property if true will set this user for read-only usage (queries). Locked property if true will disable log in for that user. Remove property if true will remove group membership from those specified in the members property. Remove property if true will replace group membership from those specified in the members property. Name property is not used"
 // @Success      200  {object}  models.UserInfo
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   404  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   404  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /users/{id} [put]
 // @Security 		 Bearer
 func (h *Handler) UpdateUser(c echo.Context) error {
@@ -80,18 +81,18 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	// Get username that is updating this user
 	modifiedBy := new(models.User)
 	if c.Get("user") == nil {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 	tokenUser := c.Get("user").(*jwt.Token)
 	claims := tokenUser.Claims.(jwt.MapClaims)
 	tokenUID, ok := claims["uid"].(float64)
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 
 	manager, ok := claims["manager"].(bool)
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 
 	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(tokenUID)).First(&modifiedBy).Error; err != nil {

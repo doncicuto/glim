@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/antelman107/net-wait-go/wait"
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/server/api/handlers"
 	"github.com/doncicuto/glim/server/db"
 	"github.com/doncicuto/glim/server/kv/badgerdb"
-	"github.com/doncicuto/glim/types"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
@@ -22,7 +22,7 @@ import (
 )
 
 func newTestDatabase(dbPath string) (*gorm.DB, error) {
-	var dbInit = types.DBInit{
+	var dbInit = common.DBInit{
 		AdminPasswd:   "test",
 		SearchPasswd:  "test",
 		Users:         "saul,kim,mike",
@@ -37,8 +37,8 @@ func newTestKV(dbPath string) (badgerdb.Store, error) {
 	return badgerdb.NewBadgerStore(fmt.Sprintf("/tmp/%s", dbPath))
 }
 
-func testSettings(db *gorm.DB, kv types.Store) types.APISettings {
-	return types.APISettings{
+func testSettings(db *gorm.DB, kv common.Store) common.APISettings {
+	return common.APISettings{
 		DB:                 db,
 		KV:                 kv,
 		TLSCert:            "",

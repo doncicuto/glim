@@ -8,6 +8,8 @@ import (
 )
 
 func TestUserPasswdCmd(t *testing.T) {
+	const endpoint = "http://127.0.0.1:51009"
+
 	dbPath := uuid.New()
 	e := testSetup(t, dbPath.String(), false)
 	defer testCleanUp(dbPath.String())
@@ -30,49 +32,49 @@ func TestUserPasswdCmd(t *testing.T) {
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51009", "--username", "admin", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
 		{
 			name:           "test1 user created",
 			cmd:            NewUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51009", "--username", "test1", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test1", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "User created\n",
 		},
 		{
 			name:           "test2 user created",
 			cmd:            NewUserCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51009", "--username", "test2", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test2", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "User created\n",
 		},
 		{
 			name:           "admin can change test2 password",
 			cmd:            UserPasswdCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51009", "-i", "4", "--password", "test"},
+			args:           []string{serverFlag, endpoint, "-i", "4", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Password changed\n",
 		},
 		{
 			name:           "admin logout successful",
 			cmd:            LogoutCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51009"},
+			args:           []string{serverFlag, endpoint},
 			errorMessage:   "",
 			successMessage: "Removing login credentials\n",
 		},
 		{
 			name:           "test1 login successful",
 			cmd:            LoginCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51009", "--username", "test2", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "test2", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
 		{
 			name:           "test1 should not be able to change test2 password",
 			cmd:            UserPasswdCmd(),
-			args:           []string{"--server", "http://127.0.0.1:51009", "-i", "4", "--password", "test"},
+			args:           []string{serverFlag, endpoint, "-i", "4", passwordFlag, "test"},
 			errorMessage:   "only users with manager role can change other users passwords",
 			successMessage: "dswd",
 		},

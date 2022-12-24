@@ -23,8 +23,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -142,17 +142,17 @@ func UpdateUserCmd() *cobra.Command {
 			// Rest API authentication
 			endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
 			resp, err := client.R().
-				SetHeader("Content-Type", "application/json").
+				SetHeader(contentTypeHeader, appJson).
 				SetBody(userBody).
-				SetError(&types.APIError{}).
+				SetError(&common.APIError{}).
 				Put(endpoint)
 
 			if err != nil {
-				return fmt.Errorf("can't connect with Glim: %v", err)
+				return fmt.Errorf(common.CantConnectMessage, err)
 			}
 
 			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 			}
 
 			printCmdMessage(cmd, "User updated", jsonOutput)

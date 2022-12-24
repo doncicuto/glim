@@ -26,7 +26,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//DeleteGroup - TODO comment
+// DeleteGroup - TODO comment
 // @Summary      Delete a group
 // @Description  Delete a group
 // @Tags         groups
@@ -34,11 +34,11 @@ import (
 // @Produce      json
 // @Param        id   path      int  true  "Group ID"
 // @Success      204
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   404  {object} types.ErrorResponse
-// @Failure 	   406  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   404  {object} common.ErrorResponse
+// @Failure 	   406  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /groups/{id} [delete]
 // @Security 		 Bearer
 func (h *Handler) DeleteGroup(c echo.Context) error {

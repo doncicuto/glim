@@ -80,6 +80,8 @@ import (
 	"math/big"
 	"net"
 	"time"
+
+	"github.com/doncicuto/glim/common"
 )
 
 type cert struct {
@@ -148,7 +150,7 @@ func generateSelfSignedCerts(config *certConfig) error {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		return fmt.Errorf("failed to generate serial number: %v", err)
+		return fmt.Errorf(common.CertSerialNumberFailedMessage, err)
 	}
 	notBefore := time.Now()
 	notAfter := notBefore.AddDate(config.Years, 0, 0)
@@ -166,7 +168,7 @@ func generateSelfSignedCerts(config *certConfig) error {
 
 	serverSerialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		log.Fatalf("failed to generate serial number: %v", err)
+		log.Fatalf(common.CertSerialNumberFailedMessage, err)
 	}
 	serverTemplate := x509.Certificate{
 		IsCA:                  false,
@@ -181,7 +183,7 @@ func generateSelfSignedCerts(config *certConfig) error {
 
 	clientSerialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		log.Fatalf("failed to generate serial number: %v", err)
+		log.Fatalf(common.CertSerialNumberFailedMessage, err)
 	}
 	clientTemplate := x509.Certificate{
 		IsCA:                  false,

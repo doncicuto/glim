@@ -24,8 +24,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/doncicuto/glim/types"
 	"github.com/golang-jwt/jwt"
+
+	"github.com/doncicuto/glim/common"
 )
 
 /*
@@ -54,8 +55,8 @@ func AuthTokenPath() (string, error) {
 readCredentials read and parse token stored in path retrieved from AuthTokenPath
 Returns a pointer to the token or error
 */
-func readCredentials() (*types.TokenAuthentication, error) {
-	var token types.TokenAuthentication
+func readCredentials() (*common.TokenAuthentication, error) {
+	var token common.TokenAuthentication
 
 	tokenFile, err := AuthTokenPath()
 	if err != nil {
@@ -96,25 +97,25 @@ func DeleteCredentials() error {
 refresh contact Glim REST API to retrieve new access and refresh tokens
 refresh needs the server's REST API url address and current refresh token string
 */
-func refresh(url string, rt string) (*types.TokenAuthentication, error) {
+func refresh(url string, rt string) (*common.TokenAuthentication, error) {
 	// Rest API authentication
 	client := RestClient(rt)
 
 	// Query refresh token
 	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
-		SetBody(types.RefreshToken{
+		SetHeader(contentTypeHeader, appJson).
+		SetBody(common.RefreshToken{
 			Token: rt,
 		}).
-		SetError(&types.APIError{}).
+		SetError(&common.APIError{}).
 		Post(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
 	if err != nil {
-		return nil, fmt.Errorf("can't connect with Glim: %v", err)
+		return nil, fmt.Errorf(common.CantConnectMessage, err)
 	}
 
 	if resp.IsError() {
-		return nil, fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+		return nil, fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 	}
 	// Authenticated, let's store tokens in $HOME/.glim/accessToken.json
 	tokenFile, err := AuthTokenPath()
@@ -139,7 +140,7 @@ func refresh(url string, rt string) (*types.TokenAuthentication, error) {
 GetCredentials parses file with token and get new tokens if refresh
 is needed
 */
-func GetCredentials(url string) (*types.TokenAuthentication, error) {
+func GetCredentials(url string) (*common.TokenAuthentication, error) {
 	// Read credentials from file
 	token, err := readCredentials()
 	if err != nil {
@@ -160,7 +161,7 @@ func GetCredentials(url string) (*types.TokenAuthentication, error) {
 /*
 NeedsRefresh check if token needs to be refreshed
 */
-func NeedsRefresh(token *types.TokenAuthentication) bool {
+func NeedsRefresh(token *common.TokenAuthentication) bool {
 	// Check expiration
 	now := time.Now()
 	expiration := time.Unix(token.ExpiresOn, 0)
@@ -170,7 +171,7 @@ func NeedsRefresh(token *types.TokenAuthentication) bool {
 /*
 AmIManager parses access token and checks if admin property is set to true
 */
-func AmIManager(token *types.TokenAuthentication) bool {
+func AmIManager(token *common.TokenAuthentication) bool {
 	claims := make(jwt.MapClaims)
 	jwt.ParseWithClaims(token.AccessToken, claims, nil)
 
@@ -186,7 +187,7 @@ func AmIManager(token *types.TokenAuthentication) bool {
 /*
 AmIReadonly parses access token and checks if readonly property is set to true
 */
-func AmIReadonly(token *types.TokenAuthentication) bool {
+func AmIReadonly(token *common.TokenAuthentication) bool {
 	claims := make(jwt.MapClaims)
 	jwt.ParseWithClaims(token.AccessToken, claims, nil)
 
@@ -203,14 +204,14 @@ func AmIReadonly(token *types.TokenAuthentication) bool {
 AmIPlainUser parses access token and checks if manager and/or readonly properties are set to true
 A plain user has both manager and readonly properties set to false
 */
-func AmIPlainUser(token *types.TokenAuthentication) bool {
+func AmIPlainUser(token *common.TokenAuthentication) bool {
 	return !AmIManager(token) && !AmIReadonly(token)
 }
 
 /*
 WhichIsMyTokenUID parses access token and gets uid claim/property
 */
-func WhichIsMyTokenUID(token *types.TokenAuthentication) (uint, error) {
+func WhichIsMyTokenUID(token *common.TokenAuthentication) (uint, error) {
 	claims := make(jwt.MapClaims)
 	jwt.ParseWithClaims(token.AccessToken, claims, nil)
 

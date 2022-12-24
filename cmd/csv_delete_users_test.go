@@ -115,14 +115,14 @@ func TestCsvDeleteUsers(t *testing.T) {
 
 	waitForTestServer(t, ":50035")
 	const endpoint = "http://127.0.0.1:50035"
-	const serverFlag = "--server"
+
 	const fileFlag = "--file"
 
 	testCases := []CmdTestCase{
 		{
 			name:           "login successful",
 			cmd:            LoginCmd(),
-			args:           []string{serverFlag, endpoint, "--username", "admin", "--password", "test"},
+			args:           []string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "test"},
 			errorMessage:   "",
 			successMessage: "Login succeeded\n",
 		},
@@ -143,7 +143,7 @@ func TestCsvDeleteUsers(t *testing.T) {
 		{
 			name:           "user list should be empty",
 			cmd:            ListUserCmd(),
-			args:           []string{serverFlag, endpoint, "--json"},
+			args:           []string{serverFlag, endpoint, jsonFlag},
 			errorMessage:   "",
 			successMessage: `[{"uid":1,"username":"admin","name":"","firstname":"LDAP","lastname":"administrator","email":"","ssh_public_key":"","jpeg_photo":"","manager":true,"readonly":false,"locked":false},{"uid":2,"username":"search","name":"","firstname":"Read-Only","lastname":"Account","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":true,"locked":false},{"uid":5,"username":"mike","name":"","firstname":"","lastname":"","email":"","ssh_public_key":"","jpeg_photo":"","manager":false,"readonly":false,"locked":false}]` + "\n",
 		},

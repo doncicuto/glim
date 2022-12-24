@@ -18,7 +18,7 @@ func TestGroupRemoveMembers(t *testing.T) {
 		{
 			name:             "group can be created with members",
 			expResCode:       http.StatusOK,
-			reqURL:           "/v1/groups",
+			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
 			reqBodyJSON:      `{"name": "devel", "description": "Developers", "members": "saul,kim,mike"}`,

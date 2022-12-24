@@ -22,8 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
-	"github.com/doncicuto/glim/types"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -32,17 +32,17 @@ import (
 func getUIDFromUsername(client *resty.Client, username string, url string) (uint, error) {
 	endpoint := fmt.Sprintf("%s/v1/users/%s/uid", url, username)
 	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
+		SetHeader(contentTypeHeader, appJson).
 		SetResult(models.UserID{}).
-		SetError(&types.APIError{}).
+		SetError(&common.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
-		return 0, fmt.Errorf("can't connect with Glim: %v", err)
+		return 0, fmt.Errorf(common.CantConnectMessage, err)
 	}
 
 	if resp.IsError() {
-		return 0, fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+		return 0, fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 	}
 
 	result := resp.Result().(*models.UserID)
@@ -64,17 +64,17 @@ func getUser(cmd *cobra.Command, id uint, jsonOutput bool) error {
 	client := RestClient(token.AccessToken)
 
 	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
+		SetHeader(contentTypeHeader, appJson).
 		SetResult(models.UserInfo{}).
-		SetError(&types.APIError{}).
+		SetError(&common.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
-		return fmt.Errorf("can't connect with Glim: %v", err)
+		return fmt.Errorf(common.CantConnectMessage, err)
 	}
 
 	if resp.IsError() {
-		return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+		return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 	}
 
 	// memberOf := "none"
@@ -84,13 +84,13 @@ func getUser(cmd *cobra.Command, id uint, jsonOutput bool) error {
 		encodeUserToJson(cmd, result)
 	} else {
 		fmt.Fprintf(cmd.OutOrStdout(), "\n%-15s %-100d\n", "UID:", result.ID)
-		fmt.Fprintf(cmd.OutOrStdout(), "====\n")
-		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n", "Username:", result.Username)
-		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n", "Name:", strings.Join([]string{result.GivenName, result.Surname}, " "))
-		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n", "Email:", result.Email)
-		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-8v\n", "Manager:", result.Manager)
-		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-8v\n", "Read-Only:", result.Readonly)
-		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-8v\n", "Locked:", result.Locked)
+		fmt.Fprint(cmd.OutOrStdout(), sectionSeparator)
+		fmt.Fprintf(cmd.OutOrStdout(), descrFormat, "Username:", result.Username)
+		fmt.Fprintf(cmd.OutOrStdout(), descrFormat, "Name:", strings.Join([]string{result.GivenName, result.Surname}, " "))
+		fmt.Fprintf(cmd.OutOrStdout(), descrFormat, "Email:", result.Email)
+		fmt.Fprintf(cmd.OutOrStdout(), accountFormat, "Manager:", result.Manager)
+		fmt.Fprintf(cmd.OutOrStdout(), accountFormat, "Read-Only:", result.Readonly)
+		fmt.Fprintf(cmd.OutOrStdout(), accountFormat, "Locked:", result.Locked)
 		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %s\n", "SSH Public Key:", result.SSHPublicKey)
 		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %s\n", "JPEG Photo:", truncate(result.JPEGPhoto, 100))
 		fmt.Fprintf(cmd.OutOrStdout(), "----\n")
@@ -119,17 +119,17 @@ func getUsers(cmd *cobra.Command, jsonOutput bool) error {
 	client := RestClient(token.AccessToken)
 
 	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
+		SetHeader(contentTypeHeader, appJson).
 		SetResult([]models.UserInfo{}).
-		SetError(&types.APIError{}).
+		SetError(&common.APIError{}).
 		Get(endpoint)
 
 	if err != nil {
-		return fmt.Errorf("can't connect with Glim: %v", err)
+		return fmt.Errorf(common.CantConnectMessage, err)
 	}
 
 	if resp.IsError() {
-		return fmt.Errorf("%v", resp.Error().(*types.APIError).Message)
+		return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 	}
 
 	results := resp.Result().(*[]models.UserInfo)

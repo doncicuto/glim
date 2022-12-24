@@ -21,33 +21,34 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
-//IsReader - TODO comment
+// IsReader - TODO comment
 func IsReader(db *gorm.DB) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			uid := c.Param("uid")
 			if c.Get("user") == nil {
-				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 			}
 			user := c.Get("user").(*jwt.Token)
 			claims := user.Claims.(jwt.MapClaims)
 			jwtID, ok := claims["uid"].(float64)
 			if !ok {
-				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 			}
 			jwtReadonly, ok := claims["readonly"].(bool)
 			if !ok {
-				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 			}
 			jwtManager, ok := claims["manager"].(bool)
 			if !ok {
-				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "wrong token or missing info in token claims"}
+				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 			}
 
 			if jwtManager || jwtReadonly || (uid != "" && uid == fmt.Sprintf("%d", uint(jwtID))) {
@@ -61,7 +62,7 @@ func IsReader(db *gorm.DB) echo.MiddlewareFunc {
 				err := db.Where("username = ?", username).Take(&u).Error
 				if err != nil {
 					if errors.Is(err, gorm.ErrRecordNotFound) {
-						return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "user has no proper permissions"}
+						return &echo.HTTPError{Code: http.StatusUnauthorized, Message: common.UserHasNoProperPermissionsMessage}
 					}
 					return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 				} else {
@@ -71,7 +72,7 @@ func IsReader(db *gorm.DB) echo.MiddlewareFunc {
 				}
 			}
 
-			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "user has no proper permissions"}
+			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: common.UserHasNoProperPermissionsMessage}
 		}
 	}
 }

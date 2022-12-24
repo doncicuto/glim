@@ -21,9 +21,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/doncicuto/glim/types"
 	"gorm.io/gorm"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
@@ -36,13 +36,13 @@ import (
 // @Tags         authentication
 // @Accept       json
 // @Produce      json
-// @Param        authentication  body types.LoginBody  true  "Username and password"
-// @Success      200  {object}  types.TokenAuthentication
-// @Failure			 400  {object} types.ErrorResponse
-// @Failure			 401  {object} types.ErrorResponse
-// @Failure 	   500  {object} types.ErrorResponse
+// @Param        authentication  body common.LoginBody  true  "Username and password"
+// @Success      200  {object}  common.TokenAuthentication
+// @Failure			 400  {object} common.ErrorResponse
+// @Failure			 401  {object} common.ErrorResponse
+// @Failure 	   500  {object} common.ErrorResponse
 // @Router       /login [post]
-func (h *Handler) Login(c echo.Context, settings types.APISettings) error {
+func (h *Handler) Login(c echo.Context, settings common.APISettings) error {
 	var dbUser models.User
 
 	// Parse username and password from body
@@ -56,17 +56,17 @@ func (h *Handler) Login(c echo.Context, settings types.APISettings) error {
 	// Check if user exists
 	err := h.DB.Where("username = ?", username).First(&dbUser).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: common.WrongUsernameOrPasswordMessage}
 	}
 
 	// Check if account is locked
 	if *dbUser.Locked {
-		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: common.WrongUsernameOrPasswordMessage}
 	}
 
 	// Check if passwords match
 	if err := models.VerifyPassword(*dbUser.Password, password); err != nil {
-		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong username or password"}
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: common.WrongUsernameOrPasswordMessage}
 	}
 
 	// Access token expiry times
@@ -127,7 +127,7 @@ func (h *Handler) Login(c echo.Context, settings types.APISettings) error {
 	}
 
 	// Create response with access and refresh tokens
-	tokenAuth := types.TokenAuthentication{}
+	tokenAuth := common.TokenAuthentication{}
 	tokenAuth.AccessToken = at
 	tokenAuth.RefreshToken = rt
 	tokenAuth.TokenType = "Bearer"
