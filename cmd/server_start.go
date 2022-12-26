@@ -282,7 +282,7 @@ var serverStartCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Create channels to recieve termination signals and
+		// Create channels to receive termination signals and
 		// communicate shutdown to servers
 		ch := make(chan os.Signal, 1)
 		apiShutdownChannel := make(chan bool)

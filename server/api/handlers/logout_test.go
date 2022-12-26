@@ -24,7 +24,7 @@ func TestLogout(t *testing.T) {
 			reqMethod:   http.MethodDelete,
 		},
 		{
-			name:        "Logout succesful saul",
+			name:        "Logout successful saul",
 			expResCode:  http.StatusNoContent,
 			reqURL:      refreshTokenEndpoint,
 			reqBodyJSON: fmt.Sprintf(`{"refresh_token": "%s"}`, refreshToken),

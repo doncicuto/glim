@@ -140,7 +140,7 @@ func TestCsvCreateUsers(t *testing.T) {
 			successMessage: "",
 		},
 		{
-			name:           "create users should be succesful",
+			name:           "create users should be successful",
 			cmd:            CsvCreateUsersCmd(),
 			args:           []string{serverFlag, endpoint, fileFlag, file1},
 			errorMessage:   "",

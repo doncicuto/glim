@@ -134,7 +134,7 @@ func TestCsvDeleteUsers(t *testing.T) {
 			successMessage: "",
 		},
 		{
-			name:           "delete users should be succesful",
+			name:           "delete users should be successful",
 			cmd:            CsvDeleteUsersCmd(),
 			args:           []string{serverFlag, endpoint, fileFlag, file1},
 			errorMessage:   "",

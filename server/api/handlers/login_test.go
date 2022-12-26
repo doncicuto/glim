@@ -9,14 +9,14 @@ func TestLogin(t *testing.T) {
 
 	testCases := []RestTestCase{
 		{
-			name:        "Login succesful saul",
+			name:        "Login successful saul",
 			expResCode:  http.StatusOK,
 			reqURL:      loginEndpoint,
 			reqBodyJSON: `{"username": "saul", "password": "test"}`,
 			reqMethod:   http.MethodPost,
 		},
 		{
-			name:        "Login succesful kim",
+			name:        "Login successful kim",
 			expResCode:  http.StatusOK,
 			reqURL:      loginEndpoint,
 			reqBodyJSON: `{"username": "kim", "password": "test"}`,

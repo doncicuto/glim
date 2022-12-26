@@ -9,7 +9,7 @@ func TestGuacamoleDisabled(t *testing.T) {
 
 	testCases := []RestTestCase{
 		{
-			name:             "Login succesful saul",
+			name:             "Login successful saul",
 			expResCode:       http.StatusOK,
 			reqURL:           "/v1/guacamole",
 			reqMethod:        http.MethodGet,
@@ -43,7 +43,7 @@ func TestGuacamoleEnabled(t *testing.T) {
 
 	testCases := []RestTestCase{
 		{
-			name:             "Login succesful saul",
+			name:             "Login successful saul",
 			expResCode:       http.StatusOK,
 			reqURL:           "/v1/guacamole",
 			reqMethod:        http.MethodGet,

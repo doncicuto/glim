@@ -156,14 +156,14 @@ func TestCsvDeleteGroups(t *testing.T) {
 			successMessage: "",
 		},
 		{
-			name:           "create groups should be succesful",
+			name:           "create groups should be successful",
 			cmd:            CsvCreateGroupsCmd(),
 			args:           []string{serverFlag, endpoint, fileFlag, file0},
 			errorMessage:   "",
 			successMessage: "devel: successfully created\nadmins: successfully created\nCreate from CSV finished!\n",
 		},
 		{
-			name:           "delete groups should be succesful",
+			name:           "delete groups should be successful",
 			cmd:            CsvDeleteGroupsCmd(),
 			args:           []string{serverFlag, endpoint, fileFlag, file1},
 			errorMessage:   "",

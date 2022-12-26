@@ -137,7 +137,7 @@ func TestCsvCreateGuacamoleGroups(t *testing.T) {
 			successMessage: "",
 		},
 		{
-			name:           "create groups should be succesful",
+			name:           "create groups should be successful",
 			cmd:            CsvCreateGroupsCmd(),
 			args:           []string{serverFlag, endpoint, fileFlag, file1},
 			errorMessage:   "",
