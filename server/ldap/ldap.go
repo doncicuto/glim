@@ -149,7 +149,7 @@ func controls(p *ber.Packet, message *Message) error {
 	return nil
 }
 
-//DecodeMessage - TODO comment
+// DecodeMessage - TODO comment
 func DecodeMessage(p *ber.Packet) (*Message, error) {
 	message := new(Message)
 

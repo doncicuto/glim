@@ -135,7 +135,6 @@ var scopes = map[int64]string{
 	2: "wholeSubtree",
 }
 
-//
 const (
 	FilterAnd             = 0
 	FilterOr              = 1
