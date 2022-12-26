@@ -26,7 +26,7 @@ func TestLoginCmd(t *testing.T) {
 	cmd := LoginCmd()
 
 	t.Run("can't connect with server", func(t *testing.T) {
-		cmd.SetArgs([]string{serverFlag, endpoint, usernameFlag, "admin", passwordFlag, "tess"})
+		cmd.SetArgs([]string{serverFlag, "http://127.0.0.1:9999", usernameFlag, "admin", passwordFlag, "tess"})
 		err := cmd.Execute()
 		if err != nil {
 			assert.Contains(t, err.Error(), "can't connect with Glim")
