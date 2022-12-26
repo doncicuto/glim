@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestIsBlacklisted(t *testing.T) {
@@ -22,7 +24,7 @@ func TestIsBlacklisted(t *testing.T) {
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodPut,
 			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwicmVhZG9ubHkiOmZhbHNlLCJtYW5hZ2VyIjp0cnVlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjF9.PuDK1A_z108OZb_D4tJfTGUSHRaNHUCQETW7Pf_I2M8",
-			expectedBodyJSON: `{"message":common.WrongTokenOrMissingMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.WrongTokenOrMissingMessage),
 		},
 		{
 			name:       "jti not in KV, not blacklisted",
