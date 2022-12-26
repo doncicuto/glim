@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestGroupDelete(t *testing.T) {
@@ -22,7 +25,7 @@ func TestGroupDelete(t *testing.T) {
 			reqURL:           "/v1/groups/1",
 			reqMethod:        http.MethodDelete,
 			secret:           searchToken,
-			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserHasNoProperPermissionsMessage),
 		},
 		{
 			name:             "gid param should be a valid integer",

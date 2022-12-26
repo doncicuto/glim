@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestUserPasswd(t *testing.T) {
@@ -30,7 +33,7 @@ func TestUserPasswd(t *testing.T) {
 			reqURL:           "/v1/users/5/passwd",
 			reqMethod:        http.MethodPost,
 			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwibWFuYWdlciI6dHJ1ZSwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQifQ.SQ0P6zliTGQiAdTi2DjCDeht0n2FjYdPGV7JgOx0TRY",
-			expectedBodyJSON: `{"message":common.WrongTokenOrMissingMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.WrongTokenOrMissingMessage),
 		},
 		{
 			name:             "uid param must be an integer",
@@ -46,7 +49,7 @@ func TestUserPasswd(t *testing.T) {
 			reqURL:           "/v1/users/5/passwd",
 			reqMethod:        http.MethodPost,
 			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjF9.j1lc0cK-KtsI5qI6Vpws6mc4RMSwWL-fuobIujGfJYo",
-			expectedBodyJSON: `{"message":common.WrongTokenOrMissingMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.WrongTokenOrMissingMessage),
 		},
 		{
 			name:             "only managers can change other users passwords",
@@ -70,7 +73,7 @@ func TestUserPasswd(t *testing.T) {
 			reqURL:           "/v1/users/50000/passwd",
 			reqMethod:        http.MethodPost,
 			secret:           adminToken,
-			expectedBodyJSON: `{"message":common.WrongUsernameOrPasswordMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.WrongUsernameOrPasswordMessage),
 		},
 		{
 			name:             "wrong old password",

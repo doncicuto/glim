@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestGroupRead(t *testing.T) {
@@ -59,7 +62,7 @@ func TestGroupRead(t *testing.T) {
 			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserHasNoProperPermissionsMessage),
 		},
 		{
 			name:       "non-existent group returns 404",
@@ -90,7 +93,7 @@ func TestGroupRead(t *testing.T) {
 			reqURL:           "/v1/groups/1",
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserHasNoProperPermissionsMessage),
 		},
 		{
 			name:       "can't get gid from a non-existent group's name",
@@ -121,7 +124,7 @@ func TestGroupRead(t *testing.T) {
 			reqURL:           "/v1/groups/devel/gid",
 			reqMethod:        http.MethodGet,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserHasNoProperPermissionsMessage),
 		},
 	}
 

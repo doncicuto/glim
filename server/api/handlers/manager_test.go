@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestIsManager(t *testing.T) {
@@ -29,7 +32,7 @@ func TestIsManager(t *testing.T) {
 			reqURL:           usersEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           searchToken,
-			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserHasNoProperPermissionsMessage),
 		},
 		{
 			name:             "plain user is not manager",
@@ -37,7 +40,7 @@ func TestIsManager(t *testing.T) {
 			reqURL:           usersEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserHasNoProperPermissionsMessage),
 		},
 	}
 

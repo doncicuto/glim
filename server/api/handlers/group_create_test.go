@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestGroupCreate(t *testing.T) {
@@ -22,7 +25,7 @@ func TestGroupCreate(t *testing.T) {
 			reqURL:           groupsEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           searchToken,
-			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserHasNoProperPermissionsMessage),
 		},
 
 		{

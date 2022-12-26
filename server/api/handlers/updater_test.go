@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestIsUpdater(t *testing.T) {
@@ -23,7 +26,7 @@ func TestIsUpdater(t *testing.T) {
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodPut,
 			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwibWFuYWdlciI6dHJ1ZSwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQifQ.SQ0P6zliTGQiAdTi2DjCDeht0n2FjYdPGV7JgOx0TRY",
-			expectedBodyJSON: `{"message":common.WrongTokenOrMissingMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.WrongTokenOrMissingMessage),
 		},
 		{
 			name:             "readonly claim not in token",
@@ -31,7 +34,7 @@ func TestIsUpdater(t *testing.T) {
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodPut,
 			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwibWFuYWdlciI6dHJ1ZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.eDcXE_IFDAMuvExWiEyQBhJeujL7F7tRrIqKxV6E9rM",
-			expectedBodyJSON: `{"message":common.WrongTokenOrMissingMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.WrongTokenOrMissingMessage),
 		},
 		{
 			name:             "manager claim not in token",
@@ -39,7 +42,7 @@ func TestIsUpdater(t *testing.T) {
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodPut,
 			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjF9.j1lc0cK-KtsI5qI6Vpws6mc4RMSwWL-fuobIujGfJYo",
-			expectedBodyJSON: `{"message":common.WrongTokenOrMissingMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.WrongTokenOrMissingMessage),
 		},
 		{
 			name:             "plain user can't update other's account",
@@ -47,7 +50,7 @@ func TestIsUpdater(t *testing.T) {
 			reqURL:           "/v1/users/4",
 			reqMethod:        http.MethodPut,
 			secret:           plainUserToken,
-			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserHasNoProperPermissionsMessage),
 		},
 		{
 			name:             "readonly user can't update accounts",
@@ -55,7 +58,7 @@ func TestIsUpdater(t *testing.T) {
 			reqURL:           "/v1/users/4",
 			reqMethod:        http.MethodPut,
 			secret:           searchToken,
-			expectedBodyJSON: `{"message":common.UserHasNoProperPermissionsMessage}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserHasNoProperPermissionsMessage),
 		},
 		{
 			name:       "plain user can update its own account",
