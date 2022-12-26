@@ -46,7 +46,7 @@ func TestIsBlacklisted(t *testing.T) {
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodGet,
 			secret:           accessToken,
-			expectedBodyJSON: `{"message":"token no longer valid"}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.TokenNoLongerValidMessage),
 		},
 	}
 

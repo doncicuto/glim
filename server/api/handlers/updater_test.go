@@ -21,7 +21,7 @@ func TestIsUpdater(t *testing.T) {
 	// Test cases
 	testCases := []RestTestCase{
 		{
-			name:             "uid not found in token",
+			name:             "wrong token or missing",
 			expResCode:       http.StatusNotAcceptable,
 			reqURL:           "/v1/users/3",
 			reqMethod:        http.MethodPut,

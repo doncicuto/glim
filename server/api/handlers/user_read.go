@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -99,7 +100,7 @@ func (h *Handler) FindUserByID(c echo.Context) error {
 	err = h.DB.Preload("MemberOf").Model(&models.User{}).Where("id = ?", id).Take(&u).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
+			return &echo.HTTPError{Code: http.StatusNotFound, Message: common.UserNotFoundMessage}
 		}
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
@@ -132,7 +133,7 @@ func (h *Handler) FindUIDFromUsername(c echo.Context) error {
 	err = h.DB.Model(&models.User{}).Where("username = ?", username).Take(&u).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
+			return &echo.HTTPError{Code: http.StatusNotFound, Message: common.UserNotFoundMessage}
 		}
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}

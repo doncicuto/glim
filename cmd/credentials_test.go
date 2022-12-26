@@ -120,7 +120,7 @@ func TestRefresh(t *testing.T) {
 		os.Remove(tokenPath)
 		_, err := refresh(endpoint, "")
 		if err != nil {
-			assert.Contains(t, err.Error(), "could not parse token, you may have to log in again")
+			assert.Contains(t, err.Error(), common.CouldNotParseTokenMessage)
 		}
 	})
 
@@ -128,7 +128,7 @@ func TestRefresh(t *testing.T) {
 		os.Remove(tokenPath)
 		_, err := refresh(endpoint, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhanRpIjoiOGE1NDM4ZTItMTIxYy00M2U2LWFlZjUtMTU4OWIxMTk2YTBmIiwiYXVkIjoiYXBpLmdsaW0uc2VydmVyIiwiZXhwIjoyNzcxNTMyODIzLCJpYXQiOjE2NTE1MzI4MjMsImlzcyI6ImFwaS5nbGltLnNlcnZlciIsImp0aSI6ImQ5OGQ0YTA2LTYyOGMtNGNjZC05M2YxLWY5NjNhNmQ0YWU0OSIsIm1hbmFnZXIiOnRydWUsInJlYWRvbmx5IjpmYWxzZSwic3ViIjoiYXBpLmdsaW0uY2xpZW50IiwidWlkIjoxfQ.T7FIZembax4xD3zozT_9fbEeWsPbJAmG4VkLFl1Fsmk")
 		if err != nil {
-			assert.Contains(t, err.Error(), "refresh token usage without log in exceeded")
+			assert.Contains(t, err.Error(), common.RefreshTokenUsageWithoutLogInMessage)
 		}
 	})
 

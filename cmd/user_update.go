@@ -84,7 +84,7 @@ func UpdateUserCmd() *cobra.Command {
 			replace := viper.GetBool("replace")
 			remove := viper.GetBool("remove")
 			if replace && remove {
-				return fmt.Errorf("replace and remove flags are mutually exclusive")
+				return fmt.Errorf(common.ReplaceRemoveMutuallyExclusiveMessage)
 			}
 
 			jpegPhoto := ""

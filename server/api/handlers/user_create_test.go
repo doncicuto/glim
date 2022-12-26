@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestUserCreate(t *testing.T) {
@@ -53,7 +55,7 @@ func TestUserCreate(t *testing.T) {
 			reqURL:           usersEndpoint,
 			reqMethod:        http.MethodPost,
 			secret:           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkuZ2xpbS5zZXJ2ZXIiLCJleHAiOjE5NzcyNDUzOTksImlhdCI6MTY2MTYyNjA3MSwiaXNzIjoiYXBpLmdsaW0uc2VydmVyIiwianRpIjoiZTdiZmYzMjQtMzJmOC00MTNlLTgyNmYtNzc5Mzk5NDBjOTZkIiwibWFuYWdlciI6dHJ1ZSwicmVhZG9ubHkiOmZhbHNlLCJzdWIiOiJhcGkuZ2xpbS5jbGllbnQiLCJ1aWQiOjEwMDB9.amq5OV7gU7HUrn5YA8sbs2cXMRFeYHTmXm6bhXJ9PDg",
-			expectedBodyJSON: `{"message":"wrong user attempting to create user"}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.WrongUserCreateUserMessage),
 		},
 		{
 			name:        "wrong email",

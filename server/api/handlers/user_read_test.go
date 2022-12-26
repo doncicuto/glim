@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
+
+	"github.com/doncicuto/glim/common"
 )
 
 func TestUserRead(t *testing.T) {
@@ -73,7 +76,7 @@ func TestUserRead(t *testing.T) {
 			reqURL:           "/v1/users/3000",
 			reqMethod:        http.MethodGet,
 			secret:           searchToken,
-			expectedBodyJSON: `{"message":"user not found"}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserNotFoundMessage),
 		},
 		{
 			name:             "manager user can't see non-existent account",
@@ -81,7 +84,7 @@ func TestUserRead(t *testing.T) {
 			reqURL:           "/v1/users/3000",
 			reqMethod:        http.MethodGet,
 			secret:           adminToken,
-			expectedBodyJSON: `{"message":"user not found"}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserNotFoundMessage),
 		},
 		{
 			name:             "plainuser can't see non-existent account",
@@ -89,7 +92,7 @@ func TestUserRead(t *testing.T) {
 			reqURL:           "/v1/users/3000",
 			reqMethod:        http.MethodGet,
 			secret:           adminToken,
-			expectedBodyJSON: `{"message":"user not found"}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserNotFoundMessage),
 		},
 		{
 			name:             "search user can't get uid from non-existent username",
@@ -97,7 +100,7 @@ func TestUserRead(t *testing.T) {
 			reqURL:           "/v1/users/non-existent/uid",
 			reqMethod:        http.MethodGet,
 			secret:           searchToken,
-			expectedBodyJSON: `{"message":"user not found"}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserNotFoundMessage),
 		},
 		{
 			name:             "manager user can't get uid from non-existent account",
@@ -105,7 +108,7 @@ func TestUserRead(t *testing.T) {
 			reqURL:           "/v1/users/non-existent/uid",
 			reqMethod:        http.MethodGet,
 			secret:           adminToken,
-			expectedBodyJSON: `{"message":"user not found"}`,
+			expectedBodyJSON: fmt.Sprintf(`{"message":"%s"}`, common.UserNotFoundMessage),
 		},
 		{
 			name:             "search user can get uid from username",

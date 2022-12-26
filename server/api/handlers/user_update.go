@@ -121,7 +121,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	if err != nil {
 		// Does user exist?
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
+			return &echo.HTTPError{Code: http.StatusNotFound, Message: common.UserNotFoundMessage}
 		}
 		return err
 	}
@@ -162,7 +162,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	if body.Email != "" {
 		if _, err := mail.ParseAddress(body.Email); err != nil {
-			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
+			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.InvalidEmail}
 		}
 		updatedUser["email"] = body.Email
 	}
@@ -177,27 +177,27 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 
 	if body.Manager != nil {
 		if !manager {
-			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update manager status"}
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: common.OnlyManagersUpdateManagerMessage}
 		}
 		updatedUser["manager"] = *body.Manager
 	}
 
 	if body.Readonly != nil {
 		if !manager {
-			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update readonly status"}
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: common.OnlyManagersUpdateReadonlyMessage}
 		}
 		updatedUser["readonly"] = *body.Readonly
 	}
 
 	if body.Locked != nil {
 		if !manager {
-			return &echo.HTTPError{Code: http.StatusForbidden, Message: "only managers can update locked status"}
+			return &echo.HTTPError{Code: http.StatusForbidden, Message: common.OnlyManagersUpdateLockedMessage}
 		}
 		updatedUser["locked"] = *body.Locked
 	}
 
 	if body.ReplaceMembersOf && body.RemoveMembersOf {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "replace and replace are mutually exclusive"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.ReplaceRemoveMutuallyExclusiveMessage}
 	}
 
 	// Update date
@@ -209,7 +209,7 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 	if err != nil {
 		// Does user exist?
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
+			return &echo.HTTPError{Code: http.StatusNotFound, Message: common.UserNotFoundMessage}
 		}
 		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}

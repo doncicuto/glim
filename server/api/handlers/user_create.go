@@ -86,7 +86,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 	}
 	if err := h.DB.Model(&models.User{}).Where("id = ?", uint(tokenUID)).First(&createdBy).Error; err != nil {
-		return &echo.HTTPError{Code: http.StatusForbidden, Message: "wrong user attempting to create user"}
+		return &echo.HTTPError{Code: http.StatusForbidden, Message: common.WrongUserCreateUserMessage}
 	}
 
 	body := models.JSONUserBody{}
@@ -97,7 +97,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 
 	// Validate
 	if body.Username == "" {
-		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "required username"}
+		return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.UsernameRequiredMessage}
 	}
 	u.Username = &body.Username
 
@@ -108,7 +108,7 @@ func (h *Handler) SaveUser(c echo.Context) error {
 
 	if body.Email != "" {
 		if _, err := mail.ParseAddress(body.Email); err != nil {
-			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: "invalid email"}
+			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.InvalidEmail}
 		}
 	}
 	u.Email = &body.Email

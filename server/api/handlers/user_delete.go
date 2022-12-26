@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -57,7 +58,7 @@ func (h *Handler) DeleteUser(c echo.Context) error {
 	err = h.DB.Model(&models.User{}).Where("id = ?", id).Take(&u).Delete(&u).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &echo.HTTPError{Code: http.StatusNotFound, Message: "user not found"}
+			return &echo.HTTPError{Code: http.StatusNotFound, Message: common.UserNotFoundMessage}
 		}
 		return err
 	}

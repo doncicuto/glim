@@ -49,7 +49,7 @@ func IsBlacklisted(kv common.Store) echo.MiddlewareFunc {
 			if found {
 				// blacklisted item
 				if string(val) == "true" {
-					return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "token no longer valid"}
+					return &echo.HTTPError{Code: http.StatusUnauthorized, Message: common.TokenNoLongerValidMessage}
 				}
 			}
 

@@ -77,7 +77,7 @@ func TestUserReadCmd(t *testing.T) {
 			name:           "user 120 does not exist",
 			cmd:            ListUserCmd(),
 			args:           []string{serverFlag, endpoint, "-i", "120", jsonFlag},
-			errorMessage:   "user not found",
+			errorMessage:   common.UserNotFoundMessage,
 			successMessage: "",
 		},
 		{

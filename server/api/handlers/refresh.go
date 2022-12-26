@@ -44,7 +44,7 @@ func (h *Handler) Refresh(c echo.Context, settings common.APISettings) error {
 	// Get refresh token from body
 	tokens := new(common.Tokens)
 	if err := c.Bind(tokens); err != nil {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token, you may have to log in again"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.CouldNotParseTokenMessage}
 	}
 
 	// Get refresh token claims
@@ -53,74 +53,74 @@ func (h *Handler) Refresh(c echo.Context, settings common.APISettings) error {
 		return []byte(settings.APISecret), nil
 	})
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token, you may have to log in again"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.CouldNotParseTokenMessage}
 	}
 
 	// Check if JWT token is valid
 	if !token.Valid {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "token is not valid"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.TokenIsNotValidMessage}
 	}
 
 	// Extract uid
 	uid, ok := claims["uid"]
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "uid not found in token"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.UidNotFoundInTokenMessage}
 	}
 
 	// Extract jti
 	jti, ok := claims["jti"].(string)
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "jti not found in token"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.JTINotFoundInTokenMessage}
 	}
 
 	// Extract access token jti
 	ajti, ok := claims["ajti"].(string)
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "access jti not found in token"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.JTINotFoundInTokenMessage}
 	}
 
 	// Extract issued at time claim
 	iat, ok := claims["iat"].(float64)
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "iat not found in token"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.IatNotFoundInTokenMessage}
 	}
 
 	// Check if use of refresh tokens limit has been exceeded
 	maxDays := settings.MaxDaysWoRelogin
 	refreshLimit := time.Unix(int64(iat), 0).AddDate(0, 0, maxDays).Unix()
 	if refreshLimit < time.Now().Unix() {
-		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "refresh token usage without log in exceeded"}
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: common.RefreshTokenUsageWithoutLogInMessage}
 	}
 
 	// Check if user exists
 	var dbUser models.User
 	err = h.DB.Where("id = ?", uid).First(&dbUser).Error
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid uid found in token"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.InvalidUIDInTokenMessage}
 	}
 
 	// Check if refresh token ID (jti) has been blacklisted
 	val, found, err := h.KV.Get(jti)
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not get stored token info"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.CouldNotGetStoredTokenMessage}
 	}
 	if found {
 		// blacklisted item?
 		if string(val) == "true" {
-			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "token no longer valid"}
+			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: common.TokenNoLongerValidMessage}
 		}
 	}
 
 	// Blacklist old refresh token
 	err = h.KV.Set(jti, "true", time.Second*3600)
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not store refresh token info"}
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: common.CouldNotStoreRefreshTokenMessage}
 	}
 
 	// Blacklist old access token
 	err = h.KV.Set(ajti, "true", time.Second*3600)
 	if err != nil {
-		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not store refresh token info"}
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: common.CouldNotStoreRefreshTokenMessage}
 	}
 
 	// Prepare refresh response

@@ -42,7 +42,7 @@ func (h *Handler) Logout(c echo.Context, settings common.APISettings) error {
 	// Get refresh token from body
 	tokens := new(common.Tokens)
 	if err := c.Bind(tokens); err != nil {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not parse token"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.CouldNotParseTokenMessage}
 	}
 
 	// Get refresh token claims
@@ -54,7 +54,7 @@ func (h *Handler) Logout(c echo.Context, settings common.APISettings) error {
 	// Extract access token jti
 	ajti, ok := claims["ajti"].(string)
 	if !ok {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "use refresh token"}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.UseRefreshTokenMessage}
 	}
 
 	if token.Valid && err == nil {
@@ -62,25 +62,25 @@ func (h *Handler) Logout(c echo.Context, settings common.APISettings) error {
 		// Extract jti
 		jti, ok := claims["jti"].(string)
 		if !ok {
-			return &echo.HTTPError{Code: http.StatusBadRequest, Message: "jti not found in token"}
+			return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.JTINotFoundInTokenMessage}
 		}
 
 		// Check if token has been blacklisted
 		val, found, err := h.KV.Get(jti)
 		if err != nil {
-			return &echo.HTTPError{Code: http.StatusBadRequest, Message: "could not get stored token info"}
+			return &echo.HTTPError{Code: http.StatusBadRequest, Message: common.CouldNotGetStoredTokenMessage}
 		}
 		if found {
 			// blacklisted item?
 			if string(val) == "true" {
-				return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "token no longer valid"}
+				return &echo.HTTPError{Code: http.StatusUnauthorized, Message: common.TokenNoLongerValidMessage}
 			}
 		}
 
 		// Blacklist refresh token
 		err = h.KV.Set(jti, "true", time.Second*3600)
 		if err != nil {
-			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: "could not store refresh token info"}
+			return &echo.HTTPError{Code: http.StatusInternalServerError, Message: common.CouldNotGetStoredTokenMessage}
 		}
 
 		// Blacklist access token

@@ -28,7 +28,7 @@ func TestUserPasswd(t *testing.T) {
 			expectedBodyJSON: `{"message":"required user uid"}`,
 		},
 		{
-			name:             "uid not found in token",
+			name:             "wrong token or missing",
 			expResCode:       http.StatusNotAcceptable,
 			reqURL:           "/v1/users/5/passwd",
 			reqMethod:        http.MethodPost,
@@ -68,7 +68,7 @@ func TestUserPasswd(t *testing.T) {
 			expectedBodyJSON: `{"message":"the old password must be provided"}`,
 		},
 		{
-			name:             "user not found",
+			name:             common.WrongUsernameOrPasswordMessage,
 			expResCode:       http.StatusNotFound,
 			reqURL:           "/v1/users/50000/passwd",
 			reqMethod:        http.MethodPost,
