@@ -108,6 +108,6 @@ func UpdateGroupCmd() *cobra.Command {
 	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
 	cmd.Flags().String("guacamole-protocol", "", "Apache Guacamole protocol e.g: vnc")
-	cmd.Flags().String("guacamole-parameters", "", "Apache Guacamole config params using a comma-separated list e.g: hostname=localhost,port=5900,password=secret")
+	cmd.Flags().String("guacamole-parameters", "", "Apache Guacamole config params using a comma-separated list e.g: hostname=localhost,port=5900")
 	return cmd
 }

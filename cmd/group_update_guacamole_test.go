@@ -39,14 +39,14 @@ func TestUpdateGuacamoleGroupCmd(t *testing.T) {
 		{
 			name:           "guacamole group updated",
 			cmd:            UpdateGroupCmd(),
-			args:           []string{serverFlag, endpoint, groupFlag, "test", descriptionFlag, "test", membersFlag, "kim,saul", "--guacamole-protocol", "vnc", guacParametersFlag, "host=192.168.1.1,port=22,password=secret"},
+			args:           []string{serverFlag, endpoint, groupFlag, "test", descriptionFlag, "test", membersFlag, "kim,saul", "--guacamole-protocol", "vnc", guacParametersFlag, "host=192.168.1.1,port=22"},
 			errorMessage:   "",
 			successMessage: common.GroupUpdatedMessage,
 		},
 		{
 			name:           "guacamole group can be updated again",
 			cmd:            UpdateGroupCmd(),
-			args:           []string{serverFlag, endpoint, groupFlag, "test", descriptionFlag, "test", membersFlag, "kim,saul", guacParametersFlag, "host=192.168.1.1,port=22,password=secret"},
+			args:           []string{serverFlag, endpoint, groupFlag, "test", descriptionFlag, "test", membersFlag, "kim,saul", guacParametersFlag, "host=192.168.1.1,port=22"},
 			errorMessage:   "",
 			successMessage: common.GroupUpdatedMessage,
 		},
@@ -60,7 +60,7 @@ func TestUpdateGuacamoleGroupCmd(t *testing.T) {
 		{
 			name:           "guacamole group can't be updated",
 			cmd:            UpdateGroupCmd(),
-			args:           []string{serverFlag, endpoint, groupFlag, "test2", descriptionFlag, "test", membersFlag, "kim,saul", guacParametersFlag, "host=192.168.1.1,port=22,password=secret"},
+			args:           []string{serverFlag, endpoint, groupFlag, "test2", descriptionFlag, "test", membersFlag, "kim,saul", guacParametersFlag, "host=192.168.1.1,port=22"},
 			errorMessage:   "Apache Guacamole config protocol is required",
 			successMessage: "",
 		},
