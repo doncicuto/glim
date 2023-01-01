@@ -17,10 +17,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -38,14 +34,8 @@ var userCmd = &cobra.Command{
 }
 
 func init() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
-
 	rootCmd.AddCommand(userCmd)
-	userCmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	userCmd.PersistentFlags().String("tlscacert", getDefaultRootPEMFilePath(), "trust certs signed only by this CA")
 	userCmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 	userCmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
 	userCmd.AddCommand(ListUserCmd())

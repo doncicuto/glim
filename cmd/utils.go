@@ -23,7 +23,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
+	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
@@ -149,4 +151,48 @@ func encodeGroupToJson(cmd *cobra.Command, group *models.GroupInfo) {
 func encodeGroupsToJson(cmd *cobra.Command, groups *[]models.GroupInfo) {
 	enc := json.NewEncoder(cmd.OutOrStderr())
 	enc.Encode(groups)
+}
+
+func deleteElementFromAPI(cmd *cobra.Command, client *resty.Client, endpoint string, jsonOutput bool, successMessage string) error {
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetError(&common.APIError{}).
+		Delete(endpoint)
+
+	if err != nil {
+		return fmt.Errorf(common.CantConnectMessage, err)
+	}
+
+	if resp.IsError() {
+		return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
+	}
+
+	printCmdMessage(cmd, successMessage, jsonOutput)
+	return nil
+}
+
+func getDefaultRootPEMFilePath() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		homeDir = "/tmp"
+	}
+	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
+	return defaultRootPEMFilePath
+}
+
+func addGlimPersistentFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().String("tlscacert", getDefaultRootPEMFilePath(), "trust certs signed only by this CA")
+	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
+	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+}
+
+func checkAPICallResponse(err error, resp *resty.Response) error {
+	if err != nil {
+		return fmt.Errorf(common.CantConnectMessage, err)
+	}
+
+	if resp.IsError() {
+		return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
+	}
+	return nil
 }

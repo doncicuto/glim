@@ -18,14 +18,10 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/Songmu/prompter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/doncicuto/glim/common"
 )
 
 func DeleteGroupCmd() *cobra.Command {
@@ -67,38 +63,17 @@ func DeleteGroupCmd() *cobra.Command {
 					return err
 				}
 			}
+
 			endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
+			successMessage := "Group deleted"
 
-			resp, err := client.R().
-				SetHeader(contentTypeHeader, appJson).
-				SetError(&common.APIError{}).
-				Delete(endpoint)
-
-			if err != nil {
-				return fmt.Errorf(common.CantConnectMessage, err)
-			}
-
-			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
-			}
-
-			printCmdMessage(cmd, "Group deleted", jsonOutput)
-			return nil
+			return deleteElementFromAPI(cmd, client, endpoint, jsonOutput, successMessage)
 		},
 	}
-
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
 
 	cmd.Flags().UintP("gid", "i", 0, "group id")
 	cmd.Flags().StringP("group", "g", "", "group name")
 	cmd.Flags().BoolP("force", "f", false, "force delete and don't ask for confirmation")
-	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
-	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
-
+	addGlimPersistentFlags(cmd)
 	return cmd
 }

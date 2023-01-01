@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/Songmu/prompter"
@@ -102,7 +101,7 @@ func LoginCmd() *cobra.Command {
 			// Rest API authentication
 			client := RestClient("")
 
-			resp, err := client.R().
+			resp, clientError := client.R().
 				SetHeader(contentTypeHeader, appJson).
 				SetBody(common.Credentials{
 					Username: username,
@@ -111,12 +110,8 @@ func LoginCmd() *cobra.Command {
 				SetError(&common.APIError{}).
 				Post(fmt.Sprintf("%s/v1/login", url))
 
-			if err != nil {
-				return fmt.Errorf(common.CantConnectMessage, err)
-			}
-
-			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
+			if err := checkAPICallResponse(clientError, resp); err != nil {
+				return err
 			}
 
 			// Authenticated, let's store tokens in $HOME/.glim/accessToken.json
@@ -140,13 +135,7 @@ func LoginCmd() *cobra.Command {
 		},
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
-
-	cmd.Flags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.Flags().String("tlscacert", getDefaultRootPEMFilePath(), "trust certs signed only by this CA")
 	cmd.Flags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 	cmd.Flags().StringP("username", "u", "", "Username")
 	cmd.Flags().StringP("password", "p", "", "Password")

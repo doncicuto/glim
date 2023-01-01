@@ -18,14 +18,10 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/Songmu/prompter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/doncicuto/glim/common"
 )
 
 // DeleteUserCmd - TODO comment
@@ -56,9 +52,10 @@ func DeleteUserCmd() *cobra.Command {
 				return err
 			}
 
-			// JSON output?
+			// JSON output
 			jsonOutput := viper.GetBool("json")
 
+			// Create client
 			client := RestClient(token.AccessToken)
 			if uid == 0 && username != "" {
 				uid, err = getUIDFromUsername(client, username, url)
@@ -67,38 +64,16 @@ func DeleteUserCmd() *cobra.Command {
 				}
 			}
 
-			// Rest API authentication
 			endpoint := fmt.Sprintf("%s/v1/users/%d", url, uid)
-			resp, err := client.R().
-				SetHeader(contentTypeHeader, appJson).
-				SetError(&common.APIError{}).
-				Delete(endpoint)
+			successMessage := "User account deleted"
 
-			if err != nil {
-				return fmt.Errorf(common.CantConnectMessage, err)
-			}
-
-			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
-			}
-
-			printCmdMessage(cmd, "User account deleted", jsonOutput)
-			return nil
+			return deleteElementFromAPI(cmd, client, endpoint, jsonOutput, successMessage)
 		},
 	}
-
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
 
 	cmd.Flags().UintP("uid", "i", 0, "user account id")
 	cmd.Flags().StringP("username", "u", "", "username")
 	cmd.Flags().BoolP("force", "f", false, "force delete and don't ask for confirmation")
-	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
-	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
-
+	addGlimPersistentFlags(cmd)
 	return cmd
 }

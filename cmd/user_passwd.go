@@ -18,8 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/doncicuto/glim/common"
 	"github.com/doncicuto/glim/models"
@@ -102,18 +100,14 @@ func UserPasswdCmd() *cobra.Command {
 			passwdBody.Password = password
 
 			endpoint := fmt.Sprintf("%s/v1/users/%d/passwd", url, uid)
-			resp, err := client.R().
+			resp, clientError := client.R().
 				SetHeader(contentTypeHeader, appJson).
 				SetBody(passwdBody).
 				SetError(&common.APIError{}).
 				Post(endpoint)
 
-			if err != nil {
-				return fmt.Errorf(common.CantConnectMessage, err)
-			}
-
-			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
+			if err := checkAPICallResponse(clientError, resp); err != nil {
+				return err
 			}
 
 			printCmdMessage(cmd, "Password changed", jsonOutput)
@@ -121,19 +115,14 @@ func UserPasswdCmd() *cobra.Command {
 		},
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
-
+	// General flags
 	cmd.Flags().UintP("uid", "i", 0, "User account id")
 	cmd.Flags().StringP("username", "u", "", "username")
 	cmd.Flags().StringP("password", "p", "", "New user password")
+
+	// Boolean flags
 	cmd.Flags().Bool("password-stdin", false, "Take the password from stdin")
-	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
-	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+	addGlimPersistentFlags(cmd)
 	viper.BindPFlags(cmd.Flags())
 
 	return cmd

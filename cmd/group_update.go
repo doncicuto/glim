@@ -18,8 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/doncicuto/glim/models"
 	"github.com/spf13/cobra"
@@ -67,7 +65,7 @@ func UpdateGroupCmd() *cobra.Command {
 
 			endpoint := fmt.Sprintf("%s/v1/groups/%d", url, gid)
 
-			resp, err := client.R().
+			resp, clientError := client.R().
 				SetHeader(contentTypeHeader, appJson).
 				SetBody(models.JSONGroupBody{
 					Name:                      viper.GetString("group"),
@@ -80,12 +78,8 @@ func UpdateGroupCmd() *cobra.Command {
 				SetError(&common.APIError{}).
 				Put(endpoint)
 
-			if err != nil {
-				return fmt.Errorf(common.CantConnectMessage, err)
-			}
-
-			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
+			if err := checkAPICallResponse(clientError, resp); err != nil {
+				return err
 			}
 
 			printCmdMessage(cmd, "Group updated", jsonOutput)
@@ -93,21 +87,17 @@ func UpdateGroupCmd() *cobra.Command {
 		},
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
-
+	// Flags
 	cmd.Flags().UintP("gid", "i", 0, "group id")
 	cmd.Flags().StringP("group", "g", "", "our group name")
 	cmd.Flags().StringP("description", "d", "", "our group description")
 	cmd.Flags().StringP("members", "m", "", "comma-separated list of usernames e.g: admin,tux")
-	cmd.Flags().Bool("replace", false, "Replace group members with those specified with -m. Usernames are appended to members by default")
-	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
-	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
 	cmd.Flags().String("guacamole-protocol", "", "Apache Guacamole protocol e.g: vnc")
 	cmd.Flags().String("guacamole-parameters", "", "Apache Guacamole config params using a comma-separated list e.g: hostname=localhost,port=5900")
+
+	// Boolean flags
+	cmd.Flags().Bool("replace", false, "Replace group members with those specified with -m. Usernames are appended to members by default")
+
+	addGlimPersistentFlags(cmd)
 	return cmd
 }

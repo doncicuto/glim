@@ -25,7 +25,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// IsReader - TODO comment
+// IsUpdater - TODO comment
 func IsUpdater(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		uid := c.Param("uid")
@@ -33,20 +33,12 @@ func IsUpdater(next echo.HandlerFunc) echo.HandlerFunc {
 			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 		}
 		user := c.Get("user").(*jwt.Token)
-		claims := user.Claims.(jwt.MapClaims)
-		jwtID, ok := claims["uid"].(float64)
-		if !ok {
-			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
+		claims, err := getJWTClaims(user.Claims.(jwt.MapClaims))
+		if err != nil {
+			return err
 		}
-		jwtReadonly, ok := claims["readonly"].(bool)
-		if !ok {
-			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
-		}
-		jwtManager, ok := claims["manager"].(bool)
-		if !ok {
-			return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
-		}
-		if !jwtReadonly && (jwtManager || uid == fmt.Sprintf("%d", uint(jwtID))) {
+
+		if !claims.jwtReadonly && (claims.jwtManager || uid == fmt.Sprintf("%d", uint(claims.jwtID))) {
 			return next(c)
 		}
 		return &echo.HTTPError{Code: http.StatusForbidden, Message: common.UserHasNoProperPermissionsMessage}

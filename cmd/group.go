@@ -18,8 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/doncicuto/glim/common"
 	"github.com/go-resty/resty/v2"
@@ -60,14 +58,8 @@ var groupCmd = &cobra.Command{
 }
 
 func init() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
-
 	rootCmd.AddCommand(groupCmd)
-	groupCmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	groupCmd.PersistentFlags().String("tlscacert", getDefaultRootPEMFilePath(), "trust certs signed only by this CA")
 	groupCmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 	groupCmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
 	groupCmd.AddCommand(ListGroupCmd())

@@ -18,8 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/doncicuto/glim/common"
@@ -246,17 +244,9 @@ func ListUserCmd() *cobra.Command {
 		},
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
-
-	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
-	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
 	cmd.Flags().UintP("uid", "i", 0, "user account id")
 	cmd.Flags().StringP("username", "u", "", "username")
+	addGlimPersistentFlags(cmd)
 
 	return cmd
 }

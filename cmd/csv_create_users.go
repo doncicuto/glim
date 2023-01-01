@@ -19,8 +19,6 @@ package cmd
 import (
 	"fmt"
 	"net/mail"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/doncicuto/glim/models"
@@ -138,15 +136,7 @@ func CsvCreateUsersCmd() *cobra.Command {
 		},
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
-
-	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
-	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
+	addGlimPersistentFlags(cmd)
 	cmd.Flags().StringP("file", "f", "", "path to CSV file, use README to know more about the format")
 	cmd.MarkFlagRequired("file")
 	return cmd

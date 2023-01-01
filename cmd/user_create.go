@@ -22,7 +22,6 @@ import (
 	"io"
 	"net/mail"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/Songmu/prompter"
@@ -142,7 +141,7 @@ func NewUserCmd() *cobra.Command {
 				jpegPhoto = *photo
 			}
 
-			resp, err := client.R().
+			resp, clientError := client.R().
 				SetHeader(contentTypeHeader, appJson).
 				SetBody(models.JSONUserBody{
 					Username:     viper.GetString("username"),
@@ -161,12 +160,8 @@ func NewUserCmd() *cobra.Command {
 				SetError(&common.APIError{}).
 				Post(endpoint)
 
-			if err != nil {
-				return fmt.Errorf(common.CantConnectMessage, err)
-			}
-
-			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
+			if err := checkAPICallResponse(clientError, resp); err != nil {
+				return err
 			}
 
 			printCmdMessage(cmd, "User created", jsonOutput)
@@ -174,13 +169,9 @@ func NewUserCmd() *cobra.Command {
 		},
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
-
+	// Flags
 	cmd.Flags().StringP("username", "u", "", "username")
+	cmd.MarkFlagRequired("username")
 	cmd.Flags().StringP("firstname", "f", "", "first name")
 	cmd.Flags().StringP("lastname", "l", "", "last name")
 	cmd.Flags().StringP("email", "e", "", "email")
@@ -188,16 +179,15 @@ func NewUserCmd() *cobra.Command {
 	cmd.Flags().StringP("ssh-public-key", "k", "", "SSH Public Key")
 	cmd.Flags().StringP("jpeg-photo", "j", "", "path to avatar file (jpg, png)")
 	cmd.Flags().StringP("groups", "g", "", "comma-separated list of groups that we want the new user account to be a member of")
+
+	// Boolean flags
 	cmd.Flags().Bool("password-stdin", false, "take the password from stdin")
 	cmd.Flags().Bool("manager", false, "Glim manager account?")
 	cmd.Flags().Bool("readonly", false, "Glim readonly account?")
 	cmd.Flags().Bool("plainuser", false, "Glim plain user account. User can read and modify its own user account information but not its group membership.")
 	cmd.Flags().Bool("lock", false, "lock account (no password will be set, user cannot log in)")
 	cmd.Flags().Bool("unlock", false, "unlock account (can log in)")
-	cmd.PersistentFlags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
-	cmd.PersistentFlags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
-	cmd.PersistentFlags().Bool("json", false, "encodes Glim output as json string")
-	cmd.MarkFlagRequired("username")
+	addGlimPersistentFlags(cmd)
 
 	return cmd
 }

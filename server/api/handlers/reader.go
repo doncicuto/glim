@@ -37,21 +37,13 @@ func IsReader(db *gorm.DB) echo.MiddlewareFunc {
 				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
 			}
 			user := c.Get("user").(*jwt.Token)
-			claims := user.Claims.(jwt.MapClaims)
-			jwtID, ok := claims["uid"].(float64)
-			if !ok {
-				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
-			}
-			jwtReadonly, ok := claims["readonly"].(bool)
-			if !ok {
-				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
-			}
-			jwtManager, ok := claims["manager"].(bool)
-			if !ok {
-				return &echo.HTTPError{Code: http.StatusNotAcceptable, Message: common.WrongTokenOrMissingMessage}
+
+			claims, err := getJWTClaims(user.Claims.(jwt.MapClaims))
+			if err != nil {
+				return err
 			}
 
-			if jwtManager || jwtReadonly || (uid != "" && uid == fmt.Sprintf("%d", uint(jwtID))) {
+			if claims.jwtManager || claims.jwtReadonly || (uid != "" && uid == fmt.Sprintf("%d", uint(claims.jwtID))) {
 				return next(c)
 			}
 
@@ -66,7 +58,7 @@ func IsReader(db *gorm.DB) echo.MiddlewareFunc {
 					}
 					return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 				} else {
-					if u.ID == uint32(jwtID) {
+					if u.ID == uint32(claims.jwtID) {
 						return next(c)
 					}
 				}

@@ -18,8 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -46,18 +44,14 @@ func LogoutCmd() *cobra.Command {
 			// Logout
 			client := RestClient("")
 
-			resp, err := client.R().
+			resp, clientError := client.R().
 				SetHeader(contentTypeHeader, appJson).
 				SetBody(fmt.Sprintf(`{"refresh_token":"%s"}`, token.RefreshToken)).
 				SetError(&common.APIError{}).
 				Delete(fmt.Sprintf("%s/v1/login/refresh_token", url))
 
-			if err != nil {
-				return fmt.Errorf(common.CantConnectMessage, err)
-			}
-
-			if resp.IsError() {
-				return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
+			if err := checkAPICallResponse(clientError, resp); err != nil {
+				return err
 			}
 
 			// Remove credentials file
@@ -71,13 +65,7 @@ func LogoutCmd() *cobra.Command {
 		},
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Could not get your home directory: %v\n", err)
-	}
-	defaultRootPEMFilePath := filepath.Join(homeDir, ".glim", "ca.pem")
-
-	cmd.Flags().String("tlscacert", defaultRootPEMFilePath, "trust certs signed only by this CA")
+	cmd.Flags().String("tlscacert", getDefaultRootPEMFilePath(), "trust certs signed only by this CA")
 	cmd.Flags().String("server", "https://127.0.0.1:1323", "glim REST API server address")
 
 	return cmd
