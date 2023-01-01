@@ -27,7 +27,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// NewUserCmd - TODO comment
+// UserPasswd is a Cobra Command that changes a user's password in Glim
 func UserPasswdCmd() *cobra.Command {
 
 	cmd := &cobra.Command{

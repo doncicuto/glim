@@ -22,13 +22,14 @@ import (
 	"gorm.io/gorm"
 )
 
-// Tokens - TODO comment
+// Tokens is a struct used to parse JWT tokens (access and refresh)
 type Tokens struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
 
-// TokenAuthentication - TODO comment
+// TokenAuthentication is a struct used to model a JWT Token.
+// Includes information about expiration, the token type and access and refresh tokens.
 type TokenAuthentication struct {
 	TokenType string  `json:"token_type"`
 	ExpiresIn float64 `json:"expires_in"`

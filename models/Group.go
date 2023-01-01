@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-// Group - TODO comment
+// Group is a struct that models a Glim group (Gorm, Json and Csv)
 type Group struct {
 	ID                        uint32    `gorm:"primary_key;auto_increment" json:"gid" csv:"gid"`
 	Name                      *string   `gorm:"size:100;unique;not null" json:"name" csv:"name"`
@@ -36,7 +36,7 @@ type Group struct {
 	GroupMembers              *string   `csv:"members"`
 }
 
-// GroupInfo - TODO comment
+// GroupInfo is a struct used to parse JSON group's information
 type GroupInfo struct {
 	ID                        uint32     `json:"gid"`
 	Name                      string     `json:"name"`
@@ -50,12 +50,12 @@ type GroupID struct {
 	ID uint32 `json:"gid"`
 }
 
-// GroupMembers - TODO comment
+// GroupMembers is a struct used to parse JSON Group's members (usernames)
 type GroupMembers struct {
 	Members string `json:"members"`
 }
 
-// JSONGroupBody - TODO comment
+// JSONGroupBody is used to parse a JSON group response body returned from API requests
 type JSONGroupBody struct {
 	Name                      string `json:"name"`
 	Description               string `json:"description"`

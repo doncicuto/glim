@@ -31,7 +31,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// NewUserCmd - TODO comment
+// NewUserCmd is a Cobra Command that creates a new user in Glim
 func NewUserCmd() *cobra.Command {
 
 	cmd := &cobra.Command{

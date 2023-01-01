@@ -232,7 +232,7 @@ func GetGroupInfo(cmd *cobra.Command) error {
 	return nil
 }
 
-// ListGroupCmd - TODO comment
+// ListGroupCmd is a Cobra Command that list groups created in Glin
 func ListGroupCmd() *cobra.Command {
 
 	cmd := &cobra.Command{

@@ -230,7 +230,7 @@ func GetUserInfo(cmd *cobra.Command) error {
 	return nil
 }
 
-// ListUserCmd - TODO comment
+// ListUserCmd is a Cobra Command that lists users available in Glim
 func ListUserCmd() *cobra.Command {
 
 	cmd := &cobra.Command{

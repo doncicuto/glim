@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// DeleteUserCmd - TODO comment
+// DeleteUserCmd is a Cobra Command that deletes a new user in Glim
 func DeleteUserCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rm",
