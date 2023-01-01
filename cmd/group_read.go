@@ -48,6 +48,35 @@ func getGIDFromGroupName(client *resty.Client, group string, url string) (uint, 
 	return uint(result.ID), nil
 }
 
+func printGroupInfo(cmd *cobra.Command, result *models.GroupInfo) {
+	fmt.Fprintf(cmd.OutOrStdout(), descrFormat, "Group:", result.Name)
+	fmt.Fprint(cmd.OutOrStdout(), sectionSeparator)
+	fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100d\n", " GID:", result.ID)
+	fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n\n", " Description:", result.Description)
+
+	fmt.Fprintf(cmd.OutOrStdout(), "%-15s\n", "Members:")
+	fmt.Fprint(cmd.OutOrStdout(), sectionSeparator)
+	for _, member := range result.Members {
+		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100d\n", " UID:", member.ID)
+		fmt.Fprintf(cmd.OutOrStdout(), descrFormat, " Username:", member.Username)
+		fmt.Fprintf(cmd.OutOrStdout(), "----\n")
+	}
+}
+
+func printApacheGuacConfig(cmd *cobra.Command, result *models.GroupInfo) {
+	fmt.Fprintf(cmd.OutOrStdout(), "\n%-15s\n", "Apache Guacamole Configuration:")
+	fmt.Fprint(cmd.OutOrStdout(), sectionSeparator)
+	fmt.Fprintf(cmd.OutOrStdout(), descrFormat, " Protocol:", result.GuacamoleConfigProtocol)
+	parameters := strings.Split(result.GuacamoleConfigParameters, ",")
+	if len(parameters) > 0 {
+		fmt.Fprintf(cmd.OutOrStdout(), "%-20s\n", " Parameters:")
+		for _, parameter := range parameters {
+			fmt.Fprintf(cmd.OutOrStdout(), "  - %-17s\n", parameter)
+		}
+	}
+	fmt.Fprintf(cmd.OutOrStdout(), "----\n")
+}
+
 func getGroup(cmd *cobra.Command, id uint, jsonOutput bool) error {
 	// Glim server URL
 	url := viper.GetString("server")
@@ -80,35 +109,65 @@ func getGroup(cmd *cobra.Command, id uint, jsonOutput bool) error {
 	if jsonOutput {
 		encodeGroupToJson(cmd, result)
 	} else {
-		fmt.Fprintf(cmd.OutOrStdout(), descrFormat, "Group:", result.Name)
-		fmt.Fprint(cmd.OutOrStdout(), sectionSeparator)
-		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100d\n", " GID:", result.ID)
-		fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100s\n\n", " Description:", result.Description)
-
-		fmt.Fprintf(cmd.OutOrStdout(), "%-15s\n", "Members:")
-		fmt.Fprint(cmd.OutOrStdout(), sectionSeparator)
-		for _, member := range result.Members {
-			fmt.Fprintf(cmd.OutOrStdout(), "%-15s %-100d\n", " UID:", member.ID)
-			fmt.Fprintf(cmd.OutOrStdout(), descrFormat, " Username:", member.Username)
-			fmt.Fprintf(cmd.OutOrStdout(), "----\n")
-		}
-
-		// Support for Apache Guacamole LDAP config schema
+		// Print group information to stdout
+		printGroupInfo(cmd, result)
+		// Print Apache Guacamole info if supported
 		if result.GuacamoleConfigProtocol != "" && result.GuacamoleConfigParameters != "" {
-			fmt.Fprintf(cmd.OutOrStdout(), "\n%-15s\n", "Apache Guacamole Configuration:")
-			fmt.Fprint(cmd.OutOrStdout(), sectionSeparator)
-			fmt.Fprintf(cmd.OutOrStdout(), descrFormat, " Protocol:", result.GuacamoleConfigProtocol)
-			parameters := strings.Split(result.GuacamoleConfigParameters, ",")
-			if len(parameters) > 0 {
-				fmt.Fprintf(cmd.OutOrStdout(), "%-20s\n", " Parameters:")
-				for _, parameter := range parameters {
-					fmt.Fprintf(cmd.OutOrStdout(), "  - %-17s\n", parameter)
-				}
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "----\n")
+			printApacheGuacConfig(cmd, result)
 		}
 	}
 	return nil
+}
+
+func printGroupHeader(cmd *cobra.Command, guacamoleEnabled bool) {
+	if guacamoleEnabled {
+		fmt.Fprintf(cmd.OutOrStdout(), "%-6s %-20s %-35s %-10s %-50s\n",
+			"GID",
+			"GROUP",
+			"DESCRIPTION",
+			"GUACAMOLE",
+			"MEMBERS",
+		)
+	} else {
+		fmt.Fprintf(cmd.OutOrStdout(), "%-6s %-20s %-35s %-50s\n",
+			"GID",
+			"GROUP",
+			"DESCRIPTION",
+			"MEMBERS",
+		)
+	}
+
+}
+
+func printGroupMembers(cmd *cobra.Command, results *[]models.GroupInfo, guacamoleEnabled bool) {
+	for _, result := range *results {
+		members := "none"
+		if len(result.Members) > 0 {
+			members = ""
+			for i, member := range result.Members {
+				if i == len(result.Members)-1 {
+					members += member.Username
+				} else {
+					members += member.Username + ", "
+				}
+			}
+		}
+
+		if guacamoleEnabled {
+			fmt.Fprintf(cmd.OutOrStdout(), "%-6d %-20s %-35s %-10t %-50s\n",
+				result.ID,
+				truncate(result.Name, 20),
+				truncate(result.Description, 35),
+				result.GuacamoleConfigProtocol != "" && result.GuacamoleConfigParameters != "",
+				truncate(members, 50))
+		} else {
+			fmt.Fprintf(cmd.OutOrStdout(), "%-6d %-20s %-35s %-50s\n",
+				result.ID,
+				truncate(result.Name, 20),
+				truncate(result.Description, 35),
+				truncate(members, 50))
+		}
+	}
 }
 
 func getGroups(cmd *cobra.Command, jsonOutput bool) error {
@@ -125,6 +184,7 @@ func getGroups(cmd *cobra.Command, jsonOutput bool) error {
 	// Rest API authentication
 	client := RestClient(token.AccessToken)
 
+	// API call
 	resp, err := client.R().
 		SetHeader(contentTypeHeader, appJson).
 		SetResult([]models.GroupInfo{}).
@@ -139,6 +199,7 @@ func getGroups(cmd *cobra.Command, jsonOutput bool) error {
 		return fmt.Errorf("%v", resp.Error().(*common.APIError).Message)
 	}
 
+	// Get results and print them
 	results := resp.Result().(*[]models.GroupInfo)
 	if jsonOutput {
 		encodeGroupsToJson(cmd, results)
@@ -147,53 +208,8 @@ func getGroups(cmd *cobra.Command, jsonOutput bool) error {
 		if err != nil {
 			return err
 		}
-
-		if guacamoleEnabled {
-			fmt.Fprintf(cmd.OutOrStdout(), "%-6s %-20s %-35s %-10s %-50s\n",
-				"GID",
-				"GROUP",
-				"DESCRIPTION",
-				"GUACAMOLE",
-				"MEMBERS",
-			)
-		} else {
-			fmt.Fprintf(cmd.OutOrStdout(), "%-6s %-20s %-35s %-50s\n",
-				"GID",
-				"GROUP",
-				"DESCRIPTION",
-				"MEMBERS",
-			)
-		}
-
-		for _, result := range *results {
-			members := "none"
-			if len(result.Members) > 0 {
-				members = ""
-				for i, member := range result.Members {
-					if i == len(result.Members)-1 {
-						members += member.Username
-					} else {
-						members += member.Username + ", "
-					}
-				}
-			}
-
-			if guacamoleEnabled {
-				fmt.Fprintf(cmd.OutOrStdout(), "%-6d %-20s %-35s %-10t %-50s\n",
-					result.ID,
-					truncate(result.Name, 20),
-					truncate(result.Description, 35),
-					result.GuacamoleConfigProtocol != "" && result.GuacamoleConfigParameters != "",
-					truncate(members, 50))
-			} else {
-				fmt.Fprintf(cmd.OutOrStdout(), "%-6d %-20s %-35s %-50s\n",
-					result.ID,
-					truncate(result.Name, 20),
-					truncate(result.Description, 35),
-					truncate(members, 50))
-			}
-
-		}
+		printGroupHeader(cmd, guacamoleEnabled)
+		printGroupMembers(cmd, results, guacamoleEnabled)
 	}
 	return nil
 }
